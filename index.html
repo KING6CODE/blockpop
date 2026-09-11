@@ -733,7 +733,9 @@ updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
-/* Teinte une image de matière dans la couleur du bloc (cache par couleur) */
+/* Teinte une texture matière dans la couleur du bloc :
+   mode 'color' = garde la LUMINOSITÉ de la texture, emprunte la teinte.
+   Rogne 10 % pour supprimer le bord sombre intégré, coins arrondis. */
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
@@ -741,29 +743,33 @@ if(tintCache[key])return tintCache[key];
 const im=Assets.imgs[stId];
 if(!im)return null;
 const S=192;
-const grayCv=document.createElement('canvas');
-grayCv.width=S;grayCv.height=S;
-const gc=grayCv.getContext('2d');
-gc.filter='grayscale(1)';
-gc.drawImage(im,0,0,S,S);
-gc.filter='none';
-/* coins arrondis proprement découpés */
-gc.globalCompositeOperation='destination-in';
+const crop=S*.10;                       /* rogne le liseré du pourtour */
 function rr2(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);
 c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-rr2(gc,0,0,S,S,S*.17);gc.fill();
-/* teinte : multiplication de la carte de luminance par la couleur */
 const cv=document.createElement('canvas');
 cv.width=S;cv.height=S;
 const c=cv.getContext('2d');
-c.drawImage(grayCv,0,0);
-c.globalCompositeOperation='multiply';
+/* 1. texture rognée, remplit 100 % */
+c.drawImage(im,crop,crop,S-crop*2,S-crop*2,0,0,S,S);
+/* 2. recolorisation 'color' : luminosité conservée, teinte remplacée */
+c.globalCompositeOperation='color';
 c.fillStyle=COLORS[ci].b;
 c.fillRect(0,0,S,S);
-/* les hautes lumières remontent vers le blanc */
-c.globalCompositeOperation='screen';
-c.globalAlpha=.35;
-c.drawImage(grayCv,0,0);
+/* 3. repasse la texture en 'overlay' pour raviver contrastes et brillance */
+c.globalCompositeOperation='overlay';
+c.globalAlpha=.40;
+c.drawImage(im,crop,crop,S-crop*2,S-crop*2,0,0,S,S);
+c.globalAlpha=1;
+/* 4. remonte un peu la lumière globale (anti-ternissement) */
+c.globalCompositeOperation='lighter';
+c.globalAlpha=.06;
+c.fillStyle='#ffffff';
+c.fillRect(0,0,S,S);
+c.globalAlpha=1;
+c.globalCompositeOperation='source-over';
+/* 5. coins arrondis */
+c.globalCompositeOperation='destination-in';
+rr2(c,0,0,S,S,S*.16);c.fill();
 tintCache[key]=cv;
 return cv}
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
