@@ -733,43 +733,48 @@ updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
-/* Teinte une texture matière dans la couleur du bloc :
-   mode 'color' = garde la LUMINOSITÉ de la texture, emprunte la teinte.
-   Rogne 10 % pour supprimer le bord sombre intégré, coins arrondis. */
+/* ===== Réglages texture (ajuste ici si besoin) ===== */
+const TILE_CROP=0.16;   /* portion rognée de chaque bord (monte à 0.20 si liseré encore visible) */
+const TINT_SAT=1.45;    /* saturation des teintes */
+const TINT_LIGHT=1.10;  /* luminosité des teintes */
+const TINT_OVERLAY=.55; /* force de la brillance de la texture */
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
 if(tintCache[key])return tintCache[key];
 const im=Assets.imgs[stId];
-if(!im)return null;
+if(!im||!im.width)return null;
 const S=192;
-const crop=S*.10;                       /* rogne le liseré du pourtour */
+const cropX=Math.round(im.width*TILE_CROP);
+const srcW=im.width-cropX*2;
 function rr2(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);
 c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
 const cv=document.createElement('canvas');
 cv.width=S;cv.height=S;
 const c=cv.getContext('2d');
-/* 1. texture rognée, remplit 100 % */
-c.drawImage(im,crop,crop,S-crop*2,S-crop*2,0,0,S,S);
-/* 2. recolorisation 'color' : luminosité conservée, teinte remplacée */
+/* 1. texture rognée + saturée + éclaircie dès la source */
+c.filter='saturate('+TINT_SAT+') brightness('+TINT_LIGHT+')';
+c.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
+c.filter='none';
+/* 2. teinte 'color' : garde la luminance de TA texture, prend la teinte cible */
 c.globalCompositeOperation='color';
 c.fillStyle=COLORS[ci].b;
 c.fillRect(0,0,S,S);
-/* 3. repasse la texture en 'overlay' pour raviver contrastes et brillance */
+/* 3. repasse la texture en 'overlay' plus fort : brillance et contrastes ravivés */
 c.globalCompositeOperation='overlay';
-c.globalAlpha=.40;
-c.drawImage(im,crop,crop,S-crop*2,S-crop*2,0,0,S,S);
+c.globalAlpha=TINT_OVERLAY;
+c.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
 c.globalAlpha=1;
-/* 4. remonte un peu la lumière globale (anti-ternissement) */
+/* 4. coup de lumière global */
 c.globalCompositeOperation='lighter';
-c.globalAlpha=.06;
+c.globalAlpha=.07;
 c.fillStyle='#ffffff';
 c.fillRect(0,0,S,S);
 c.globalAlpha=1;
 c.globalCompositeOperation='source-over';
 /* 5. coins arrondis */
 c.globalCompositeOperation='destination-in';
-rr2(c,0,0,S,S,S*.16);c.fill();
+rr2(c,0,0,S,S,S*.17);c.fill();
 tintCache[key]=cv;
 return cv}
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
