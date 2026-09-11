@@ -734,10 +734,11 @@ window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
 /* ===== Réglages (une ligne = un réglage) ===== */
-const TILE_CROP=0.05;   /* presque pas de rognage : texture intacte */
-const TILE_BRIGHT=1.06; /* luminosité source */
-const TINT_SAT=1.25;    /* saturation finale */
-const GLOSS=.45;        /* force des hautes lumières */
+const TILE_CROP=0.05;
+const TILE_BRIGHT=1.02;  /* léger retrait : le contraste reviendra via la saturation */
+const TINT_SAT=1.55;     /* le vrai boost de jus */
+const TINT_CONTRAST=1.10;/* nouveau : resserre ombres/lumières */
+const GLOSS=.42;         /* un peu moins de voile blanc, la couleur respire */
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
@@ -761,7 +762,7 @@ g.filter='none';
 const cv=document.createElement('canvas');
 cv.width=S;cv.height=S;
 const c=cv.getContext('2d');
-c.fillStyle=mixHex(COLORS[ci].b,'#ffffff',.22);
+c.fillStyle=mixHex(COLORS[ci].b,'#000000',.08);
 c.fillRect(0,0,S,S);
 c.globalCompositeOperation='multiply';
 c.drawImage(gray,0,0);
@@ -772,11 +773,11 @@ c.globalAlpha=GLOSS;
 c.drawImage(gray,0,0);
 c.globalAlpha=1;
 c.globalCompositeOperation='source-over';
-/* 4. SATURATION FINALE appliquée au résultat entier */
+/* 4. SATURATION + CONTRASTE finaux sur le résultat complet */
 const fin=document.createElement('canvas');
 fin.width=S;fin.height=S;
 const f=fin.getContext('2d');
-f.filter='saturate('+TINT_SAT+')';
+f.filter='saturate('+TINT_SAT+') contrast('+TINT_CONTRAST+')';
 f.drawImage(cv,0,0);
 f.filter='none';
 /* 5. coins arrondis */
