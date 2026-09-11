@@ -733,11 +733,12 @@ updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
-/* ===== Réglages texture (ajuste ici si besoin) ===== */
-const TILE_CROP=0.16;   /* portion rognée de chaque bord (monte à 0.20 si liseré encore visible) */
-const TINT_SAT=1.45;    /* saturation des teintes */
-const TINT_LIGHT=1.10;  /* luminosité des teintes */
-const TINT_OVERLAY=.55; /* force de la brillance de la texture */
+/* ===== Réglages (une ligne chacun si ajustement) ===== */
+const TILE_CROP=0.12;   /* rogne le liseré du bord (le coussin central reste visible) */
+const TINT_SAT=1.25;    /* saturation source (baissée : 1.45 était trop crame) */
+const TINT_LIGHT=1.02;  /* luminosité source (baissée légèrement comme demandé) */
+const TINT_OVERLAY=.75; /* force du détail texture (monté : c'est lui qui ramène ton coussin) */
+const TINT_LIFT=.04;    /* coup de lumière final (baissé) */
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
@@ -752,22 +753,24 @@ c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x
 const cv=document.createElement('canvas');
 cv.width=S;cv.height=S;
 const c=cv.getContext('2d');
-/* 1. texture rognée + saturée + éclaircie dès la source */
+/* 1. texture rognée, légèrement saturée/éclaircie */
 c.filter='saturate('+TINT_SAT+') brightness('+TINT_LIGHT+')';
 c.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
 c.filter='none';
-/* 2. teinte 'color' : garde la luminance de TA texture, prend la teinte cible */
-c.globalCompositeOperation='color';
-c.fillStyle=COLORS[ci].b;
-c.fillRect(0,0,S,S);
-/* 3. repasse la texture en 'overlay' plus fort : brillance et contrastes ravivés */
+/* 2. DÉTAIL D'ABORD : repasse forte de la texture en overlay
+      (c'est elle qui ramène le coussin, l'anneau, l'éclat) */
 c.globalCompositeOperation='overlay';
 c.globalAlpha=TINT_OVERLAY;
 c.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
 c.globalAlpha=1;
-/* 4. coup de lumière global */
+/* 3. TEINTE ENSUITE : la couleur est versée en DERNIER,
+      elle ne touche que la teinte, toute la structure reste */
+c.globalCompositeOperation='color';
+c.fillStyle=COLORS[ci].b;
+c.fillRect(0,0,S,S);
+/* 4. micro coup de lumière */
 c.globalCompositeOperation='lighter';
-c.globalAlpha=.07;
+c.globalAlpha=TINT_LIFT;
 c.fillStyle='#ffffff';
 c.fillRect(0,0,S,S);
 c.globalAlpha=1;
