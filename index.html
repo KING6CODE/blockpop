@@ -733,12 +733,11 @@ updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
-/* ===== Réglages (une ligne chacun si ajustement) ===== */
-const TILE_CROP=0.12;   /* rogne le liseré du bord (le coussin central reste visible) */
-const TINT_SAT=1.25;    /* saturation source (baissée : 1.45 était trop crame) */
-const TINT_LIGHT=1.02;  /* luminosité source (baissée légèrement comme demandé) */
-const TINT_OVERLAY=.75; /* force du détail texture (monté : c'est lui qui ramène ton coussin) */
-const TINT_LIFT=.04;    /* coup de lumière final (baissé) */
+/* ===== Réglages (une ligne = un réglage) ===== */
+const TILE_CROP=0.12;   /* rognage du bord */
+const TILE_BRIGHT=1.04; /* luminosité de la texture source */
+const TINT_SAT=1.35;    /* saturation FINALE (sur le résultat complet) */
+const GLOSS=.48;        /* force des hautes lumières (l'éclat de ta texture) */
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
@@ -750,36 +749,41 @@ const cropX=Math.round(im.width*TILE_CROP);
 const srcW=im.width-cropX*2;
 function rr2(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);
 c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+/* 1. CARTE DE LUMINANCE : ta texture en noir & blanc, contrastée */
+const gray=document.createElement('canvas');
+gray.width=S;gray.height=S;
+const g=gray.getContext('2d');
+g.filter='grayscale(1) brightness('+TILE_BRIGHT+')';
+g.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
+g.filter='none';
+/* 2. COLORISATION : couleur claire × luminance
+      (multiply éprouvé — c'est celui qui montrait ton coussin) */
 const cv=document.createElement('canvas');
 cv.width=S;cv.height=S;
 const c=cv.getContext('2d');
-/* 1. texture rognée, légèrement saturée/éclaircie */
-c.filter='saturate('+TINT_SAT+') brightness('+TINT_LIGHT+')';
-c.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
-c.filter='none';
-/* 2. DÉTAIL D'ABORD : repasse forte de la texture en overlay
-      (c'est elle qui ramène le coussin, l'anneau, l'éclat) */
-c.globalCompositeOperation='overlay';
-c.globalAlpha=TINT_OVERLAY;
-c.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
-c.globalAlpha=1;
-/* 3. TEINTE ENSUITE : la couleur est versée en DERNIER,
-      elle ne touche que la teinte, toute la structure reste */
-c.globalCompositeOperation='color';
-c.fillStyle=COLORS[ci].b;
+c.fillStyle=mixHex(COLORS[ci].b,'#ffffff',.22);
 c.fillRect(0,0,S,S);
-/* 4. micro coup de lumière */
-c.globalCompositeOperation='lighter';
-c.globalAlpha=TINT_LIFT;
-c.fillStyle='#ffffff';
-c.fillRect(0,0,S,S);
+c.globalCompositeOperation='multiply';
+c.drawImage(gray,0,0);
+/* 3. ÉCLAT : repasse la luminance en 'screen' —
+      le coussin, l'anneau et le reflet haut-gauche ressortent lumineux */
+c.globalCompositeOperation='screen';
+c.globalAlpha=GLOSS;
+c.drawImage(gray,0,0);
 c.globalAlpha=1;
 c.globalCompositeOperation='source-over';
+/* 4. SATURATION FINALE appliquée au résultat entier */
+const fin=document.createElement('canvas');
+fin.width=S;fin.height=S;
+const f=fin.getContext('2d');
+f.filter='saturate('+TINT_SAT+')';
+f.drawImage(cv,0,0);
+f.filter='none';
 /* 5. coins arrondis */
-c.globalCompositeOperation='destination-in';
-rr2(c,0,0,S,S,S*.17);c.fill();
-tintCache[key]=cv;
-return cv}
+f.globalCompositeOperation='destination-in';
+rr2(f,0,0,S,S,S*.17);f.fill();
+tintCache[key]=fin;
+return fin}
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
 alpha=alpha==null?1:alpha;scale=scale==null?1:scale;
 mono=!!mono;sx=sx==null?1:sx;sy=sy==null?1:sy;th=th==null?theme:th;
