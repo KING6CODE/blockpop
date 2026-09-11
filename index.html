@@ -733,6 +733,39 @@ updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
+/* Teinte une image de matière dans la couleur du bloc (cache par couleur) */
+const tintCache={};
+function tintedTile(stId,ci){
+const key=stId+'_'+ci;
+if(tintCache[key])return tintCache[key];
+const im=Assets.imgs[stId];
+if(!im)return null;
+const S=192;
+const grayCv=document.createElement('canvas');
+grayCv.width=S;grayCv.height=S;
+const gc=grayCv.getContext('2d');
+gc.filter='grayscale(1)';
+gc.drawImage(im,0,0,S,S);
+gc.filter='none';
+/* coins arrondis proprement découpés */
+gc.globalCompositeOperation='destination-in';
+function rr2(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);
+c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+rr2(gc,0,0,S,S,S*.17);gc.fill();
+/* teinte : multiplication de la carte de luminance par la couleur */
+const cv=document.createElement('canvas');
+cv.width=S;cv.height=S;
+const c=cv.getContext('2d');
+c.drawImage(grayCv,0,0);
+c.globalCompositeOperation='multiply';
+c.fillStyle=COLORS[ci].b;
+c.fillRect(0,0,S,S);
+/* les hautes lumières remontent vers le blanc */
+c.globalCompositeOperation='screen';
+c.globalAlpha=.35;
+c.drawImage(grayCv,0,0);
+tintCache[key]=cv;
+return cv}
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
 alpha=alpha==null?1:alpha;scale=scale==null?1:scale;
 mono=!!mono;sx=sx==null?1:sx;sy=sy==null?1:sy;th=th==null?theme:th;
@@ -742,7 +775,9 @@ c.save();c.globalAlpha=alpha;
 if(scale!==1){c.translate(x+s/2,y+s/2);c.scale(scale,scale);c.translate(-(x+s/2),-(y+s/2))}
 if(sx!==1||sy!==1){c.translate(x+s/2,y+s);c.scale(sx,sy);c.translate(-(x+s/2),-(y+s))}
 if(im){
-c.drawImage(im,x,y,s,s);
+const tinted=tintedTile(st.id,ci);
+if(tinted)c.drawImage(tinted,x,y,s,s);
+else c.drawImage(im,x,y,s,s);
 if(mono){c.fillStyle='rgba(40,42,60,.55)';rr(c,x,y,s,s,s*.18);c.fill()}
 }else{
 st.draw(c,x,y,s,ci,alpha,mono)}
