@@ -735,10 +735,12 @@ window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
 /* ===== Réglages ===== */
-const TILE_CROP=0.05;   /* texture quasi entière */
-const SHADE_STR=.62;    /* force du modelé (relief de ta texture) */
-const GLOSS=.20;        /* éclat additionnel */
-const TINT_SAT=1.15;    /* micro-boost final */
+const TILE_CROP=0;
+const TILE_BRIGHT=1;
+const TINT_SAT=1.0;
+const TINT_CONTRAST=1;
+const SHADE_STR=.55;
+const GLOSS=.12;
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
