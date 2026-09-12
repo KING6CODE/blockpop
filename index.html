@@ -752,8 +752,10 @@ const key=stId+'_'+SUFFIXES.indexOf(suf);
 const cv=document.createElement('canvas');
 cv.width=im.width;cv.height=im.height;
 cv.getContext('2d').drawImage(im,0,0);
-tileCache[key]=cv});
-im.addEventListener('error',()=>{});
+tileCache[key]=cv;
+renderTray(false);
+console.log('✔ chargé :',stId+'_'+suf)});
+im.addEventListener('error',()=>{console.log('✖ MANQUANT :',stId+'_'+suf+'.png')});
 im.src='assets/blocks/'+stId+'_'+suf+'.png'}catch(e){}})}
 /* init : précharge pour toutes les matières */
 STYLES.forEach(st=>loadTiles(st.id));
