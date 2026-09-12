@@ -233,6 +233,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 
 <script>
 'use strict';
+var k=0; /* filet anti-crash boucle legacy */
 /* ================================================================
    BLOCKPOP v13 « REAL ASSETS »
    - 10 matières avec rendu canvas (fallback) + image custom optionnelle
@@ -734,7 +735,7 @@ window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
 /* ===== Réglages (une ligne = un réglage) ===== */
-const TILE_CROP=0.05;
+const TILE_CROP=0;
 const TILE_BRIGHT=1.02;  /* léger retrait : le contraste reviendra via la saturation */
 const TINT_SAT=1.55;     /* le vrai boost de jus */
 const TINT_CONTRAST=1.10;/* nouveau : resserre ombres/lumières */
