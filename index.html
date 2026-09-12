@@ -734,12 +734,11 @@ updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
-/* ===== Réglages (une ligne = un réglage) ===== */
-const TILE_CROP=0;
-const TILE_BRIGHT=1.02;  /* léger retrait : le contraste reviendra via la saturation */
-const TINT_SAT=1.55;     /* le vrai boost de jus */
-const TINT_CONTRAST=1.10;/* nouveau : resserre ombres/lumières */
-const GLOSS=.42;         /* un peu moins de voile blanc, la couleur respire */
+/* ===== Réglages ===== */
+const TILE_CROP=0.05;   /* texture quasi entière */
+const SHADE_STR=.62;    /* force du modelé (relief de ta texture) */
+const GLOSS=.20;        /* éclat additionnel */
+const TINT_SAT=1.15;    /* micro-boost final */
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
@@ -749,40 +748,40 @@ if(!im||!im.width)return null;
 const S=192;
 const cropX=Math.round(im.width*TILE_CROP);
 const srcW=im.width-cropX*2;
-function rr2(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);
-c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-/* 1. CARTE DE LUMINANCE : ta texture en noir & blanc, contrastée */
+/* 1. luminance de ta texture (gris contrasté) */
 const gray=document.createElement('canvas');
 gray.width=S;gray.height=S;
 const g=gray.getContext('2d');
-g.filter='grayscale(1) brightness('+TILE_BRIGHT+')';
+g.filter='grayscale(1)';
 g.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
 g.filter='none';
-/* 2. COLORISATION : couleur claire × luminance
-      (multiply éprouvé — c'est celui qui montrait ton coussin) */
 const cv=document.createElement('canvas');
 cv.width=S;cv.height=S;
 const c=cv.getContext('2d');
-c.fillStyle=mixHex(COLORS[ci].b,'#000000',.08);
-c.fillRect(0,0,S,S);
-c.globalCompositeOperation='multiply';
+/* 2. LE DÉGRADÉ BLOCK BLAST peint directement (les vraies couleurs) */
+const col=COLORS[ci];
+const grad=c.createLinearGradient(0,0,0,S);
+grad.addColorStop(0,col.l);
+grad.addColorStop(.55,col.b);
+grad.addColorStop(1,col.d);
+c.fillStyle=grad;c.fillRect(0,0,S,S);
+/* 3. MODELÉ : ta texture en soft-light — apporte le relief SANS toucher la teinte */
+c.globalCompositeOperation='soft-light';
+c.globalAlpha=SHADE_STR;
 c.drawImage(gray,0,0);
-/* 3. ÉCLAT : repasse la luminance en 'screen' —
-      le coussin, l'anneau et le reflet haut-gauche ressortent lumineux */
+c.globalAlpha=1;c.globalCompositeOperation='source-over';
+/* 4. éclat léger : seulement les zones claires de la texture */
 c.globalCompositeOperation='screen';
 c.globalAlpha=GLOSS;
 c.drawImage(gray,0,0);
-c.globalAlpha=1;
-c.globalCompositeOperation='source-over';
-/* 4. SATURATION + CONTRASTE finaux sur le résultat complet */
+c.globalAlpha=1;c.globalCompositeOperation='source-over';
+/* 5. micro-boost saturation */
 const fin=document.createElement('canvas');
 fin.width=S;fin.height=S;
 const f=fin.getContext('2d');
-f.filter='saturate('+TINT_SAT+') contrast('+TINT_CONTRAST+')';
+f.filter='saturate('+TINT_SAT+')';
 f.drawImage(cv,0,0);
 f.filter='none';
-/* 5. coins arrondis */
-/* pas de rognage : texture pleine */
 tintCache[key]=fin;
 return fin}
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
