@@ -276,6 +276,12 @@ header{
   pointer-events:none;
   z-index:50;
 }
+#fxLayer{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:60;
+}
 .overlay{
   position:fixed;
   inset:0;
@@ -618,6 +624,7 @@ header{
 </div>
 
 <canvas id="dragLayer"></canvas>
+<canvas id="fxLayer"></canvas>
 
 <div class="overlay show" id="ovTitle">
   <div class="panel">
@@ -1136,6 +1143,8 @@ const LEVELS = [
 const boardEl = $('board');
 const bctx = boardEl.getContext('2d');
 const dragLayer = $('dragLayer');
+const fxLayer = $('fxLayer');
+const fctx = fxLayer.getContext('2d');
 const dctx = dragLayer.getContext('2d');
 const boardWrap = $('boardWrap');
 const scoreEl = $('score');
@@ -1220,6 +1229,11 @@ function resize(){
   boardEl.style.width = cw+'px';
   boardEl.style.height = chh+'px';
   bctx.setTransform(dpr,0,0,dpr,0,0);
+  fxLayer.width = window.innerWidth*dpr;
+  fxLayer.height = window.innerHeight*dpr;
+  fxLayer.style.width = window.innerWidth+'px';
+  fxLayer.style.height = window.innerHeight+'px';
+  fctx.setTransform(dpr,0,0,dpr,0,0);
   updateBoardRect();
   renderTray(false);
 }
@@ -2131,7 +2145,17 @@ slotEls.forEach((el,i)=>el.addEventListener('pointerdown', e=>onDown(e,i)));
 dragLayer.addEventListener('contextmenu', e=>e.preventDefault());
 
 /* ---------- Décor : losange doré (MODIF 8 : seulement combo ≥ 3, pump) ---------- */
+let _bRect = null;
+function bRectFix(){
+  if(!_bRect || _bRect.t < performance.now()-500){
+    const r = boardEl.getBoundingClientRect();
+    _bRect = {left:r.left, top:r.top, t:performance.now()};
+  }
+  fctx.save();
+  fctx.translate(_bRect.left, _bRect.top);
+}
 function drawDiamondDeco(t){
+  bRectFix();
   if(combo < 3) return;
   if(diamondPump === 0) diamondPump = t;
   const pump = Math.max(0, 1-(t-diamondPump)/220);
@@ -2196,6 +2220,7 @@ function drawDiamondDeco(t){
       t0:t, life:700, sh:1, g:0, rot:0, vr:0
     });
   }
+  fctx.restore();
 }
 /* ---------- Vignette de danger ---------- */
 function drawDanger(t){
@@ -2308,16 +2333,18 @@ function frame(t){
   for(let c=0;c<N;c++){
   drawEmpty(bctx,gx+c*cell,gy+r*cell,cell)}}
   /* onde de changement de matière */
-    if(t-styleRingT < 600 && styleRingT > 0){
+  if(t-styleRingT < 600 && styleRingT > 0){
+    bRectFix();
     const kk = (t-styleRingT)/600;
-    bctx.save();
-    bctx.globalAlpha = (1-kk)*.7;
-    bctx.strokeStyle = boardBG();
-    bctx.lineWidth = 6;
-    bctx.beginPath();
-    bctx.arc(cw/2, gy+cell*4, cell*(1+kk*8), 0, 6.3);
-    bctx.stroke();
-    bctx.restore();
+    fctx.save();
+    fctx.globalAlpha = (1-kk)*.7;
+    fctx.strokeStyle = boardBG();
+    fctx.lineWidth = 6;
+    fctx.beginPath();
+    fctx.arc(cw/2, gy+cell*4, cell*(1+kk*8), 0, 6.3);
+    fctx.stroke();
+    fctx.restore();
+    fctx.restore();
   }
   /* ===== MODIF 10 : PRÉVIEWS — contour blanc + lumière latérale =====
      La ligne imminente est dessinée comme un rectangle pleine largeur
