@@ -782,8 +782,7 @@ f.filter='saturate('+TINT_SAT+') contrast('+TINT_CONTRAST+')';
 f.drawImage(cv,0,0);
 f.filter='none';
 /* 5. coins arrondis */
-f.globalCompositeOperation='destination-in';
-rr2(f,0,0,S,S,S*.17);f.fill();
+/* pas de rognage : texture pleine */
 tintCache[key]=fin;
 return fin}
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
