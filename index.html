@@ -734,34 +734,45 @@ updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
-const tintCache={};
-function tintedTile(stId,ci){
+/* Chaque couleur = son propre fichier : assets/blocks/<style>_<couleur>.png
+   Fallback 1 : <style>.png (texture unique). Fallback 2 : rendu canvas. */
+const SUFFIXES=['red','orange','yellow','green','cyan','blue','purple','pink'];
+const tileCache={};
+function tileFor(stId,ci){
 const key=stId+'_'+ci;
-if(tintCache[key])return tintCache[key];
-const im=Assets.imgs[stId];
-if(!im||!im.width)return null;
-const S=192;
+if(tileCache[key]!==undefined)return tileCache[key];
+tileCache[key]=null; /* évite les essais répétés si fichier absent */
+return null}
+/* préchargement des 8 variantes par matière */
+function loadTiles(stId){
+SUFFIXES.forEach(suf=>{
+try{const im=new Image();
+im.addEventListener('load',()=>{
+const key=stId+'_'+SUFFIXES.indexOf(suf);
 const cv=document.createElement('canvas');
-cv.width=S;cv.height=S;
-const c=cv.getContext('2d');
-c.drawImage(im,0,0,S,S);
-tintCache[key]=cv;
-return cv}
+cv.width=im.width;cv.height=im.height;
+cv.getContext('2d').drawImage(im,0,0);
+tileCache[key]=cv});
+im.addEventListener('error',()=>{});
+im.src='assets/blocks/'+stId+'_'+suf+'.png'}catch(e){}})}
+/* init : précharge pour toutes les matières */
+STYLES.forEach(st=>loadTiles(st.id));
+
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
 alpha=alpha==null?1:alpha;scale=scale==null?1:scale;
 mono=!!mono;sx=sx==null?1:sx;sy=sy==null?1:sy;th=th==null?theme:th;
 const st=STYLES[th];
-const im=mono?null:Assets.get(st.id);
 c.save();c.globalAlpha=alpha;
 if(scale!==1){c.translate(x+s/2,y+s/2);c.scale(scale,scale);c.translate(-(x+s/2),-(y+s/2))}
 if(sx!==1||sy!==1){c.translate(x+s/2,y+s);c.scale(sx,sy);c.translate(-(x+s/2),-(y+s))}
-if(im){
-const tinted=tintedTile(st.id,ci);
-if(tinted)c.drawImage(tinted,x,y,s,s);
-else c.drawImage(im,x,y,s,s);
+const tile=mono?null:tileCache[th+'_'+ci];
+if(tile){
+c.drawImage(tile,0,0,tile.width,tile.height,x,y,s,s);
 if(mono){c.fillStyle='rgba(40,42,60,.55)';rr(c,x,y,s,s,s*.18);c.fill()}
 }else{
-st.draw(c,x,y,s,ci,alpha,mono)}
+const im=mono?null:Assets.get(st.id);
+if(im){c.drawImage(im,x,y,s,s)}
+else{st.draw(c,x,y,s,ci,alpha,mono)}}
 c.restore()}
 function drawBomb(c,x,y,s,t){
 const im=Assets.get('bomb');
