@@ -2042,14 +2042,16 @@ function onDown(e,i){
   }));
   dragLayer.style.display = 'block';
   slotCvs[i].style.visibility = 'hidden';
-  /* La pièce démarre à moitié sur la grille, à moitié en dessous */
+  /* La pièce se cale : bas de la grille - h/2 (à cheval sur le bord bas,
+     quelle que soit sa hauteur) */
   const gy0 = boardRect.top + gy;
-  const startY = gy0 + cell*N - h/2 + cell*.2;
+  const startY = gy0 + cell*N - h/2;
   drag = {
     i:i, p:p, w:w, h:h,
-    fingerY: e.clientY,          /* position du doigt au pickup */
-    tileY: startY,               /* position verticale ACTUELLE de la pièce */
-    baseGap: startY - e.clientY, /* écart initial doigt -> pièce */
+    startX: e.clientX,        /* référence doigt au pickup */
+    startY: e.clientY,
+    tileX: e.clientX,         /* position actuelle de la pièce */
+    tileY: startY,
     lx: e.clientX, ly: e.clientY
   };
   dragLayer.style.transform =
@@ -2062,18 +2064,15 @@ function onDown(e,i){
 function moveDrag(x,y){
   drag.lx = x;
   drag.ly = y;
-  /* L'élasticité : l'écart doigt->pièce grandit subtilement quand le doigt monte.
-     deltaY négatif = doigt vers le haut. L'écart augmente de 30% du déplacement. */
-  const deltaY = y - drag.fingerY;
-  const stretch = Math.min(0, deltaY) * .3;   /* ne s'applique que vers le haut */
-  const tileY = drag.fingerY + drag.baseGap + (deltaY - stretch);
-  /* La pièce ne descend jamais sous sa position de départ */
-  const minY = drag.fingerY + drag.baseGap;
-  const finalY = Math.max(tileY, minY);
-  drag.tileY = finalY;
+  /* La pièce suit le DELTA du doigt ×1,5 depuis sa position de départ.
+     Le doigt peut rester loin en bas : seule la distance parcourue compte. */
+  const dx = (x - drag.startX) * 1.5;
+  const dy = (y - drag.startY) * 1.5;
+  drag.tileX = drag.startX + dx;
+  drag.tileY = drag.startY + dy;
   dragLayer.style.transform =
-    'translate(' + (x-drag.w/2-6) + 'px,' + (finalY-drag.h/2-6) + 'px)';
-  computeGhost(x, finalY);
+    'translate(' + (drag.tileX-drag.w/2-6) + 'px,' + (drag.tileY-drag.h/2-6) + 'px)';
+  computeGhost(drag.tileX, drag.tileY);
 }
 function onMove(e){
   if(!drag) return;
@@ -2085,7 +2084,7 @@ function onUp(e){
   window.removeEventListener('pointerup', onUp);
   window.removeEventListener('pointercancel', onUp);
   if(!drag) return;
-  const x = drag.lx, y = drag.tileY, sl = drag.i, d = drag;
+  const x = drag.tileX, y = drag.tileY, sl = drag.i, d = drag;  /* ← drag.lx remplacé par drag.tileX */
   computeGhost(x, y);
   if(ghost){
     const r = ghost.r, c = ghost.c;
