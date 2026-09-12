@@ -740,7 +740,8 @@ const TILE_BRIGHT=1;
 const TINT_SAT=1.0;
 const TINT_CONTRAST=1;
 const SHADE_STR=.55;
-const GLOSS=.12;
+const GLOSS=.18;
+const GLOSS_SIZE=.55;
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
@@ -772,11 +773,11 @@ c.globalCompositeOperation='soft-light';
 c.globalAlpha=SHADE_STR;
 c.drawImage(gray,0,0);
 c.globalAlpha=1;c.globalCompositeOperation='source-over';
-/* 4. éclat léger : seulement les zones claires de la texture */
-c.globalCompositeOperation='screen';
-c.globalAlpha=GLOSS;
-c.drawImage(gray,0,0);
-c.globalAlpha=1;c.globalCompositeOperation='source-over';
+/* 4. éclat diagonal ciblé haut-gauche */
+const hl=c.createRadialGradient(S*.25,S*.22,S*.05,S*.30,S*.30,S*GLOSS_SIZE);
+hl.addColorStop(0,'rgba(255,255,255,'+GLOSS+')');
+hl.addColorStop(1,'rgba(255,255,255,0)');
+c.fillStyle=hl;c.fillRect(0,0,S,S);
 /* 5. micro-boost saturation */
 const fin=document.createElement('canvas');
 fin.width=S;fin.height=S;
