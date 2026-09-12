@@ -147,7 +147,7 @@ header{
   flex:1;
   position:relative;
   z-index:110;
-  margin-bottom:-38px;
+  margin-bottom:-6px;
 }
 #score{
   font-size:52px;
@@ -2154,39 +2154,23 @@ function drawDiamondDeco(t){
   const dx = sRect.left + sRect.width/2;
   const dy = sRect.top + sRect.height*.5;
   const pulse = .5 + .5*Math.sin(t/260);
-  const size = cell*(1.15 + .10*pulse + .30*pump);
+  const size = cell*(.95 + .08*pulse + .26*pump);
   fctx.save();
   fctx.translate(dx, dy);
-  /* ombre : copie sombre décalée bas-droite */
-  fctx.save();
-  fctx.translate(size*.10, size*.14);
   fctx.rotate(Math.PI/4);
-  fctx.fillStyle = 'rgba(0,0,0,.28)';
-  rr(fctx, -size*.62, -size*.62, size*1.24, size*1.24, size*.22);
-  fctx.fill();
-  fctx.restore();
-  /* losange or */
-  fctx.rotate(Math.PI/4);
+  /* ombre douce centrée derrière le losange */
+  fctx.shadowColor = 'rgba(0,0,0,.35)';
+  fctx.shadowBlur = size*.30;
+  fctx.shadowOffsetY = size*.10;
   const gg = fctx.createLinearGradient(0,-size,0,size);
   gg.addColorStop(0, '#FFF3B0');
   gg.addColorStop(.5, '#FFD23D');
   gg.addColorStop(1, '#D5A417');
   fctx.fillStyle = gg;
-  rr(fctx, -size*.62, -size*.62, size*1.24, size*1.24, size*.22);
-  fctx.fill();
-  fctx.strokeStyle = 'rgba(255,255,255,.55)';
-  fctx.lineWidth = Math.max(1, size*.06);
-  rr(fctx, -size*.62, -size*.62, size*1.24, size*1.24, size*.22);
-  fctx.stroke();
+  /* carré pur : coins droits, aucun contour */
+  fctx.fillRect(-size*.62, -size*.62, size*1.24, size*1.24);
   fctx.restore();
-  /* points de grâce */
-  for(let i=0;i<3;i++){
-    fctx.beginPath();
-    fctx.arc(dx+(i-1)*10, dy+size*.95, 2.6, 0, 6.3);
-    fctx.fillStyle = i < grace ? '#ffd23d' : 'rgba(255,255,255,.25)';
-    fctx.fill();
-  }
-  /* étincelle */
+  /* étincelle qui s'échappe */
   if(t-lastDecoPart > 320){
     lastDecoPart = t;
     particles.push({
