@@ -1311,17 +1311,11 @@ function drawGhostCell(c,x,y,s,ci){
 /* MODIF 2 : cellules vides = carrés presque collés, coins minimaux,
    plus aucune ligne tracée. La teinte du plateau vient de la matière. */
 function drawEmpty(c,x,y,s){
-  const gap = Math.max(1, s*.035);
-  const bx = x+gap;
-  const by = y+gap;
-  const bw = s-gap*2;
-  const r = bw*.06;
-  c.save();
-  c.fillStyle = 'rgba(0,0,0,.30)';
-  rr(c, bx, by, bw, bw, r);
-  c.fill();
-  c.restore();
-}
+const gap=Math.max(1,s*.035),bx=x+gap,by=y+gap,bw=s-gap*2,r=bw*.02;
+c.save();
+c.fillStyle='rgba(255,255,255,.06)';
+rr(c,bx,by,bw,bw,r);c.fill();
+c.restore()}
 function updateBg(){
   let g = null, op = 0;
   if(combo >= 6){ g = 'linear-gradient(180deg,#e0533f,#8a2f6f)'; op = .62; }
@@ -2196,6 +2190,23 @@ function drawDanger(t){
    MODIF 10 : lignes imminentes = contour blanc + halo
               + lumière débordant sur les lignes adjacentes
    ============================================================ */
+/* Couleur de fond actuelle du jeu (suit les combos) */
+function mixHex(h1,h2,t){
+const a=parseInt(h1.slice(1),16),b=parseInt(h2.slice(1),16);
+const r=Math.round(((a>>16)&255)*(1-t)+((b>>16)&255)*t);
+const gg=Math.round(((a>>8)&255)*(1-t)+((b>>8)&255)*t);
+const bl=Math.round((a&255)*(1-t)+(b&255)*t);
+return '#'+((1<<24)+(r<<16)+(gg<<8)+bl).toString(16).slice(1)}
+function colBGBody(){
+  if(combo >= 6) return '#8a2f6f';
+  if(combo >= 4) return '#7a4fb0';
+  if(combo >= 2) return '#b65c69';
+  return '#4a55a8';
+}
+/* Relief = même teinte que le fond, assombrie (plus foncé que le fond) */
+function mixRelief(){
+  return mixHex(colBGBody(), '#000000', .28);
+}
 function frame(t){
   const dt = Math.min(50, t-lastT);
   lastT = t;
@@ -2245,18 +2256,20 @@ function frame(t){
      légèrement plus grand, teinté par la matière courante.
      Aucune ligne tracée : les séparations viennent des carrés
      des cellules vides (presque collés). */
-  bctx.fillStyle = 'rgba(0,0,0,.35)';
-  rr(bctx, gx-11, gy-6, cell*N+22, cell*N+22, 14);
+   /* relief : carré centré, plus foncé que le fond, suit la couleur du fond */
+  const reliefCol = mixRelief();
+  bctx.fillStyle = 'rgba(0,0,0,.30)';
+  rr(bctx, gx-12, gy-12, cell*N+24, cell*N+24, 12);
   bctx.fill();
-  rr(bctx, gx-14, gy-10, cell*N+28, cell*N+28, 14);
-  bctx.fillStyle = STYLES[theme].bg;
+  rr(bctx, gx-14, gy-14, cell*N+28, cell*N+28, 12);
+  bctx.fillStyle = reliefCol;
   bctx.fill();
-  bctx.strokeStyle = 'rgba(255,255,255,.07)';
+  bctx.strokeStyle = 'rgba(255,255,255,.06)';
   bctx.lineWidth = 2;
   bctx.stroke();
-  /* intérieur légèrement plus foncé */
-  rr(bctx, gx-4, gy-4, cell*N+8, cell*N+8, 10);
-  bctx.fillStyle = 'rgba(0,0,0,.25)';
+  /* intérieur : le fond de la grille (couleurs échangées avec les cellules) */
+  rr(bctx, gx-3, gy-3, cell*N+6, cell*N+6, 7);
+  bctx.fillStyle = mixHex(colBGBody(), '#000000', .10);
   bctx.fill();
   /* cellules vides (séparations naturelles) */
   for(let r=0;r<N;r++){
