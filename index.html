@@ -2165,7 +2165,7 @@ function drawDiamondDeco(t){
   rr(fctx, -size*.62, -size*.62, size*1.24, size*1.24, size*.22);
   fctx.fill();
   fctx.restore();
-  /* losange or (aucun chiffre dessus) */
+  /* losange or */
   fctx.rotate(Math.PI/4);
   const gg = fctx.createLinearGradient(0,-size,0,size);
   gg.addColorStop(0, '#FFF3B0');
@@ -2179,14 +2179,14 @@ function drawDiamondDeco(t){
   rr(fctx, -size*.62, -size*.62, size*1.24, size*1.24, size*.22);
   fctx.stroke();
   fctx.restore();
-  /* points de grâce sous le losange */
+  /* points de grâce */
   for(let i=0;i<3;i++){
     fctx.beginPath();
     fctx.arc(dx+(i-1)*10, dy+size*.95, 2.6, 0, 6.3);
     fctx.fillStyle = i < grace ? '#ffd23d' : 'rgba(255,255,255,.25)';
     fctx.fill();
   }
-  /* étincelle qui s'échappe */
+  /* étincelle */
   if(t-lastDecoPart > 320){
     lastDecoPart = t;
     particles.push({
@@ -2312,16 +2312,14 @@ function frame(t){
   drawEmpty(bctx,gx+c*cell,gy+r*cell,cell)}}
   /* onde de changement de matière */
   if(t-styleRingT < 600 && styleRingT > 0){
-    bRectFix();
-    const kk = (t-styleRingT)/600;
+    const sRect2 = scoreEl.getBoundingClientRect();
     fctx.save();
-    fctx.globalAlpha = (1-kk)*.7;
+    fctx.globalAlpha = (1-(t-styleRingT)/600)*.7;
     fctx.strokeStyle = boardBG();
     fctx.lineWidth = 6;
     fctx.beginPath();
-    fctx.arc(cw/2, gy+cell*4, cell*(1+kk*8), 0, 6.3);
+    fctx.arc(sRect2.left + sRect2.width/2, sRect2.top + sRect2.height + cell*2, cell*(1+((t-styleRingT)/600)*8), 0, 6.3);
     fctx.stroke();
-    fctx.restore();
     fctx.restore();
   }
   /* ===== MODIF 10 : PRÉVIEWS — contour blanc + lumière latérale =====
