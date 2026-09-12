@@ -2198,13 +2198,12 @@ const gg=Math.round(((a>>8)&255)*(1-t)+((b>>8)&255)*t);
 const bl=Math.round((a&255)*(1-t)+(b&255)*t);
 return '#'+((1<<24)+(r<<16)+(gg<<8)+bl).toString(16).slice(1)}
 /* Couleur de fond actuelle du jeu (suit les combos) */
-function colBGBody(){
-  if(combo >= 6) return '#8a2f6f';
-  if(combo >= 4) return '#7a4fb0';
-  if(combo >= 2) return '#b65c69';
-  return '#4a55a8';
+/* Plateau : teinte dérivée de la MATIÈRE uniquement (stable pendant la partie).
+   Un peu plus sombre que la v15. */
+function boardBG(){
+  return mixHex(STYLES[theme].bg, '#000000', .22);
 }
-/* Relief : fond global assombri de 15 % seulement */
+/* Relief : fond global légèrement assombri (inchangé, suit les combos) */
 function mixRelief(){
   return mixHex(colBGBody(), '#000000', .15);
 }
@@ -2279,9 +2278,9 @@ function frame(t){
     rr(bctx, gx-9, gy-9, cell*N+18, cell*N+18, 10);
     bctx.stroke();
   }
-  /* fond intérieur de la grille (couleur échangée avec les cellules) */
+  /* fond intérieur de la grille : teinte matière, plus foncée */
   rr(bctx, gx-3, gy-3, cell*N+6, cell*N+6, 6);
-  bctx.fillStyle = mixHex(colBGBody(), '#000000', .10);
+  bctx.fillStyle = boardBG();
   bctx.fill();
   /* cellules vides (séparations naturelles) */
   for(let r=0;r<N;r++){
@@ -2290,14 +2289,14 @@ function frame(t){
     }
   }
   /* onde de changement de matière */
-  if(t-styleRingT < 600 && styleRingT > 0){
+    if(t-styleRingT < 600 && styleRingT > 0){
     const kk = (t-styleRingT)/600;
     bctx.save();
-    bctx.globalAlpha = (1-kk)*.8;
-    bctx.strokeStyle = '#ffd23d';
-    bctx.lineWidth = 3;
+    bctx.globalAlpha = (1-kk)*.7;
+    bctx.strokeStyle = boardBG();
+    bctx.lineWidth = 6;
     bctx.beginPath();
-    bctx.arc(cw/2, gy+cell*4, cell*(1+kk*7), 0, 6.3);
+    bctx.arc(cw/2, gy+cell*4, cell*(1+kk*8), 0, 6.3);
     bctx.stroke();
     bctx.restore();
   }
