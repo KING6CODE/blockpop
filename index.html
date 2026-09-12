@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#4a55a8"/>
 <title>BLOCKPOP</title>
-<!-- v15 PREMIUM : grille incrustée, losange combo, lever de pièce, halo lignes -->
+<!-- v16 : grille sans lignes teintée par matière, relief simple, ombres carrées,
+     pioche nue, losange combo 3+ pump, pièce calée au bord bas, contour lumineux lignes -->
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -86,7 +87,6 @@ body::after{
   flex-direction:column;
   padding:calc(10px + env(safe-area-inset-top)) 14px calc(10px + env(safe-area-inset-bottom));
 }
-/* ---------- Header épuré : record · SCORE · pause ---------- */
 header{
   display:flex;
   align-items:flex-start;
@@ -144,7 +144,6 @@ header{
   line-height:1;
   flex:1;
 }
-/* Score géant avec relief 3D */
 #score{
   font-size:52px;
   font-weight:700;
@@ -165,30 +164,11 @@ header{
 @keyframes bump{
   40%{transform:scale(1.18)}
 }
-/* ---------- Barres de progression (étoiles) ---------- */
-#goals,#objBar{
-  display:flex;
+#objBar{
+  display:none;
   align-items:center;
   gap:8px;
   padding:8px 10px 0;
-}
-.star svg{
-  width:22px;
-  height:22px;
-  fill:rgba(255,255,255,.22);
-  display:block;
-  transition:fill .3s;
-}
-.star.on svg{
-  fill:var(--gold);
-}
-.star.pop svg{
-  animation:starPop .55s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes starPop{
-  0%{transform:scale(.3) rotate(-40deg)}
-  60%{transform:scale(1.45) rotate(8deg)}
-  100%{transform:scale(1)}
 }
 .bar{
   flex:1;
@@ -215,7 +195,6 @@ header{
   color:var(--dim);
   white-space:nowrap;
 }
-/* ---------- Plateau ---------- */
 #boardWrap{
   flex:1;
   position:relative;
@@ -259,13 +238,21 @@ header{
   72%{opacity:1;transform:scale(1)}
   100%{opacity:0;transform:scale(1.04) translateY(-16px)}
 }
-/* ---------- Pioche ---------- */
 #tray{
   display:flex;
   gap:10px;
   padding:6px 0 4px;
 }
-.slot{flex:1;height:120px;display:grid;place-items:center;touch-action:none;background:transparent;border:none;box-shadow:none}
+.slot{
+  flex:1;
+  height:120px;
+  display:grid;
+  place-items:center;
+  touch-action:none;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+}
 .slot canvas{
   cursor:grab;
   touch-action:none;
@@ -288,7 +275,6 @@ header{
   pointer-events:none;
   z-index:50;
 }
-/* ---------- Overlays ---------- */
 .overlay{
   position:fixed;
   inset:0;
@@ -407,7 +393,8 @@ header{
   box-shadow:0 5px 0 #3660D9;
 }
 .btn.blue:active{
-  box-shadow:0 1px 0 #3660D9}
+  box-shadow:0 1px 0 #3660D9;
+}
 .tbest{
   margin-top:10px;
   color:var(--dim);
@@ -588,7 +575,6 @@ header{
 <div id="flash"></div>
 
 <div id="app">
-  <!-- Header épuré : record · score géant · pause -->
   <header>
     <div class="hside">
       <div id="bestWrap">
@@ -606,15 +592,7 @@ header{
     </div>
   </header>
 
-  <div id="goals">
-    <span class="star"><svg viewBox="0 0 24 24"><path d="M12 2.4l2.95 6 6.6.96-4.78 4.65 1.13 6.58L12 17.5l-5.9 3.1 1.13-6.58L2.45 9.36l6.6-.96z"/></svg></span>
-    <span class="bar"><i></i></span>
-    <span class="star"><svg viewBox="0 0 24 24"><path d="M12 2.4l2.95 6 6.6.96-4.78 4.65 1.13 6.58L12 17.5l-5.9 3.1 1.13-6.58L2.45 9.36l6.6-.96z"/></svg></span>
-    <span class="bar"><i></i></span>
-    <span class="star"><svg viewBox="0 0 24 24"><path d="M12 2.4l2.95 6 6.6.96-4.78 4.65 1.13 6.58L12 17.5l-5.9 3.1 1.13-6.58L2.45 9.36l6.6-.96z"/></svg></span>
-  </div>
-
-  <div id="objBar" style="display:none">
+  <div id="objBar">
     <span id="objTxt"></span>
     <span class="bar"><i id="objFill"></i></span>
     <span id="objPieces"></span>
@@ -637,7 +615,6 @@ header{
 
 <canvas id="dragLayer"></canvas>
 
-<!-- Écran titre -->
 <div class="overlay show" id="ovTitle">
   <div class="panel">
     <div class="logo">
@@ -673,7 +650,6 @@ header{
   </div>
 </div>
 
-<!-- Carte des niveaux -->
 <div class="overlay" id="ovLevels">
   <div class="panel">
     <h2 class="fo-title">Mode Aventure</h2>
@@ -683,7 +659,6 @@ header{
   </div>
 </div>
 
-<!-- Victoire -->
 <div class="overlay" id="ovWin">
   <div class="panel">
     <h2 class="fo-title" id="winTitle">Niveau terminé !</h2>
@@ -700,7 +675,6 @@ header{
   </div>
 </div>
 
-<!-- Échec -->
 <div class="overlay" id="ovFail">
   <div class="panel">
     <h2 class="fo-title">Échec…</h2>
@@ -710,7 +684,6 @@ header{
   </div>
 </div>
 
-<!-- Pause (avec réglages son/vibration) -->
 <div class="overlay" id="ovPause">
   <div class="panel">
     <h2 class="fo-title">Pause</h2>
@@ -724,7 +697,6 @@ header{
   </div>
 </div>
 
-<!-- Game over classique -->
 <div class="overlay" id="ovOver">
   <div class="panel">
     <h2 class="fo-title">Partie terminée</h2>
@@ -741,7 +713,6 @@ header{
   </div>
 </div>
 
-<!-- Pub simulée -->
 <div class="overlay" id="ovAd">
   <div class="panel">
     <p id="adTxt">Publicité simulée… 3</p>
@@ -751,34 +722,32 @@ header{
 </div>
 
 <div id="toast"></div>
-
 <script>
 'use strict';
 var k = 0; /* filet anti-crash boucle legacy */
 
 /* ================================================================
-   BLOCKPOP v15 PREMIUM
-   - Grille incrustée 3D façon Block Blast (biseaux + lignes fines)
-   - Losange doré pulsant sous le score : combo + grâce + particules
-   - Lever de pièce : la pièce AVANCE vers le haut et reste levée
-   - Lignes imminentes : halo lumineux doux (pas que des particules)
-   - Ombres carrées de pioche, fortement décalées
-   - Balayage lumineux du plateau + vignette de danger
-   - Header épuré : record · score géant 3D · pause (son/vib dedans)
-   - Assets par couleur : assets/blocks/<matiere>_<couleur>.png
+   BLOCKPOP v16
+   - Grille SANS lignes : carrés navy presque collés, teinte par matière
+   - Relief : simple carré arrondi derrière la grille
+   - Ombres carrées fortement décalées (pioche + drag)
+   - Ghost carré
+   - Pièce calée au bord BAS de la grille pendant le drag
+   - Losange doré uniquement à combo 3+, pump à chaque combo
+   - Lignes imminentes : rectangle pleine ligne, contour blanc,
+     halo + lumière débordant sur les lignes adjacentes
+   - Assets : assets/blocks/<matiere>_<couleur>.png
      Fallback : gel_<couleur>.png puis rendu canvas gel
    ================================================================ */
 
 /* ---------- Tuning global ---------- */
 const TUNE = {
-  bombChance: .10,        /* chance de bombe dans une pioche classique */
-  bombMinScore: 3000,     /* score mini avant que les bombes apparaissent */
-  advPityEarly: 5,        /* niveaux d'aventure avec pioche secourue */
-  reviveClearRows: 3,     /* rangées effacées par le revive */
-  diffSpeed: 3000,        /* vitesse de montée en difficulté */
-  dangerRatio: .70,       /* remplissage déclenchant la vignette de danger */
-  sweepEvery: 7000,       /* période du balayage lumineux (ms) */
-  sweepDur: 1400          /* durée d'un balayage (ms) */
+  bombChance: .10,
+  bombMinScore: 3000,
+  advPityEarly: 5,
+  reviveClearRows: 3,
+  diffSpeed: 3000,
+  dangerRatio: .70
 };
 
 /* ---------- Stockage sûr ---------- */
@@ -812,9 +781,9 @@ function rrPath(c,x,y,w,h,r){
   c.arcTo(x, y, x+w, y, r);
   c.closePath();
 }
-const backOut = k=>{
+const backOut = kk=>{
   const c1 = 1.70158, c3 = c1+1;
-  return 1 + c3*Math.pow(k-1,3) + c1*Math.pow(k-1,2);
+  return 1 + c3*Math.pow(kk-1,3) + c1*Math.pow(kk-1,2);
 };
 
 /* ---------- Audio : synthèse + fichiers custom ---------- */
@@ -1059,25 +1028,25 @@ function dGel(c,x,y,s,ci,alpha,mono){
 }
 
 /* ============ LES 10 MATIÈRES ============
-   Identité par : image custom, préview, son, explosion, burst.
-   Recours visuel final = gel. */
-const STYLES=[
-{id:'gel',    name:'Gel',     bg:'#262b47', pv:0, snd:{w:'triangle',m:1.00}, burst:[0,'l']},
-{id:'diamant',name:'Diamant', bg:'#2c2850', pv:2, snd:{w:'sine',m:1.30},     burst:[2,'l']},
-{id:'pierre', name:'Pierre',  bg:'#27303c', pv:1, snd:{w:'sine',m:.55},      burst:[0,'d']},
-{id:'bonbon', name:'Bonbon',  bg:'#3a2a50', pv:0, snd:{w:'square',m:1.10},   burst:[1,'l']},
-{id:'laine',  name:'Laine',   bg:'#2b3a4a', pv:2, snd:{w:'sine',m:.80},      burst:[0,'b']},
-{id:'rubis',  name:'Rubis',   bg:'#42293e', pv:1, snd:{w:'sine',m:1.60},     burst:[2,'l']},
-{id:'miel',   name:'Miel',    bg:'#3c3320', pv:3, snd:{w:'sine',m:.70},      burst:[1,'b']},
-{id:'neon',   name:'Néon',    bg:'#171a33', pv:3, snd:{w:'sawtooth',m:1.25}, burst:[1,'b']},
-{id:'bois',   name:'Bois',    bg:'#362a1e', pv:1, snd:{w:'triangle',m:.90},  burst:[0,'d']},
-{id:'or',     name:'Or',      bg:'#3a3117', pv:2, snd:{w:'triangle',m:1.45}, burst:[2,'l']}];
+   bg = teinte du plateau pour cette matière (MODIF 1)
+   Identité par : image custom par couleur, préview, son, explosion. */
+const STYLES = [
+  {id:'gel',     name:'Gel',     bg:'#262b47', pv:0, snd:{w:'triangle',m:1.00}, burst:[0,'l']},
+  {id:'diamant', name:'Diamant', bg:'#2c2850', pv:2, snd:{w:'sine',m:1.30},     burst:[2,'l']},
+  {id:'pierre',  name:'Pierre',  bg:'#27303c', pv:1, snd:{w:'sine',m:.55},      burst:[0,'d']},
+  {id:'bonbon',  name:'Bonbon',  bg:'#3a2a50', pv:0, snd:{w:'square',m:1.10},   burst:[1,'l']},
+  {id:'laine',   name:'Laine',   bg:'#2b3a4a', pv:2, snd:{w:'sine',m:.80},      burst:[0,'b']},
+  {id:'rubis',   name:'Rubis',   bg:'#42293e', pv:1, snd:{w:'sine',m:1.60},     burst:[2,'l']},
+  {id:'miel',    name:'Miel',    bg:'#3c3320', pv:3, snd:{w:'sine',m:.70},      burst:[1,'b']},
+  {id:'neon',    name:'Néon',    bg:'#171a33', pv:3, snd:{w:'sawtooth',m:1.25}, burst:[1,'b']},
+  {id:'bois',    name:'Bois',    bg:'#362a1e', pv:1, snd:{w:'triangle',m:.90},  burst:[0,'d']},
+  {id:'or',      name:'Or',      bg:'#3a3117', pv:2, snd:{w:'triangle',m:1.45}, burst:[2,'l']}
 ];
 const STYLE_TH = [0,3,7,11,16,22,29,37,46,56];
 
 /* ============ TUILES PAR COULEUR ============
    assets/blocks/<matiere>_<couleur>.png
-   Fallback : gel_<couleur>.png puis dGel. */
+   Fallback runtime : gel_<couleur>.png puis dGel. */
 const SUFFIXES = ['red','orange','yellow','green','cyan','blue','purple','pink'];
 const tileCache = {};
 function loadTiles(stId){
@@ -1163,15 +1132,12 @@ const ovLevels = $('ovLevels');
 const ovWin = $('ovWin');
 const ovFail = $('ovFail');
 const ovPause = $('ovPause');
-const goalsEl = $('goals');
 const objBar = $('objBar');
 const objTxt = $('objTxt');
 const objFill = $('objFill');
 const objPieces = $('objPieces');
 const slotEls = [...document.querySelectorAll('.slot')];
 const slotCvs = slotEls.map(s2=>s2.querySelector('canvas'));
-const starEls = [...document.querySelectorAll('.star')];
-const barEls = [...document.querySelectorAll('.bar')];
 window.addEventListener('error', e=>{
   try{ toast('⚠ ' + (e.message || 'Erreur'), 5000); }catch(_){}
 });
@@ -1212,7 +1178,8 @@ let cell = 40, mini = 16, gx = 0, gy = 0, cw = 0, chh = 0;
 let drag = null, ghost = null, boardRect = null;
 let particles = [], floats = [], flyScores = [], clearFx = [], shakeAmt = 0;
 let lastT = performance.now(), toastTimer = null, lastLand = 0, lastPrevPart = 0;
-let lastSweep = 0, lastDecoPart = 0;
+let lastDecoPart = 0;
+let diamondPump = 0;   /* timestamp du dernier pump du losange (MODIF 8) */
 bestVal.textContent = best;
 
 /* ---------- Géométrie ---------- */
@@ -1261,7 +1228,7 @@ function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
     c.drawImage(tile, 0, 0, tile.width, tile.height, x, y, s, s);
     if(mono){
       c.fillStyle = 'rgba(40,42,60,.55)';
-      rr(c, x, y, s, s, s*.18);
+      rr(c, x, y, s, s, s*.10);
       c.fill();
     }
   }else{
@@ -1325,22 +1292,35 @@ function drawGemIcon(c,x,y,s,t){
   c.fill();
   c.restore();
 }
+/* MODIF 5 : ghost carré, coins quasi droits */
 function drawGhostCell(c,x,y,s,ci){
-const bw=s;
-c.save();c.globalAlpha=.28;c.fillStyle=COLORS[ci].b;
-rr(c,x,y,bw,bw,bw*.05);c.fill();
-c.globalAlpha=.55;c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=1;
-rr(c,x+.5,y+.5,bw-1,bw-1,bw*.05);c.stroke();c.restore()}
-/* Cellules vides : navy Block Blast, très sobres */
-function drawEmpty(c,x,y,s){
-const gap=Math.max(1,s*.035),bx=x+gap,by=y+gap,bw=s-gap*2,r=bw*.06;
-c.save();
-c.fillStyle='rgba(0,0,0,.30)';
-rr(c,bx,by,bw,bw,r);c.fill();
-c.restore()}
+  const bw = s;
+  const r = bw*.05;
+  c.save();
+  c.globalAlpha = .28;
+  c.fillStyle = COLORS[ci].b;
+  rr(c, x, y, bw, bw, r);
+  c.fill();
+  c.globalAlpha = .55;
+  c.strokeStyle = 'rgba(255,255,255,.75)';
+  c.lineWidth = 1;
+  rr(c, x+.5, y+.5, bw-1, bw-1, r);
+  c.stroke();
+  c.restore();
 }
-function refreshThemePillText(){
-  return STYLES[theme].name;
+/* MODIF 2 : cellules vides = carrés presque collés, coins minimaux,
+   plus aucune ligne tracée. La teinte du plateau vient de la matière. */
+function drawEmpty(c,x,y,s){
+  const gap = Math.max(1, s*.035);
+  const bx = x+gap;
+  const by = y+gap;
+  const bw = s-gap*2;
+  const r = bw*.06;
+  c.save();
+  c.fillStyle = 'rgba(0,0,0,.30)';
+  rr(c, bx, by, bw, bw, r);
+  c.fill();
+  c.restore();
 }
 function updateBg(){
   let g = null, op = 0;
@@ -1436,11 +1416,11 @@ function renderTray(anim){
       const h = p.m.length*mini;
       const ox = (side-w)/2;
       const oy = (side-h)/2;
-      /* OMBRE : copie carrée du bloc, fortement décalée bas-droite */
+      /* MODIF 4 : ombre = carrés purs, fortement décalés bas-droite */
       c.fillStyle = 'rgba(12,14,38,.38)';
       c.beginPath();
       p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
-        if(v)rrPath(c,ox+dc*mini+mini*.30,oy+dr*mini+mini*.36,mini,mini,mini*.05)}));
+        if(v) rrPath(c, ox+dc*mini+mini*.30, oy+dr*mini+mini*.36, mini, mini, mini*.05);
       }));
       c.fill();
       p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
@@ -1474,18 +1454,10 @@ function bumpScore(){
   void scoreEl.offsetWidth;
   scoreEl.classList.add('bump');
 }
-function updateGoals(){
-  starEls.forEach((el,i)=>el.classList.toggle('on', i<stars));
-  barEls.forEach((el,j)=>{
-    const prev = j===0 ? 0 : STAR_GOALS[j-1];
-    const next = STAR_GOALS[j];
-    el.firstElementChild.style.width =
-      (score >= next ? 100 : clamp((score-prev)/(next-prev)*100, 0, 100)) + '%';
-  });
-}
+/* MODIF 7 : plus de barre d'étoiles en classique — objBar uniquement en aventure */
 function setHudMode(){
-goalsEl.style.display='none';
-objBar.style.display=(mode==='adv')?'flex':'none'}
+  objBar.style.display = (mode === 'adv') ? 'flex' : 'none';
+}
 function updateObjHUD(){
   if(mode !== 'adv' || !lvl) return;
   const o = lvl.obj;
@@ -1503,21 +1475,6 @@ function updateObjHUD(){
   objTxt.textContent = txt;
   objFill.style.width = clamp(pct*100, 0, 100) + '%';
   objPieces.textContent = lvl.maxPieces ? ('Pièces : ' + Math.max(0, lvl.maxPieces-advPlaced)) : '';
-}
-function checkStars(){
-  if(mode === 'adv') return;
-  let ch = false;
-  while(stars < 3 && score >= STAR_GOALS[stars]){
-    stars++;
-    ch = true;
-    const el = starEls[stars-1];
-    el.classList.remove('pop');
-    void el.offsetWidth;
-    el.classList.add('pop');
-    toast('Étoile ' + stars + ' atteinte !');
-  }
-  if(ch){ SFX.star(); vib([15,30,15,30,15]); }
-  updateGoals();
 }
 function checkBest(){
   if(mode === 'adv') return;
@@ -1614,7 +1571,8 @@ function showBanner(cb,lines,chain,mult){
 function doClear(rows, cols, chain){
   combo++;
   grace = 3;
-  if(combo>=3)diamondPump=performance.now();
+  /* MODIF 8 : pump du losange à chaque combo ≥ 3 */
+  if(combo >= 3) diamondPump = performance.now();
   maxCombo = Math.max(maxCombo, combo);
   advComboMax = Math.max(advComboMax, combo);
   updateBg();
@@ -1688,7 +1646,6 @@ function doClear(rows, cols, chain){
     vib([10,30,10]);
     toast('✦ Matière : ' + STYLES[theme].name);
   }
-  checkStars();
   checkBest();
   updateObjHUD();
 }
@@ -1780,7 +1737,6 @@ async function resolveTurn(){
     SFX.perfect();
     vib([30,50,30,50,30]);
     flash();
-    checkStars();
     checkBest();
   }
   animating = false;
@@ -1885,7 +1841,6 @@ function applyPlace(i,r,c){
   bumpScore();
   SFX.place();
   vib(12);
-  /* paillettes multicolores sur chaque case posée */
   p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
     if(!v) return;
     const px = gx+(c+dc)*cell+cell/2;
@@ -1963,14 +1918,15 @@ function resumeGame(){
   gameStart = d.gameStart || performance.now();
   newRecordShown = false;
   scoreEl.textContent = score;
-  updateGoals();
   updateBg();
   renderTray(false);
   resize();
   state = 'playing';
   toast('Partie restaurée');
 }
-/* ---------- Drag & drop ---------- */
+/* ============================================================
+   DRAG & DROP — la pièce se cale au bord BAS de la grille (MODIF 9)
+   ============================================================ */
 const OFFS = [
   [0,0],[0,1],[0,-1],[1,0],[-1,0],
   [1,1],[-1,-1],[1,-1],[-1,1],
@@ -1979,26 +1935,14 @@ const OFFS = [
   [1,-2],[-1,2],[2,-1],[-2,1],
   [2,2],[-2,-2],[2,-2],[-2,2]
 ];
-function moveDrag(x,y){
-  drag.lx=x;drag.ly=y;
-  const cy=dragCenterY(y);
-  const s=1+.16*drag.pop;
-  const lift=drag.lift+10*drag.pop;
-  dragLayer.style.transform='translate('+(x-drag.w/2-6)+'px,'+(cy-drag.h/2-6)+'px) scale('+s+')';
-  computeGhost(x,cy)}
-  function computeGhost(px,py){const pl=bestPlacement(px,py);
-  if(!pl){ghost=null;return}
-  const waves=simulateChain(pl.r,pl.c);
-  const hl=[],hl2=[],hs1=[],hs2=[];
-  waves.forEach((w,i)=>{(i===0?hl:hl2).push(...w.cells);
-  (i===0?hs1:hs2).push(...w.rows.map(r=>({t:'r',r:r})),...w.cols.map(cc=>({t:'c',c:cc})))});
-  ghost={r:pl.r,c:pl.c,hl:hl,hl2:hl2,hs1:hs1,hs2:hs2}}
 function bestPlacement(px,py){
   if(!boardRect || !drag) return null;
   const gx0 = boardRect.left + gx;
   const gy0 = boardRect.top + gy;
   const gw = cell*N, gh = cell*N;
-  const cx=px,cy=py,m=cell*.6;
+  /* cy est déjà clampé par dragCenterY : le bord bas de la grille reste accessible */
+  const cx = px, cy = py;
+  const m = cell*.6;
   if(cx < gx0-m || cx > gx0+gw+m || cy < gy0-m || cy > gy0+gh+m) return null;
   const c0 = Math.round((cx - drag.w/2 - gx0)/cell);
   const r0 = Math.round((cy - drag.h/2 - gy0)/cell);
@@ -2009,6 +1953,8 @@ function bestPlacement(px,py){
   }
   return null;
 }
+/* MODIF 10 : simulateChain renvoie les FORMES de lignes (rangées/colonnes)
+   pour l'illumination par contour + lumière latérale */
 function simulateChain(sr,sc){
   const g = grid.map(row=>row.map(v=>v ? {v:1} : null));
   drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
@@ -2032,7 +1978,7 @@ function simulateChain(sr,sc){
     cols.forEach(c=>{
       for(let r=0;r<N;r++){ cells.push([r,c]); g[r][c] = null; }
     });
-    waves.push({rows:rows.slice(),cols:cols.slice(),cells:cells});
+    waves.push({rows:rows.slice(), cols:cols.slice(), cells:cells});
     for(let c=0;c<N;c++){
       let w = N-1;
       for(let r=N-1;r>=0;r--){
@@ -2044,6 +1990,31 @@ function simulateChain(sr,sc){
     }
   }
   return waves;
+}
+function computeGhost(px,py){
+  const pl = bestPlacement(px,py);
+  if(!pl){ ghost = null; return; }
+  const waves = simulateChain(pl.r, pl.c);
+  const hl = [], hl2 = [];
+  const hs1 = [], hs2 = [];
+  waves.forEach((w,i)=>{
+    if(i === 0){
+      hl.push(...w.cells);
+      w.rows.forEach(r=>hs1.push({t:'r', r:r}));
+      w.cols.forEach(c=>hs1.push({t:'c', c:c}));
+    }else{
+      hl2.push(...w.cells);
+      w.rows.forEach(r=>hs2.push({t:'r', r:r}));
+      w.cols.forEach(c=>hs2.push({t:'c', c:c}));
+    }
+  });
+  ghost = {r:pl.r, c:pl.c, hl, hl2, hs1, hs2};
+}
+/* MODIF 9 : la pièce est clampée pour que son bas atteigne le bord bas de la grille */
+function dragCenterY(py){
+  if(!boardRect || !drag) return py - drag.lift;
+  const bottom = boardRect.top + gy + cell*N;
+  return Math.min(py - drag.lift, bottom - drag.h/2 - 4);
 }
 function onDown(e,i){
   if(drag || state !== 'playing' || animating) return;
@@ -2071,21 +2042,27 @@ function onDown(e,i){
   }));
   dragLayer.style.display = 'block';
   slotCvs[i].style.visibility = 'hidden';
-  /* La pièce NAÎT levée : pop part de 1 (grand) — piloté par frame, jamais retombant */
+  /* MODIF 9 : la pièce naît agrandie et reste levée tant qu'on la tient */
   drag = {
     i:i, p:p, w:w, h:h,
     lift: e.pointerType === 'touch' ? Math.max(44, cell*1.1) : 0,
     pop: 1,
     lx: e.clientX, ly: e.clientY
   };
-  function dragCenterY(py){
-  if(!boardRect||!drag)return py-drag.lift;
-  const bottom=boardRect.top+gy+cell*N;
-  return Math.min(py-drag.lift,bottom-drag.h/2-4)}
   moveDrag(e.clientX, e.clientY);
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onUp);
+}
+function moveDrag(x,y){
+  drag.lx = x;
+  drag.ly = y;
+  const cy = dragCenterY(y);
+  const s = 1 + .16*drag.pop;
+  const lift = drag.lift + 10*drag.pop;
+  dragLayer.style.transform =
+    'translate(' + (x-drag.w/2-6) + 'px,' + (cy-drag.h/2-6) + 'px) scale(' + s + ')';
+  computeGhost(x, cy);
 }
 function onMove(e){
   if(!drag) return;
@@ -2098,7 +2075,7 @@ function onUp(e){
   window.removeEventListener('pointercancel', onUp);
   if(!drag) return;
   const x = e.clientX, y = e.clientY, sl = drag.i, d = drag;
-  computeGhost(x, y);
+  computeGhost(x, dragCenterY(y));
   if(ghost){
     const r = ghost.r, c = ghost.c;
     ghost = null;
@@ -2127,52 +2104,67 @@ function onUp(e){
 slotEls.forEach((el,i)=>el.addEventListener('pointerdown', e=>onDown(e,i)));
 dragLayer.addEventListener('contextmenu', e=>e.preventDefault());
 
-/* ---------- Décor : losange doré sous le score ---------- */
-let diamondPump=0;
+/* ---------- Décor : losange doré (MODIF 8 : seulement combo ≥ 3, pump) ---------- */
 function drawDiamondDeco(t){
-if(combo<3)return;
-if(diamondPump===0)diamondPump=t;
-const pump=Math.max(0,1-(t-diamondPump)/220);
-const dx=cw/2,dy=Math.max(26,gy-cell*.72);
-const pulse=.5+.5*Math.sin(t/260);
-const size=cell*(.52+.10*pulse+.34*pump);
-bctx.save();bctx.translate(dx,dy);bctx.rotate(Math.PI/4);
-const hg=bctx.createRadialGradient(0,0,1,0,0,size*1.6);
-hg.addColorStop(0,'rgba(255,220,110,'+(.30+.18*pulse+.3*pump)+')');
-hg.addColorStop(1,'rgba(255,220,110,0)');
-bctx.fillStyle=hg;bctx.fillRect(-size*1.7,-size*1.7,size*3.4,size*3.4);
-const gg=bctx.createLinearGradient(0,-size,0,size);
-gg.addColorStop(0,'#FFF3B0');gg.addColorStop(.5,'#FFD23D');gg.addColorStop(1,'#D5A417');
-bctx.fillStyle=gg;rr(bctx,-size*.62,-size*.62,size*1.24,size*1.24,size*.22);bctx.fill();
-bctx.strokeStyle='rgba(255,255,255,.55)';bctx.lineWidth=Math.max(1,size*.06);
-rr(bctx,-size*.62,-size*.62,size*1.24,size*1.24,size*.22);bctx.stroke();bctx.restore();
-bctx.font='700 '+Math.max(11,size*.62)+'px Fredoka, sans-serif';
-bctx.textAlign='center';bctx.textBaseline='middle';
-bctx.lineWidth=3;bctx.strokeStyle='rgba(90,60,0,.85)';
-bctx.strokeText('×'+combo,dx,dy+1);bctx.fillStyle='#5a3c00';bctx.fillText('×'+combo,dx,dy+1);
-for(let i=0;i<3;i++){bctx.beginPath();
-bctx.arc(dx+(i-1)*10,dy+size*.95,2.6,0,6.3);
-bctx.fillStyle=i<grace?'#ffd23d':'rgba(255,255,255,.25)';bctx.fill()}
-if(t-lastDecoPart>(320)){lastDecoPart=t;
-particles.push({x:dx+(Math.random()-.5)*size,y:dy+size*.3,
-vx:(Math.random()-.5)*.08,vy:-(.10+Math.random()*.14),sz:cell*.07,
-col:Math.random()<.5?'#FFF3B0':'#ffffff',t0:t,life:700,sh:1,g:0,rot:0,vr:0})}}
-  /* étincelle qui s'échappe du losange */
-  if(t - lastDecoPart > (combo >= 2 ? 320 : 800)){
+  if(combo < 3) return;
+  if(diamondPump === 0) diamondPump = t;
+  const pump = Math.max(0, 1-(t-diamondPump)/220);
+  const dx = cw/2;
+  const dy = Math.max(26, gy - cell*.72);
+  const pulse = .5 + .5*Math.sin(t/260);
+  const size = cell*(.52 + .10*pulse + .34*pump);
+  bctx.save();
+  bctx.translate(dx, dy);
+  bctx.rotate(Math.PI/4);
+  const hg = bctx.createRadialGradient(0,0,1,0,0,size*1.6);
+  hg.addColorStop(0, 'rgba(255,220,110,' + (.30+.18*pulse+.30*pump) + ')');
+  hg.addColorStop(1, 'rgba(255,220,110,0)');
+  bctx.fillStyle = hg;
+  bctx.fillRect(-size*1.7, -size*1.7, size*3.4, size*3.4);
+  const gg = bctx.createLinearGradient(0,-size,0,size);
+  gg.addColorStop(0, '#FFF3B0');
+  gg.addColorStop(.5, '#FFD23D');
+  gg.addColorStop(1, '#D5A417');
+  bctx.fillStyle = gg;
+  rr(bctx, -size*.62, -size*.62, size*1.24, size*1.24, size*.22);
+  bctx.fill();
+  bctx.strokeStyle = 'rgba(255,255,255,.55)';
+  bctx.lineWidth = Math.max(1, size*.06);
+  rr(bctx, -size*.62, -size*.62, size*1.24, size*1.24, size*.22);
+  bctx.stroke();
+  bctx.restore();
+  bctx.save();
+  bctx.font = '700 ' + Math.max(11, size*.62) + 'px Fredoka, sans-serif';
+  bctx.textAlign = 'center';
+  bctx.textBaseline = 'middle';
+  bctx.lineWidth = 3;
+  bctx.strokeStyle = 'rgba(90,60,0,.85)';
+  bctx.strokeText('×'+combo, dx, dy+1);
+  bctx.fillStyle = '#5a3c00';
+  bctx.fillText('×'+combo, dx, dy+1);
+  bctx.restore();
+  /* points de grâce */
+  for(let i=0;i<3;i++){
+    bctx.beginPath();
+    bctx.arc(dx+(i-1)*10, dy+size*.95, 2.6, 0, 6.3);
+    bctx.fillStyle = i < grace ? '#ffd23d' : 'rgba(255,255,255,.25)';
+    bctx.fill();
+  }
+  /* étincelle qui s'échappe */
+  if(t-lastDecoPart > 320){
     lastDecoPart = t;
     particles.push({
-      x: dx + (Math.random()-.5)*size,
-      y: dy + size*.3,
+      x:dx+(Math.random()-.5)*size,
+      y:dy+size*.3,
       vx:(Math.random()-.5)*.08,
       vy:-(.10+Math.random()*.14),
-      sz: cell*.07,
-      col: Math.random() < .5 ? '#FFF3B0' : '#ffffff',
-      t0: t, life: 700,
+      sz:cell*.07,
+      col:Math.random() < .5 ? '#FFF3B0' : '#ffffff',
+      t0:t, life:700,
       sh:1, g:0, rot:0, vr:0
     });
   }
 }
-
 /* ---------- Vignette de danger ---------- */
 function drawDanger(t){
   const fill = grid.flat().filter(Boolean).length / (N*N);
@@ -2185,8 +2177,15 @@ function drawDanger(t){
   bctx.fillStyle = vg;
   bctx.fillRect(gx-cell, gy-cell, cell*N+cell*2, cell*N+cell*2);
 }
-
-/* ---------- Boucle principale ---------- */
+/* ============================================================
+   BOUCLE PRINCIPALE — plateau avec :
+   MODIF 3 : relief = simple carré arrondi derrière la grille,
+             teinte de la matière (STYLES[theme].bg),
+             cellules vides carrées, AUCUNE ligne tracée,
+             plus d'orbes ni de balayage
+   MODIF 10 : lignes imminentes = contour blanc + halo
+              + lumière débordant sur les lignes adjacentes
+   ============================================================ */
 function frame(t){
   const dt = Math.min(50, t-lastT);
   lastT = t;
@@ -2222,7 +2221,7 @@ function frame(t){
     if(!playCustom('land', .6)) SFX.land();
     lastLand = t;
   }
-  /* pop du drag piloté par frame : reste levé, ne retombe jamais */
+  /* le pop du drag reste à 1 : piloté par frame, jamais retombant */
   if(drag && drag.pop < 1){
     drag.pop = Math.min(1, drag.pop + dts*5);
     moveDrag(drag.lx, drag.ly);
@@ -2233,23 +2232,32 @@ function frame(t){
     bctx.translate((Math.random()-.5)*shakeAmt, (Math.random()-.5)*shakeAmt);
     shakeAmt *= .88;
   }else shakeAmt = 0;
-  /* orbes d'ambiance */
-  const spd = 1 + Math.min(combo,8)*.15;
-  bctx.globalAlpha = 1;
-  /* losange doré sous le score */
+  /* losange doré (combo 3+) */
   drawDiamondDeco(t);
-  /* ===== PLATEAU INCRUSTÉ 3D façon Block Blast ===== */
-  drawDiamondDeco(t);
-  /* relief : simple carré arrondi derrière la grille */
-  bctx.fillStyle='rgba(0,0,0,.35)';
-  rr(bctx,gx-11,gy-6,cell*N+22,cell*N+22,14);bctx.fill();
-  rr(bctx,gx-14,gy-10,cell*N+28,cell*N+28,14);
-  bctx.fillStyle=STYLES[theme].bg;bctx.fill();
-  bctx.strokeStyle='rgba(255,255,255,.07)';bctx.lineWidth=2;bctx.stroke();
+  /* ===== MODIF 3 : PLATEAU =====
+     relief = un seul carré arrondi derrière la grille,
+     légèrement plus grand, teinté par la matière courante.
+     Aucune ligne tracée : les séparations viennent des carrés
+     des cellules vides (presque collés). */
+  bctx.fillStyle = 'rgba(0,0,0,.35)';
+  rr(bctx, gx-11, gy-6, cell*N+22, cell*N+22, 14);
+  bctx.fill();
+  rr(bctx, gx-14, gy-10, cell*N+28, cell*N+28, 14);
+  bctx.fillStyle = STYLES[theme].bg;
+  bctx.fill();
+  bctx.strokeStyle = 'rgba(255,255,255,.07)';
+  bctx.lineWidth = 2;
+  bctx.stroke();
   /* intérieur légèrement plus foncé */
-  rr(bctx,gx-4,gy-4,cell*N+8,cell*N+8,10);
-  bctx.fillStyle='rgba(0,0,0,.25)';bctx.fill();
-  for(let r=0;r<N;r++)for(let c=0;c<N;c++)drawEmpty(bctx,gx+c*cell,gy+r*cell,cell);
+  rr(bctx, gx-4, gy-4, cell*N+8, cell*N+8, 10);
+  bctx.fillStyle = 'rgba(0,0,0,.25)';
+  bctx.fill();
+  /* cellules vides (séparations naturelles) */
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      drawEmpty(bctx, gx+c*cell, gy+r*cell, cell);
+    }
+  }
   /* onde de changement de matière */
   if(t-styleRingT < 600 && styleRingT > 0){
     const kk = (t-styleRingT)/600;
@@ -2262,38 +2270,118 @@ function frame(t){
     bctx.stroke();
     bctx.restore();
   }
-  /* ===== PRÉVIEWS AVEC HALO LUMINEUX ===== */
-  if(drag&&ghost&&state==='playing'){
-  const drawShape=(sh,pulse,fill,stroke,glow)=>{
-  bctx.save();bctx.shadowColor=glow;bctx.shadowBlur=cell*.8;
-  bctx.fillStyle=fill;
-  if(sh.t==='r')rr(bctx,gx-2,gy+sh.r*cell-2,cell*N+4,cell+4,6);
-  else rr(bctx,gx+sh.c*cell-2,gy-2,cell+4,cell*N+4,6);
-  bctx.fill();bctx.fill();bctx.restore();
-  bctx.strokeStyle=stroke;bctx.lineWidth=2;
-  if(sh.t==='r')rr(bctx,gx-1,gy+sh.r*cell-1,cell*N+2,cell+2,5);
-  else rr(bctx,gx+sh.c*cell-1,gy-1,cell+2,cell*N+2,5);
-  bctx.stroke();
-  bctx.fillStyle=fill;
-  if(sh.t==='r'){
-  if(sh.r>0){bctx.globalAlpha=.5;rr(bctx,gx+2,gy+(sh.r-1)*cell+2,cell*N-4,cell-4,4);bctx.fill()}
-  if(sh.r<N-1){bctx.globalAlpha=.5;rr(bctx,gx+2,gy+(sh.r+1)*cell+2,cell*N-4,cell-4,4);bctx.fill()}}
-  else{
-  if(sh.c>0){bctx.globalAlpha=.5;rr(bctx,gx+(sh.c-1)*cell+2,gy+2,cell-4,cell*N-4,4);bctx.fill()}
-  if(sh.c<N-1){bctx.globalAlpha=.5;rr(bctx,gx+(sh.c+1)*cell+2,gy+2,cell-4,cell*N-4,4);bctx.fill()}}
-  bctx.globalAlpha=1};
-  if(ghost.hs2.length){
-  const p2=.15+.09*Math.sin(t/90);
-  ghost.hs2.forEach(sh=>drawShape(sh,p2,'rgba(255,140,40,'+p2+')','rgba(255,170,80,.7)','rgba(255,150,50,.9)'))}
-  if(ghost.hs1.length){
-  const pulse=.24+.13*Math.sin(t/110);
-  ghost.hs1.forEach(sh=>drawShape(sh,pulse,'rgba(255,255,255,'+pulse+')','rgba(255,255,255,.95)','rgba(255,255,255,.95)'));
-  if(t-lastPrevPart>70){lastPrevPart=t;
-  const sh=ghost.hs1[Math.floor(Math.random()*ghost.hs1.length)];
-  particles.push(sh.t==='r'
-  ?{x:gx+Math.random()*cell*N,y:gy+sh.r*cell+cell*(.2+Math.random()*.6),vx:(Math.random()-.5)*.12,vy:-(.10+Math.random()*.16),sz:cell*.09,col:Math.random()<.5?'#ffffff':'#ffd23d',t0:t,life:650,sh:1,g:0,rot:0,vr:0}
-  :{x:gx+sh.c*cell+cell*(.2+Math.random()*.6),y:gy+Math.random()*cell*N,vx:(Math.random()-.5)*.12,vy:-(.10+Math.random()*.16),sz:cell*.09,col:Math.random()<.5?'#ffffff':'#ffd23d',t0:t,life:650,sh:1,g:0,rot:0,vr:0})}}}
-  /* ===== BLOCS + TRAÎNÉES ===== */
+  /* ===== MODIF 10 : PRÉVIEWS — contour blanc + lumière latérale =====
+     La ligne imminente est dessinée comme un rectangle pleine largeur
+     (ou pleine hauteur), entouré d'une ligne blanche, avec halo lumineux,
+     et la lumière déborde sur les lignes adjacentes dans le sens de la ligne. */
+  if(drag && ghost && state === 'playing'){
+    const pv = STYLES[theme].pv;
+    const drawShape = (sh, pulse, fill, stroke, glow)=>{
+      /* bande lumineuse de la ligne avec halo */
+      bctx.save();
+      bctx.shadowColor = glow;
+      bctx.shadowBlur = cell*.8;
+      bctx.fillStyle = fill;
+      if(sh.t === 'r'){
+        rr(bctx, gx-2, gy+sh.r*cell-2, cell*N+4, cell+4, 6);
+      }else{
+        rr(bctx, gx+sh.c*cell-2, gy-2, cell+4, cell*N+4, 6);
+      }
+      bctx.fill();
+      bctx.fill();
+      bctx.restore();
+      /* contour blanc net autour de la ligne */
+      bctx.strokeStyle = stroke;
+      bctx.lineWidth = 2;
+      if(sh.t === 'r'){
+        rr(bctx, gx-1, gy+sh.r*cell-1, cell*N+2, cell+2, 5);
+      }else{
+        rr(bctx, gx+sh.c*cell-1, gy-1, cell+2, cell*N+2, 5);
+      }
+      bctx.stroke();
+      /* lumière qui déborde sur les lignes adjacentes (dans le sens) */
+      bctx.fillStyle = fill;
+      if(sh.t === 'r'){
+        if(sh.r > 0){
+          bctx.globalAlpha = .5;
+          rr(bctx, gx+2, gy+(sh.r-1)*cell+2, cell*N-4, cell-4, 4);
+          bctx.fill();
+        }
+        if(sh.r < N-1){
+          bctx.globalAlpha = .5;
+          rr(bctx, gx+2, gy+(sh.r+1)*cell+2, cell*N-4, cell-4, 4);
+          bctx.fill();
+        }
+      }else{
+        if(sh.c > 0){
+          bctx.globalAlpha = .5;
+          rr(bctx, gx+(sh.c-1)*cell+2, gy+2, cell-4, cell*N-4, 4);
+          bctx.fill();
+        }
+        if(sh.c < N-1){
+          bctx.globalAlpha = .5;
+          rr(bctx, gx+(sh.c+1)*cell+2, gy+2, cell-4, cell*N-4, 4);
+          bctx.fill();
+        }
+      }
+      bctx.globalAlpha = 1;
+    };
+    if(ghost.hs2.length){
+      const p2 = .15 + .09*Math.sin(t/90);
+      ghost.hs2.forEach(sh=>{
+        drawShape(sh, p2,
+          'rgba(255,140,40,' + p2 + ')',
+          'rgba(255,170,80,.7)',
+          'rgba(255,150,50,.9)');
+      });
+      if(pv === 1) drawHL_small(ghost.hl2, .10);
+    }
+    if(ghost.hs1.length){
+      const pulse = .24 + .13*Math.sin(t/110);
+      ghost.hs1.forEach(sh=>{
+        drawShape(sh, pulse,
+          'rgba(255,255,255,' + pulse + ')',
+          'rgba(255,255,255,.95)',
+          'rgba(255,255,255,.95)');
+      });
+      /* particules continues */
+      if(t-lastPrevPart > 70){
+        lastPrevPart = t;
+        const sh = ghost.hs1[Math.floor(Math.random()*ghost.hs1.length)];
+        if(sh.t === 'r'){
+          particles.push({
+            x:gx+Math.random()*cell*N,
+            y:gy+sh.r*cell+cell*(.2+Math.random()*.6),
+            vx:(Math.random()-.5)*.12,
+            vy:-(.10+Math.random()*.16),
+            sz:cell*.09,
+            col:Math.random() < .5 ? '#ffffff' : '#ffd23d',
+            t0:t, life:650, sh:1, g:0, rot:0, vr:0
+          });
+        }else{
+          particles.push({
+            x:gx+sh.c*cell+cell*(.2+Math.random()*.6),
+            y:gy+Math.random()*cell*N,
+            vx:(Math.random()-.5)*.12,
+            vy:-(.10+Math.random()*.16),
+            sz:cell*.09,
+            col:Math.random() < .5 ? '#ffffff' : '#ffd23d',
+            t0:t, life:650, sh:1, g:0, rot:0, vr:0
+          });
+        }
+      }
+    }
+    /* petites étincelles par matière (pv=1) */
+    function drawHL_small(cells, base){
+      cells.forEach(rc=>{
+        const r = rc[0], c = rc[1];
+        bctx.fillStyle = 'rgba(255,255,255,' + base + ')';
+        rr(bctx, gx+c*cell+2, gy+r*cell+2, cell-4, cell-4, cell*.08);
+        bctx.fill();
+      });
+    }
+  }
+  /* ===== BLOCS + TRAÎNÉES DE CHUTE ===== */
   for(let r=0;r<N;r++){
     for(let c=0;c<N;c++){
       const o = grid[r][c];
@@ -2314,7 +2402,7 @@ function frame(t){
             if(ty < -cell) continue;
             bctx.globalAlpha = .13/k3;
             bctx.fillStyle = colr;
-            rr(bctx, gx+c*cell+3, gy+r*cell+ty+3, cell-6, cell-6, cell*.2);
+            rr(bctx, gx+c*cell+3, gy+r*cell+ty+3, cell-6, cell-6, cell*.10);
             bctx.fill();
           }
           bctx.globalAlpha = 1;
@@ -2332,7 +2420,7 @@ function frame(t){
       if(o.gem) drawGemIcon(bctx, gx+c*cell, gy+r*cell+oy, cell, t);
     }
   }
-  /* ombre + fantôme du drag */
+  /* ombre carrée + ghost carré du drag */
   if(drag && ghost && state === 'playing'){
     bctx.fillStyle = 'rgba(10,12,30,.30)';
     drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
@@ -2357,7 +2445,7 @@ function frame(t){
     if(age < 110){
       drawBlock(bctx, x, y, cell, fx.ci, 1);
       bctx.fillStyle = 'rgba(255,255,255,' + (.7*(1-age/110)) + ')';
-      rr(bctx, x+2, y+2, cell-4, cell-4, cell*.18);
+      rr(bctx, x+2, y+2, cell-4, cell-4, cell*.10);
       bctx.fill();
     }
     else if(id === 'pierre' || id === 'bois'){
@@ -2512,10 +2600,9 @@ function frame(t){
       return true;
     });
   }
-  /* ===== VIGNETTE DE DANGER ===== */
+  /* vignette de danger */
   drawDanger(t);
   bctx.restore();
-  /* compteur animé */
   if(shownScore !== score){
     const d = score-shownScore;
     shownScore += Math.sign(d)*Math.ceil(Math.abs(d)*.2);
@@ -2527,7 +2614,6 @@ function frame(t){
 function gainPx(txt){
   return (txt.replace('+','').length > 4 || parseInt(txt.replace('+','')) >= 10000) ? 26 : 20;
 }
-/* Score gagné : rendu 3D or avec reflet gris */
 function drawScore3D(c,txt,x,y,sc,alpha){
   const size = Math.max(28, gainPx(txt)+10)*sc;
   c.save();
@@ -2645,7 +2731,6 @@ function startLevel(i){
   particles = []; floats = []; flyScores = []; clearFx = []; shakeAmt = 0; ghost = null;
   setHudMode();
   updateBg();
-  updateGoals();
   updateObjHUD();
   resize();
   genTray(true);
@@ -2800,7 +2885,6 @@ function newGame(){
   particles = []; floats = []; flyScores = []; clearFx = []; shakeAmt = 0; ghost = null;
   updateBg();
   store.del('bp_save');
-  updateGoals();
   resize();
   genTray(true);
   state = 'playing';
@@ -2879,7 +2963,6 @@ bindTap($('btnPVib'), ()=>{
 grid = Array.from({length:N}, ()=>Array(N).fill(null));
 genTray(false);
 refreshTitle();
-updateGoals();
 setHudMode();
 resize();
 requestAnimationFrame(frame);
