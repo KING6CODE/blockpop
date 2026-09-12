@@ -2042,14 +2042,19 @@ function onDown(e,i){
   }));
   dragLayer.style.display = 'block';
   slotCvs[i].style.visibility = 'hidden';
-  /* MODIF 9 : la pièce naît agrandie et reste levée tant qu'on la tient */
+  /* La pièce démarre à moitié sur la grille, à moitié en dessous */
+  const gy0 = boardRect.top + gy;
+  const startY = gy0 + cell*N - h/2 + cell*.2;
   drag = {
     i:i, p:p, w:w, h:h,
-    lift: e.pointerType === 'touch' ? Math.max(44, cell*1.1) : 0,
-    pop: 1,
+    fingerY: e.clientY,          /* position du doigt au pickup */
+    tileY: startY,               /* position verticale ACTUELLE de la pièce */
+    baseGap: startY - e.clientY, /* écart initial doigt -> pièce */
     lx: e.clientX, ly: e.clientY
   };
-  moveDrag(e.clientX, e.clientY);
+  dragLayer.style.transform =
+    'translate(' + (e.clientX-w/2-6) + 'px,' + (startY-h/2-6) + 'px)';
+  computeGhost(e.clientX, startY);
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onUp);
@@ -2057,12 +2062,18 @@ function onDown(e,i){
 function moveDrag(x,y){
   drag.lx = x;
   drag.ly = y;
-  const cy = dragCenterY(y);
-  const s = 1 + .16*drag.pop;
-  const lift = drag.lift + 10*drag.pop;
+  /* L'élasticité : l'écart doigt->pièce grandit subtilement quand le doigt monte.
+     deltaY négatif = doigt vers le haut. L'écart augmente de 30% du déplacement. */
+  const deltaY = y - drag.fingerY;
+  const stretch = Math.min(0, deltaY) * .3;   /* ne s'applique que vers le haut */
+  const tileY = drag.fingerY + drag.baseGap + (deltaY - stretch);
+  /* La pièce ne descend jamais sous sa position de départ */
+  const minY = drag.fingerY + drag.baseGap;
+  const finalY = Math.max(tileY, minY);
+  drag.tileY = finalY;
   dragLayer.style.transform =
-    'translate(' + (x-drag.w/2-6) + 'px,' + (cy-drag.h/2-6) + 'px) scale(' + s + ')';
-  computeGhost(x, cy);
+    'translate(' + (x-drag.w/2-6) + 'px,' + (finalY-drag.h/2-6) + 'px)';
+  computeGhost(x, finalY);
 }
 function onMove(e){
   if(!drag) return;
@@ -2074,8 +2085,8 @@ function onUp(e){
   window.removeEventListener('pointerup', onUp);
   window.removeEventListener('pointercancel', onUp);
   if(!drag) return;
-  const x = e.clientX, y = e.clientY, sl = drag.i, d = drag;
-  computeGhost(x, dragCenterY(y));
+  const x = drag.lx, y = drag.tileY, sl = drag.i, d = drag;
+  computeGhost(x, y);
   if(ghost){
     const r = ghost.r, c = ghost.c;
     ghost = null;
@@ -2088,7 +2099,7 @@ function onUp(e){
     const rect = slotEls[sl].getBoundingClientRect();
     const tx = rect.left+rect.width/2-d.w/2-6;
     const ty = rect.top+rect.height/2-d.h/2-6;
-    const cx0 = x-d.w/2-6, cy0 = y-d.lift-d.h/2-6;
+    const cx0 = x-d.w/2-6, cy0 = d.tileY-d.h/2-6;
     drag = null;
     ghost = null;
     dragLayer.animate(
@@ -2221,11 +2232,7 @@ function frame(t){
     if(!playCustom('land', .6)) SFX.land();
     lastLand = t;
   }
-  /* le pop du drag reste à 1 : piloté par frame, jamais retombant */
-  if(drag && drag.pop < 1){
-    drag.pop = Math.min(1, drag.pop + dts*5);
-    moveDrag(drag.lx, drag.ly);
-  }
+     /* (pop supprimé : la pièce garde la taille exacte du plateau) */
   bctx.clearRect(0,0,cw,chh);
   bctx.save();
   if(shakeAmt > .4){
