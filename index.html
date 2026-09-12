@@ -2241,6 +2241,7 @@ function mixRelief(){
 function frame(t){
   const dt = Math.min(50, t-lastT);
   lastT = t;
+  fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
   const dts = dt/1000;
   const G = cell*95;
   let landed = false;
