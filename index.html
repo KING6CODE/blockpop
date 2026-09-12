@@ -2045,7 +2045,7 @@ function onDown(e,i){
   /* Position de départ : DANS LE GAP entre grille et pioche (photo 2).
      Le haut de la pièce est juste sous le bord bas de la grille. */
   const gy0 = boardRect.top + gy;
-  const startY = gy0 + cell*N + cell*.18 + h/2;
+  const startY = gy0 + cell*N;
   drag = {
     i:i, p:p, w:w, h:h,
     fingerX: e.clientX,   /* référence doigt au moment du pickup */
