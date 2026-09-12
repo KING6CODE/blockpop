@@ -715,8 +715,8 @@ let state='title',animating=false,turnId=0;
 let stylePts=0,styleRingT=0,reviveUsed=false,gameStart=0;
 let theme=0,styleLevel=0,themeOrder=[0,1,2,3,4,5,6,7,8,9];
 let cell=40,mini=16,gx=0,gy=0,cw=0,chh=0,drag=null,ghost=null,boardRect=null;
-let particles=[],floats=[],clearFx=[],shakeAmt=0;
-let lastT=performance.now(),toastTimer=null,lastLand=0;
+let particles=[],floats=[],flyScores=[],clearFx=[],shakeAmt=0;
+let lastT=performance.now(),toastTimer=null,lastLand=0,lastPrevPart=0;
 bestVal.textContent=best;
 
 function updateBoardRect(){boardRect=boardEl.getBoundingClientRect()}
@@ -880,6 +880,8 @@ const side=Math.round(mini*5+16);
 cv.width=side*dpr;cv.height=side*dpr;cv.style.width=side+'px';cv.style.height=side+'px';
 c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,side,side);
 if(p){const w=p.m[0].length*mini,h=p.m.length*mini,ox=(side-w)/2,oy=(side-h)/2;
+c.fillStyle='rgba(0,0,0,.28)';
+c.beginPath();c.ellipse(side/2,oy+h-2,w*.55,4.5,0,0,6.3);c.fill();
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(!v)return;
 if(p.bomb)drawBomb(c,ox+dc*mini,oy+dr*mini,mini,t);
@@ -967,7 +969,7 @@ const lines=rows.length+cols.length;linesTotal+=lines;
 const mult=Math.min(3,1+(combo-1)*.5);
 const gain=Math.round((cleared.length*100+(lines-1)*600+(chain?400:0))*mult);
 score+=gain;
-floats.push({x:gx+(sx/cleared.length)*cell+cell/2,y:gy+(sy/cleared.length)*cell+cell/2,txt:'+'+gain,t0:t0,life:900});
+flyScores.push({x:gx+(sx/cleared.length)*cell+cell/2,y:gy+(sy/cleared.length)*cell+cell/2,txt:'+'+gain,t0:t0,life:1000});
 /* son clear : custom sinon synthèse par matière */
 if(!playCustom('clear_'+STYLES[theme].id,.85))SFX.clearByStyle(lines,theme);
 if(combo>=2||lines>=2){
@@ -1079,6 +1081,13 @@ placedCount++;advPlaced++;
 if(!store.get('bp_tut'))store.set('bp_tut','1');
 score+=p.m.flat().length*10;bumpScore();
 SFX.place();vib(12);
+p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
+if(!v)return;
+const px=gx+(c+dc)*cell+cell/2,py=gy+(r+dr)*cell+cell/2;
+for(let k=0;k<2;k++)particles.push({x:px,y:py,
+vx:(Math.random()-.5)*.5,vy:-(.15+Math.random()*.25),sz:cell*.10,
+col:COLORS[Math.floor(Math.random()*8)].b,t0:now,life:500+Math.random()*250,
+sh:1,g:.4,rot:0,vr:.3})}));
 tray[i]=null;renderTray(false);
 updateObjHUD();
 const fc=findFull(grid);
@@ -1254,7 +1263,15 @@ ghost.hl2.forEach(rc=>{
 bctx.fillStyle='rgba(255,140,40,'+Math.max(0,p2)+')';
 rr(bctx,gx+rc[1]*cell+2,gy+rc[0]*cell+2,cell-4,cell-4,cell*.18);bctx.fill()});
 if(pv===1)drawHL(ghost.hl2,.10)}
-if(ghost.hl.length)drawHL(ghost.hl,.12+.10*Math.sin(t/110))}
+if(ghost.hl.length){
+drawHL(ghost.hl,.20+.14*Math.sin(t/110));
+if(t-lastPrevPart>70){
+lastPrevPart=t;
+const rc=ghost.hl[Math.floor(Math.random()*ghost.hl.length)];
+particles.push({x:gx+rc[1]*cell+cell*(.2+Math.random()*.6),y:gy+rc[0]*cell+cell*.35,
+vx:(Math.random()-.5)*.12,vy:-(.10+Math.random()*.16),sz:cell*.09,
+col:Math.random()<.5?'#ffffff':'#ffd23d',t0:t,life:650,sh:1,g:0,rot:0,vr:0});
+}}}
 /* BLOCS + TRAÎNÉES DE CHUTE */
 for(let r=0;r<N;r++)for(let c=0;c<N;c++){const o=grid[r][c];if(!o)continue;
 const age=t-o.t;let pop=1;
@@ -1340,6 +1357,20 @@ bctx.lineWidth=4;bctx.strokeStyle='rgba(15,16,22,.9)';
 bctx.strokeText(f.txt,f.x,f.y+yo);
 bctx.fillStyle='#ffd23d';bctx.fillText(f.txt,f.x,f.y+yo);
 bctx.globalAlpha=1;return true});
+if(flyScores.length){
+const sRect=scoreEl.getBoundingClientRect(),bRect=boardEl.getBoundingClientRect();
+const tx=sRect.left+sRect.width/2-bRect.left,ty=sRect.top+sRect.height/2-bRect.top;
+flyScores=flyScores.filter(f=>{
+const age=t-f.t0;
+if(age>=f.life){bumpScore();return false}
+let x=f.x,y=f.y,sc=1;
+const RISE=380,FLY=f.life-RISE;
+if(age<RISE){const k=age/RISE;
+y=f.y-42*(1-Math.pow(1-k,3));sc=.9+.35*Math.sin(k*Math.PI)}
+else{const k=(age-RISE)/FLY,e=k*k*(3-2*k);
+x=f.x+(tx-f.x)*e;y=(f.y-42)+(ty-(f.y-42))*e;sc=1-k*.45}
+drawScore3D(bctx,f.txt,x,y,sc,1-k*.2);
+return true})}
 bctx.restore();
 if(shownScore!==score){const d=score-shownScore;
 shownScore+=Math.sign(d)*Math.ceil(Math.abs(d)*.2);
@@ -1347,7 +1378,19 @@ if(Math.abs(score-shownScore)<1)shownScore=score;
 scoreEl.textContent=shownScore}
 requestAnimationFrame(frame)}
 function c2line(c,x,y){c.lineTo(x,y)}
-function gainPx(txt){return(txt.replace('+','').length>4||parseInt(txt.replace('+',''))>=10000)?26:20}
+function gainPx(txt){return(txt.replace('+','').length>4||parseInt(txt.replace('+',''))>=10000)?34:27}
+function drawScore3D(c,txt,x,y,sc,alpha){
+const size=Math.max(28,gainPx(txt)+10)*sc;
+c.save();c.globalAlpha=alpha;
+c.font='700 '+size+'px Fredoka, sans-serif';c.textAlign='center';
+c.fillStyle='#8a6a12';
+for(let o=3;o>=1;o--)c.fillText(txt,x+o*.8,y+o);
+const g=c.createLinearGradient(0,y-size*.72,0,y+size*.12);
+g.addColorStop(0,'#ffffff');g.addColorStop(.55,'#ffe98a');g.addColorStop(1,'#ffc93d');
+c.fillStyle=g;c.fillText(txt,x,y);
+c.strokeStyle='rgba(205,210,230,.55)';c.lineWidth=Math.max(1,size*.055);
+c.strokeText(txt,x,y);
+c.restore()}
 function toast(msg,dur){toastEl.textContent=msg;toastEl.classList.add('show');
 clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),dur||2200)}
 function confetti(){for(let i=0;i<70;i++){
@@ -1389,7 +1432,7 @@ themeOrder=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);themeOrder.unshift(0);
 styleLevel=0;theme=0;stylePts=0;styleRingT=0;refreshThemePill();
 reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=-1;
-particles=[];floats=[];clearFx=[];shakeAmt=0;ghost=null;
+particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
 setHudMode();showComboPill();updateBg();
 updateGoals();updateObjHUD();resize();genTray(true);
 state='playing';
@@ -1463,7 +1506,7 @@ themeOrder=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);themeOrder.unshift(0);
 styleLevel=0;theme=0;stylePts=0;styleRingT=0;refreshThemePill();
 reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=best;
-particles=[];floats=[];clearFx=[];shakeAmt=0;ghost=null;
+particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
 showComboPill();updateBg();
 store.del('bp_save');
 updateGoals();resize();genTray(true);
