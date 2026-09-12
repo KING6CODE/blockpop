@@ -1042,6 +1042,24 @@ const STYLES = [
   {id:'bois',    name:'Bois',    bg:'#362a1e', pv:1, snd:{w:'triangle',m:.90},  burst:[0,'d']},
   {id:'or',      name:'Or',      bg:'#3a3117', pv:2, snd:{w:'triangle',m:1.45}, burst:[2,'l']}
 ];
+/* ============ UTILS COULEURS PLATEAU ============ */
+function mixHex(h1,h2,t){
+const a=parseInt(h1.slice(1),16),b=parseInt(h2.slice(1),16);
+const r=Math.round(((a>>16)&255)*(1-t)+((b>>16)&255)*t);
+const gg=Math.round(((a>>8)&255)*(1-t)+((b>>8)&255)*t);
+const bl=Math.round((a&255)*(1-t)+(b&255)*t);
+return '#'+((1<<24)+(r<<16)+(gg<<8)+bl).toString(16).slice(1)}
+/* Plateau : teinte dérivée de la MATIÈRE, plus foncée (stable) */
+function boardBG(){
+return mixHex(STYLES[theme].bg,'#000000',.22)}
+/* Relief : fond global légèrement assombri */
+function colBGBody(){
+if(combo>=6)return '#8a2f6f';
+if(combo>=4)return '#7a4fb0';
+if(combo>=2)return '#b65c69';
+return '#4a55a8'}
+function mixRelief(){
+return mixHex(colBGBody(),'#000000',.15)}
 const STYLE_TH = [0,3,7,11,16,22,29,37,46,56];
 
 /* ============ TUILES PAR COULEUR ============
@@ -2251,43 +2269,34 @@ function frame(t){
   }else shakeAmt = 0;
   /* losange doré (combo 3+) */
   drawDiamondDeco(t);
-  /* ===== MODIF 3 : PLATEAU =====
-     relief = un seul carré arrondi derrière la grille,
-     légèrement plus grand, teinté par la matière courante.
-     Aucune ligne tracée : les séparations viennent des carrés
-     des cellules vides (presque collés). */
-   /* relief : carré centré, plus foncé que le fond, suit la couleur du fond */
-    /* Relief : dépassement minime, fond global assombri,
-     bande claire sur le pourtour, s'illumine au clear */
-  const lastClear = clearFx.length ? clearFx[clearFx.length-1].t0 : 0;
-  const glowK = (t-lastClear < 450) ? (1-(t-lastClear)/450) : 0;
-  const glowA = glowK*.5;
-  /* corps sombre */
-  bctx.fillStyle = mixRelief();
-  rr(bctx, gx-10, gy-10, cell*N+20, cell*N+20, 10);
+  /* ===== PLATEAU : relief + fond teinté matière (plus sombre) =====
+   Le relief s'illumine en doré à chaque ligne. */
+  const lastClear=clearFx.length?clearFx[clearFx.length-1].t0:0;
+  const glowK=(t-lastClear<450)?(1-(t-lastClear)/450):0;
+  const glowA=glowK*.5;
+  /* corps du relief : fond global légèrement assombri */
+  bctx.fillStyle=mixRelief();
+  rr(bctx,gx-10,gy-10,cell*N+20,cell*N+20,10);
   bctx.fill();
-  /* bande claire : bord intérieur du relief (pourtour) */
-  bctx.strokeStyle = 'rgba(255,255,255,' + (.10 + glowA) + ')';
-  bctx.lineWidth = 3;
-  rr(bctx, gx-8, gy-8, cell*N+16, cell*N+16, 9);
+  /* bande claire sur le bord intérieur du relief */
+  bctx.strokeStyle='rgba(255,255,255,'+(.10+glowA)+')';
+  bctx.lineWidth=3;
+  rr(bctx,gx-8,gy-8,cell*N+16,cell*N+16,9);
   bctx.stroke();
-  /* à l'illumination : toute la bordure s'embrase en doré */
-  if(glowA > 0){
-    bctx.strokeStyle = 'rgba(255,220,120,' + glowA + ')';
-    bctx.lineWidth = 4;
-    rr(bctx, gx-9, gy-9, cell*N+18, cell*N+18, 10);
-    bctx.stroke();
-  }
+  /* à l'illumination : bordure dorée */
+  if(glowA>0){
+  bctx.strokeStyle='rgba(255,220,120,'+glowA+')';
+  bctx.lineWidth=4;
+  rr(bctx,gx-9,gy-9,cell*N+18,cell*N+18,10);
+  bctx.stroke()}
   /* fond intérieur de la grille : teinte matière, plus foncée */
-  rr(bctx, gx-3, gy-3, cell*N+6, cell*N+6, 6);
-  bctx.fillStyle = boardBG();
+  rr(bctx,gx-3,gy-3,cell*N+6,cell*N+6,6);
+  bctx.fillStyle=boardBG();
   bctx.fill();
   /* cellules vides (séparations naturelles) */
   for(let r=0;r<N;r++){
-    for(let c=0;c<N;c++){
-      drawEmpty(bctx, gx+c*cell, gy+r*cell, cell);
-    }
-  }
+  for(let c=0;c<N;c++){
+  drawEmpty(bctx,gx+c*cell,gy+r*cell,cell)}}
   /* onde de changement de matière */
     if(t-styleRingT < 600 && styleRingT > 0){
     const kk = (t-styleRingT)/600;
