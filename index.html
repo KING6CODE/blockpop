@@ -656,6 +656,16 @@ header{
     <button class="btn ghost" id="btnResume" style="display:none">Reprendre la partie</button>
     <p class="tbest" id="titleBest"></p>
     <p class="tbest" id="titleStats" style="margin-top:4px"></p>
+    <button class="btn ghost" id="btnDev" style="display:none;margin-top:8px;padding:8px;font-size:13px">🛠 DEV : highscore</button>
+    <div id="devPanel" style="display:none">
+      <p class="tbest" style="margin-top:8px">Record dev : <b id="devBest">0</b></p>
+      <div style="display:flex;gap:6px;justify-content:center">
+        <button class="btn ghost" id="devM5" style="width:auto;padding:8px 12px;margin:0">-5k</button>
+        <button class="btn ghost" id="devM1" style="width:auto;padding:8px 12px;margin:0">-1k</button>
+        <button class="btn ghost" id="devP1" style="width:auto;padding:8px 12px;margin:0">+1k</button>
+        <button class="btn ghost" id="devP5" style="width:auto;padding:8px 12px;margin:0">+5k</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1382,237 +1392,276 @@ function canAnywhere(m){
   return false;
 }
 /* ============================================================
-   MOTEUR DE PIOCHE INTELLIGENT v2 — cerveau du jeu
-   - Prédit toutes les poses possibles (lignes, all-clears, near-miss)
-   - Modes : TUTORIAL / NORMAL / PUNITION / SAUVE-COMBO / PERFECT
-   - Le score théorique guide la pression (plus tu montes, plus c'est dur)
+   MOTEUR DE PIOCHE v3 — piloté par le RECORD
+   - Prédictions AVEC GRAVITÉ (simule nos cascades réelles)
+   - Packs cadeaux imbriqués (2×3x2 + 2x2, etc.)
+   - Punition avant-record si poses bêtes, sauvetage si skill
+   - Détection d'encastrage (les blocs s'imbriquent)
    ============================================================ */
+let noClearStreak = 0;   /* poses consécutives sans clear */
 
-/* Clone la grille en booléens simples pour simulation rapide */
 function simGrid(){
   return grid.map(row=>row.map(v=>v?1:0));
 }
-/* Place une pièce dans une sim, renvoie la nouvelle sim ou null */
 function simPlace(sim,m,r,c){
   for(let i=0;i<m.length;i++)
     for(let j=0;j<m[i].length;j++)
-      if(m[i][j] && (r+i>=N||c+j>=N||sim[r+i][c+j])) return null;
-  const out = sim.map(row=>row.slice());
+      if(m[i][j]&&(r+i>=N||c+j>=N||sim[r+i][c+j]))return null;
+  const out=sim.map(row=>row.slice());
   for(let i=0;i<m.length;i++)
     for(let j=0;j<m[i].length;j++)
-      if(m[i][j]) out[r+i][c+j]=1;
+      if(m[i][j])out[r+i][c+j]=1;
   return out;
 }
-/* Lignes complètes d'une sim (retourne count + vide la sim) */
 function simClear(sim){
-  let count = 0;
+  let count=0;
   for(let r=0;r<N;r++){
-    let full = true;
-    for(let c=0;c<N;c++) if(!sim[r][c]){ full=false; break; }
-    if(full){ count++; for(let c=0;c<N;c++) sim[r][c]=0; }
+    let full=true;
+    for(let c=0;c<N;c++)if(!sim[r][c]){full=false;break}
+    if(full){count++;for(let c=0;c<N;c++)sim[r][c]=0}
   }
   for(let c=0;c<N;c++){
-    let full = true;
-    for(let r=0;r<N;r++) if(!sim[r][c]){ full=false; break; }
-    if(full){ count++; for(let r=0;r<N;r++) sim[r][c]=0; }
+    let full=true;
+    for(let r=0;r<N;r++)if(!sim[r][c]){full=false;break}
+    if(full){count++;for(let r=0;r<N;r++)sim[r][c]=0}
   }
   return count;
 }
-/* Analyse toutes les poses possibles d'une pièce */
+/* NOTRE gravité : compactage colonne par colonne */
+function simGravity(sim){
+  for(let c=0;c<N;c++){
+    let w=N-1;
+    for(let r=N-1;r>=0;r--){
+      if(sim[r][c]){if(w!==r){sim[w][c]=sim[r][c];sim[r][c]=0}w--}
+    }
+  }
+}
+/* Clear + gravité + rechainage (fidèle au jeu réel) */
+function simClearChain(sim){
+  let count=simClear(sim);
+  if(count>0){
+    simGravity(sim);
+    count+=simClear(sim);
+    if(count>0)simGravity(sim);
+  }
+  return count;
+}
+/* Analyse une pièce : lignes (post-gravité), all-clears, near-miss, encastrage */
 function analyzePiece(si){
-  const m = SHAPES[si].m;
-  const res = {si:si, lines:0, allClear:0, near:0, places:0, toxicity:0};
-  const sim = simGrid();
+  const m=SHAPES[si].m;
+  const res={si:si,lines:0,allClear:0,near:0,places:0,nest:false,toxicity:0};
+  const sim=simGrid();
   for(let r=0;r<=N-m.length;r++){
     for(let c=0;c<=N-m[0].length;c++){
-      const s2 = simPlace(sim,m,r,c);
-      if(!s2) continue;
+      const s2=simPlace(sim,m,r,c);
+      if(!s2)continue;
       res.places++;
-      /* lignes immédiates (avec clear appliqué) */
-      const simC = s2.map(row=>row.slice());
-      const ln = simClear(simC);
-      res.lines += ln;
-      if(ln > 0 && simC.every(row=>row.every(v=>v===0))) res.allClear++;
-      /* near-miss : lignes à 1 case près après pose SANS clear */
-      if(ln === 0){
+      const simC=s2.map(row=>row.slice());
+      const ln=simClearChain(simC);
+      res.lines+=ln;
+      if(ln>0&&simC.every(row=>row.every(v=>v===0)))res.allClear++;
+      if(ln===0){
         for(let rr2=0;rr2<N;rr2++){
-          let cnt = 0;
-          for(let cc2=0;cc2<N;cc2++) if(s2[rr2][cc2]) cnt++;
-          if(cnt === N-1) res.near++;
+          let cnt=0;
+          for(let cc2=0;cc2<N;cc2++)if(s2[rr2][cc2])cnt++;
+          if(cnt===N-1)res.near++;
         }
         for(let cc2=0;cc2<N;cc2++){
-          let cnt = 0;
-          for(let rr2=0;rr2<N;rr2++) if(s2[rr2][cc2]) cnt++;
-          if(cnt === N-1) res.near++;
+          let cnt=0;
+          for(let rr2=0;rr2<N;rr2++)if(s2[rr2][cc2])cnt++;
+          if(cnt===N-1)res.near++;
         }
       }
     }
   }
-  /* toxicité : la pièce réduit-elle les near-miss disponibles ? */
-  res.toxicity = res.near===0 && res.lines===0 ? 2 : (res.places<3 ? 1 : 0);
+  /* encastrage : existe-t-il une pose qui repose à plat dans une cavité ? */
+  for(let r=0;r<=N-m.length&&!res.nest;r++){
+    for(let c=0;c<=N-m[0].length&&!res.nest;c++){
+      if(!canPlaceAt(m,r,c))continue;
+      let rests=true;
+      for(let j=0;j<m[0].length&&rests;j++){
+        let low=-1;
+        for(let i=0;i<m.length;i++)if(m[i][j])low=i;
+        const below=r+low+1;
+        if(below<N&&grid[below][c+j])rests=false;
+      }
+      if(rests)res.nest=true;
+    }
+  }
+  res.toxicity=res.lines===0&&res.near===0?(res.nest?0:2):(res.places<3?1:0);
   return res;
 }
-/* Lignes à distance 1 sur la grille ACTUELLE (pas de pièce) */
 function nearLinesNow(){
-  let n = 0;
-  const sim = simGrid();
+  let n=0;
+  const sim=simGrid();
   for(let r=0;r<N;r++){
-    let cnt = 0;
-    for(let c=0;c<N;c++) if(sim[r][c]) cnt++;
-    if(cnt === N-1) n++;
+    let cnt=0;
+    for(let c=0;c<N;c++)if(sim[r][c])cnt++;
+    if(cnt===N-1)n++;
   }
   for(let c=0;c<N;c++){
-    let cnt = 0;
-    for(let r=0;r<N;r++) if(sim[r][c]) cnt++;
-    if(cnt === N-1) n++;
+    let cnt=0;
+    for(let r=0;r<N;r++)if(sim[r][c])cnt++;
+    if(cnt===N-1)n++;
   }
   return n;
 }
-/* Prédiction perfect : mémorise si une pose menait à un all-clear proche */
-let perfectPrediction = null;
-function predictPerfect(si, analysis){
-  const fill = grid.flat().filter(Boolean).length;
-  if(analysis.allClear > 0 && fill > 20){
-    perfectPrediction = {piecesLeft:2};
-  }else if(perfectPrediction && perfectPrediction.piecesLeft > 0){
-    perfectPrediction.piecesLeft--;
-    if(perfectPrediction.piecesLeft === 0 && analysis.allClear > 0){
-      /* le joueur a suivi la prédiction */
-      score += 2500;
-      floats.push({x:gx+cell*4, y:gy+cell*4, txt:'PERFECT PRÉDIT +2500', t0:performance.now(), life:1600});
-      SFX.perfect();
-      perfectPrediction = null;
-    }
-  }
-}
-
-/* ---------- Génération pondérée (base, sans le cerveau) ---------- */
+/* Poids de base (remplace l'ancien randPiece) */
 function randPieceWeighted(){
-  const fill = grid.flat().filter(Boolean).length/(N*N);
-  const D = diffLevel();
-  let total = 0;
-  const ws = SHAPES.map(s2=>{
-    const n = s2.m.flat().length;
-    let w = s2.w;
-    if(n <= 3) w *= (1+fill*1.2)*(1.25-D*1.05);
-    else if(n >= 6) w *= (.25+D*2.3)*Math.max(.1,1-fill*.5);
-    if(n === 9) w *= .3+D*1.3;
-    total += w; return w;
+  const fill=grid.flat().filter(Boolean).length/(N*N);
+  const D=diffLevel();
+  let total=0;
+  const ws=SHAPES.map(s2=>{
+    const n=s2.m.flat().length;
+    let w=s2.w;
+    if(n<=3)w*=(1+fill*1.2)*(1.25-D*1.05);
+    else if(n>=6)w*=(.25+D*2.3)*Math.max(.1,1-fill*.5);
+    if(n===9)w*=.3+D*1.3;
+    total+=w;return w;
   });
-  let r = Math.random()*total;
-  for(let i=0;i<SHAPES.length;i++){ r-=ws[i]; if(r<=0) return i; }
+  let r=Math.random()*total;
+  for(let i=0;i<SHAPES.length;i++){r-=ws[i];if(r<=0)return i}
   return 0;
 }
+/* alias pour compatibilité aventure */
+function randPiece(){return randPieceWeighted()}
+
+/* ---------- PACKS CADEAUX : pièces qui s'imbriquent ---------- */
+/* indices SHAPES : 3=1x3, 4=3x1, 5=1x4, 6=4x1, 9=2x2, 10=3x2, 11=2x3 */
+const GIFT_PACKS=[
+  [3,3,9],    /* deux 1x3 + 2x2 */
+  [4,4,9],    /* deux 3x1 + 2x2 */
+  [10,3,3],   /* 3x2 + deux 1x3 : remplit 6 de large */
+  [11,4,4],   /* 2x3 + deux 3x1 */
+  [5,6,9],    /* 1x4 + 4x1 + 2x2 */
+  [10,10,9]   /* deux 3x2 + 2x2 (le pack vedette) */
+];
 
 /* ---------- genTray : le cerveau ---------- */
 function genTray(anim, forcePity){
-  /* pioches fixes (aventure) : inchangées */
-  const cols = [0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);
-  if(mode === 'adv' && lvl && lvl.fixed){
-    const take = lvl.fixed.slice(advFixedIdx, advFixedIdx+3);
-    advFixedIdx += take.length;
-    tray = take.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
+  const cols=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);
+  if(mode==='adv'&&lvl&&lvl.fixed){
+    const take=lvl.fixed.slice(advFixedIdx,advFixedIdx+3);
+    advFixedIdx+=take.length;
+    tray=take.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
     renderTray(anim);
     return;
   }
-  if(mode === 'adv'){
-    let set = null;
-    if(advLevel < TUNE.advPityEarly){
+  if(mode==='adv'){
+    let set=null;
+    if(advLevel<TUNE.advPityEarly){
       for(let t=0;t<30;t++){
-        const cand = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
-        if(cand.some(si=>canAnywhere(SHAPES[si].m))){ set = cand; break; }
+        const cand=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
+        if(cand.some(si=>canAnywhere(SHAPES[si].m))){set=cand;break}
       }
-    }else set = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
-    if(!set) set = [0,1,1];
-    tray = set.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
+    }else set=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
+    if(!set)set=[0,1,1];
+    tray=set.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
     renderTray(anim);
     return;
   }
 
-  /* ===== CLASSIQUE : le cerveau entre en jeu ===== */
-  const remaining = tray.filter(p=>p&&!p.bomb).length;
-  const fill = grid.flat().filter(Boolean).length/(N*N);
-  const nearNow = nearLinesNow();
+  /* ===== CLASSIQUE : piloté par le RECORD ===== */
+  const fill=grid.flat().filter(Boolean).length/(N*N);
+  const nearNow=nearLinesNow();
+  const rec=best;
+  const prog=rec>0?clamp(score/rec,0,1.2):0;
+  const kept=tray.filter(p=>p&&!p.bomb).map(p=>analyzePiece(p.si));
+  const keptCanClear=kept.some(a=>a.lines>0);
+  const keptHasNear=kept.some(a=>a.near>0);
 
-  /* 1. Analyser les pièces restantes dans la main */
-  const keptAnalysis = tray.filter(p=>p&&!p.bomb).map(p=>analyzePiece(p.si));
+  /* ---- MODES ---- */
+  let mode2='NEUTRAL';
+  if(rec<=0)mode2='TUTORIAL';
+  else if(combo>=2&&!keptCanClear)mode2='SAVE_COMBO';
+  else if(prog>=.5&&prog<1.0&&noClearStreak>=2&&Math.random()<.55)mode2='PUNISH';
+  else if(fill<.18&&Math.random()<.55)mode2='GIFT';
+  else if(prog<.45&&Math.random()<.35)mode2='GIFT';
+  else if(fill<.25&&nearNow>=2&&Math.random()<.25)mode2='PERFECT';
 
-  /* 2. Peut-on encore faire un clear avec les pièces restantes ? */
-  const keptCanClear = keptAnalysis.some(a=>a.lines > 0);
-  /* 3. Un double/all-clear est-il possible avec une 3e pièce ? */
-  const keptHasNear = keptAnalysis.some(a=>a.near > 0);
+  /* ---- candidats de base ---- */
+  const newSi=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
 
-  /* 4. Déterminer le MODE */
-  let mode2 = 'NORMAL';
-  if(score < 4000) mode2 = 'TUTORIAL';
-  if(combo >= 3 && !keptCanClear) mode2 = 'SAVE_COMBO';
-  else if((fill < .30 || combo >= 5) && score >= 8000 && Math.random() < .30) mode2 = 'PUNISH';
-  else if(fill < .25 && nearNow >= 2 && Math.random() < .25) mode2 = 'PERFECT';
-
-  /* 5. Générer les 3 candidats selon le mode */
-  let newSi = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
-
-  if(mode2 === 'TUTORIAL'){
-    /* au moins une pièce qui clear tout de suite ou setup un all-clear */
-    let ok = null;
-    for(let t=0;t<40;t++){
-      const cand = randPieceWeighted();
-      const a = analyzePiece(cand);
-      if(a.lines > 0 || (nearNow >= 2 && a.allClear > 0)){ ok = cand; break; }
-    }
-    if(ok !== null) newSi[Math.floor(Math.random()*3)] = ok;
+  if(mode2==='TUTORIAL'){
+    /* grille vide ou presque : pièces simples qui s'imbriquent, clear facile */
+    let slot=Math.floor(Math.random()*3);
+    newSi=[10,9,3]; /* 3x2 + 2x2 + 1x3 : imbriquables en un rectangle */
+    if(fill>.15){newSi[slot]=randPieceWeighted()}
   }
-  else if(mode2 === 'SAVE_COMBO'){
-    /* une pièce qui permet double-ligne (near-miss) au 4e bloc */
-    let saver = null;
-    for(let t=0;t<40;t++){
-      const cand = randPieceWeighted();
-      const a = analyzePiece(cand);
-      if(a.near > 0 || a.lines >= 2){ saver = cand; break; }
-    }
-    if(saver !== null) newSi[Math.floor(Math.random()*3)] = saver;
-    /* sinon : tant pis, la pioche reste neutre (punition assumée parfois) */
+  else if(mode2==='GIFT'){
+    /* moment cadeau : pack imbriqué exact */
+    const pack=GIFT_PACKS[Math.floor(Math.random()*GIFT_PACKS.length)];
+    newSi=pack.slice();
+    /* un des trois peut rester aléatoire pour la variété */
+    newSi[Math.floor(Math.random()*3)]=randPieceWeighted();
   }
-  else if(mode2 === 'PUNISH'){
-    /* la pièce la plus TOXIQUE possible : celle qui tue les near-miss */
-    let worst = null, worstScore = -1;
+  else if(mode2==='SAVE_COMBO'){
+    /* sauver le combo : double-ligne ou near-miss garanti */
+    let saver=null;
+    for(let t=0;t<40;t++){
+      const cand=randPieceWeighted();
+      const a=analyzePiece(cand);
+      if(a.lines>=2||a.near>0){saver=cand;break}
+    }
+    if(saver!==null)newSi[Math.floor(Math.random()*3)]=saver;
+  }
+  else if(mode2==='PUNISH'){
+    /* mort avant record : la pièce la plus toxique possible */
+    let worst=null,worstSc=-1;
     for(let t=0;t<14;t++){
-      const cand = randPieceWeighted();
-      const a = analyzePiece(cand);
-      const sc = a.toxicity*10 - a.lines*5 - a.near;
-      if(sc > worstScore){ worstScore = sc; worst = cand; }
+      const cand=randPieceWeighted();
+      const a=analyzePiece(cand);
+      const sc=a.toxicity*10-a.lines*5-a.near;
+      if(sc>worstSc){worstSc=sc;worst=cand}
     }
-    if(worst !== null) newSi[Math.floor(Math.random()*3)] = worst;
+    if(worst!==null)newSi[Math.floor(Math.random()*3)]=worst;
   }
-  else if(mode2 === 'PERFECT'){
-    /* une pièce qui laisse la grille prête pour un all-clear */
-    let best2 = null, bestSc = -1;
+  else if(mode2==='PERFECT'){
+    /* sème un all-clear prédictible */
+    let best2=null,bestSc=-1;
     for(let t=0;t<14;t++){
-      const cand = randPieceWeighted();
-      const a = analyzePiece(cand);
-      const sc = a.allClear*20 + a.near*2 - a.toxicity*5;
-      if(sc > bestSc){ bestSc = sc; best2 = cand; }
+      const cand=randPieceWeighted();
+      const a=analyzePiece(cand);
+      const sc=a.allClear*20+a.near*2-a.toxicity*5;
+      if(sc>bestSc){bestSc=sc;best2=cand}
     }
-    if(best2 !== null) newSi[Math.floor(Math.random()*3)] = best2;
+    if(best2!==null)newSi[Math.floor(Math.random()*3)]=best2;
+  }
+  else{
+    /* NEUTRAL : favorise l'encastrage (imbriquation) une fois sur trois */
+    if(Math.random()<.33){
+      let nest=null;
+      for(let t=0;t<14;t++){
+        const cand=randPieceWeighted();
+        if(analyzePiece(cand).nest){nest=cand;break}
+      }
+      if(nest!==null)newSi[Math.floor(Math.random()*3)]=nest;
+    }
   }
 
-  /* 6. Garantie anti-blocage : au moins une pièce plaçable SAUF en punition dure */
-  const anyPlacable = newSi.some(si=>canAnywhere(SHAPES[si].m));
-  if(!anyPlacable && mode2 !== 'PUNISH'){
+  /* ---- garde-fous ---- */
+  const anyPlacable=newSi.some(si=>canAnywhere(SHAPES[si].m));
+  if(!anyPlacable&&mode2!=='PUNISH'){
     for(let t=0;t<40;t++){
-      const cand = randPieceWeighted();
-      if(canAnywhere(SHAPES[cand].m)){ newSi[Math.floor(Math.random()*3)] = cand; break; }
+      const cand=randPieceWeighted();
+      if(canAnywhere(SHAPES[cand].m)){newSi[Math.floor(Math.random()*3)]=cand;break}
+    }
+  }
+  /* en TUTORIAL/GIFT : toujours au moins un clear possible */
+  if((mode2==='TUTORIAL'||mode2==='GIFT')&&score<3000){
+    let hasClear=false;
+    for(let i=0;i<3&&!hasClear;i++)hasClear=analyzePiece(newSi[i]).lines>0;
+    if(!hasClear){
+      for(let t=0;t<40;t++){
+        const cand=randPieceWeighted();
+        if(analyzePiece(cand).lines>0){newSi[Math.floor(Math.random()*3)]=cand;break}
+      }
     }
   }
 
-  /* 7. Prédiction perfect sur la première pièce de la nouvelle pioche */
-  const firstA = analyzePiece(newSi[0]);
-  predictPerfect(newSi[0], firstA);
-
-  /* 8. Assembler et afficher */
-  tray = newSi.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
-  if(mode === 'classic' && score >= TUNE.bombMinScore && Math.random() < TUNE.bombChance){
-    tray[Math.floor(Math.random()*3)] = {bomb:true, m:[[1]], si:-1, ci:2, dead:false};
+  tray=newSi.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
+  if(mode==='classic'&&score>=TUNE.bombMinScore&&Math.random()<TUNE.bombChance){
+    tray[Math.floor(Math.random()*3)]={bomb:true,m:[[1]],si:-1,ci:2,dead:false};
   }
   renderTray(anim);
 }
@@ -1788,6 +1837,7 @@ function showBanner(cb,lines,chain,mult){
 }
 function doClear(rows, cols, chain){
   combo++;
+  noClearStreak = 0;
   grace = 3;
   /* MODIF 8 : pump du losange à chaque combo ≥ 3 */
   if(combo >= 3) diamondPump = performance.now();
@@ -2080,8 +2130,10 @@ function applyPlace(i,r,c){
   updateObjHUD();
   const fc = findFull(grid);
   if(fc.rows.length || fc.cols.length){
+    noClearStreak = 0;
     resolveTurn();
   }else{
+    noClearStreak++;
     grace--;
     if(grace <= 0){
       if(combo >= 3){ SFX.bad(); toast('Combo perdu !'); }
@@ -3181,6 +3233,33 @@ refreshTitle();
 setHudMode();
 resize();
 requestAnimationFrame(frame);
+/* ---------- OUTIL DEV : highscore ---------- */
+let devTaps=0,devLastTap=0;
+document.getElementById('titleBest').addEventListener('pointerdown',()=>{
+  const now=performance.now();
+  if(now-devLastTap>1200)devTaps=0;
+  devLastTap=now;
+  if(++devTaps>=5){devTaps=0;
+    const b=document.getElementById('btnDev');
+    b.style.display=b.style.display==='none'?'block':'none';
+    toast('Mode dev '+(b.style.display==='block'?'activé':'désactivé'));}
+});
+function devBest(d){
+  best=Math.max(0,best+d);
+  store.set('bp_best',best);
+  bestVal.textContent=best;
+  document.getElementById('devBest').textContent=best;
+  refreshTitle();
+}
+bindTap($('btnDev'),()=>{
+  const p=$('devPanel');
+  p.style.display=p.style.display==='block'?'none':'block';
+  $('devBest').textContent=best;
+});
+bindTap($('devM5'),()=>devBest(-5000));
+bindTap($('devM1'),()=>devBest(-1000));
+bindTap($('devP1'),()=>devBest(1000));
+bindTap($('devP5'),()=>devBest(5000));
 </script>
 </body>
 </html>
