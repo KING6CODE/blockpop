@@ -1579,8 +1579,8 @@ function genTray(anim, forcePity){
   else if(prog<.45&&Math.random()<.35)mode2='GIFT';
   else if(fill<.25&&nearNow>=2&&Math.random()<.25)mode2='PERFECT';
 
-  /* ---- candidats de base ---- */
-  const newSi=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
+    /* ---- candidats de base ---- */
+  let newSi=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
 
   if(mode2==='TUTORIAL'){
     /* grille vide ou presque : pièces simples qui s'imbriquent, clear facile */
