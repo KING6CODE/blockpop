@@ -7,7 +7,7 @@
 <title>BLOCKPOP</title>
 <!-- v16 : grille sans lignes teintée par matière, relief simple, ombres carrées,
      pioche nue, losange combo 3+ pump, pièce calée au bord bas, contour lumineux lignes -->
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
   --panel:rgba(255,255,255,.10);
@@ -104,18 +104,42 @@ header{
 .hside.right{
   align-items:flex-end;
 }
+.score-wrap{
+  text-align:center;
+  line-height:1;
+  flex:1;
+  position:relative;
+  z-index:110;
+  margin-bottom:0;
+}
+#score{
+  font-family:'Baloo 2','Fredoka',sans-serif;
+  font-size:54px;
+  font-weight:800;
+  letter-spacing:1px;
+  display:inline-block;
+  color:#ffffff;
+  text-shadow:0 3px 0 rgba(104,112,158,.85);
+}
+#score.bump{
+  animation:bump .28s ease;
+}
+@keyframes bump{
+  40%{transform:scale(1.18)}
+}
 #bestWrap{
   display:flex;
   align-items:center;
   gap:5px;
   color:var(--gold);
-  font-size:18px;
+  font-size:22px;
   font-weight:700;
   margin-top:4px;
+  font-family:'Baloo 2','Fredoka',sans-serif;
 }
 #bestWrap svg{
-  width:22px;
-  height:22px;
+  width:24px;
+  height:24px;
   fill:currentColor;
   filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));
 }
@@ -138,32 +162,6 @@ header{
 }
 .icon-btn:active{
   transform:scale(.9);
-}
-/* Score : blanc, 3D discret, descend chevaucher le haut de la grille
-   (le losange doré se dessine DERRIÈRE lui sur le canvas) */
-.score-wrap{
-  text-align:center;
-  line-height:1;
-  flex:1;
-  position:relative;
-  z-index:110;
-  margin-bottom:-6px;
-}
-#score{
-  font-size:52px;
-  font-weight:700;
-  letter-spacing:1px;
-  display:inline-block;
-  color:#ffffff;
-  text-shadow:
-    0 2px 0 rgba(118,126,172,.60),
-    0 5px 10px rgba(0,0,0,.35);
-}
-#score.bump{
-  animation:bump .28s ease;
-}
-@keyframes bump{
-  40%{transform:scale(1.18)}
 }
 #objBar{
   display:none;
@@ -2296,17 +2294,7 @@ function frame(t){
   for(let c=0;c<N;c++){
   drawEmpty(bctx,gx+c*cell,gy+r*cell,cell)}}
   /* onde de changement de matière */
-  if(t-styleRingT < 600 && styleRingT > 0){
-    const sRect2 = scoreEl.getBoundingClientRect();
-    fctx.save();
-    fctx.globalAlpha = (1-(t-styleRingT)/600)*.7;
-    fctx.strokeStyle = boardBG();
-    fctx.lineWidth = 6;
-    fctx.beginPath();
-    fctx.arc(sRect2.left + sRect2.width/2, sRect2.top + sRect2.height + cell*2, cell*(1+((t-styleRingT)/600)*8), 0, 6.3);
-    fctx.stroke();
-    fctx.restore();
-  }
+  
   /* ===== MODIF 10 : PRÉVIEWS — contour blanc + lumière latérale =====
      La ligne imminente est dessinée comme un rectangle pleine largeur
      (ou pleine hauteur), entouré d'une ligne blanche, avec halo lumineux,
@@ -2655,7 +2643,7 @@ function drawScore3D(c,txt,x,y,sc,alpha){
   const size = Math.max(28, gainPx(txt)+10)*sc;
   c.save();
   c.globalAlpha = alpha;
-  c.font = '700 ' + size + 'px Fredoka, sans-serif';
+  c.font = '800 ' + size + 'px "Baloo 2", Fredoka, sans-serif';
   c.textAlign = 'center';
   c.fillStyle = '#8a6a12';
   for(let o=3;o>=1;o--) c.fillText(txt, x+o*.8, y+o);
