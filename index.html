@@ -734,14 +734,6 @@ updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
 /* ============ RENDU D'UN BLOC (image custom sinon canvas) ============ */
-/* ===== Réglages ===== */
-const TILE_CROP=0;
-const TILE_BRIGHT=1;
-const TINT_SAT=1.0;
-const TINT_CONTRAST=1;
-const SHADE_STR=.55;
-const GLOSS=.0;
-const GLOSS_SIZE=.0;
 const tintCache={};
 function tintedTile(stId,ci){
 const key=stId+'_'+ci;
@@ -749,44 +741,12 @@ if(tintCache[key])return tintCache[key];
 const im=Assets.imgs[stId];
 if(!im||!im.width)return null;
 const S=192;
-const cropX=Math.round(im.width*TILE_CROP);
-const srcW=im.width-cropX*2;
-/* 1. luminance de ta texture (gris contrasté) */
-const gray=document.createElement('canvas');
-gray.width=S;gray.height=S;
-const g=gray.getContext('2d');
-g.filter='grayscale(1)';
-g.drawImage(im,cropX,cropX,srcW,srcW,0,0,S,S);
-g.filter='none';
 const cv=document.createElement('canvas');
 cv.width=S;cv.height=S;
 const c=cv.getContext('2d');
-/* 2. LE DÉGRADÉ BLOCK BLAST peint directement (les vraies couleurs) */
-const col=COLORS[ci];
-const grad=c.createLinearGradient(0,0,0,S);
-grad.addColorStop(0,col.l);
-grad.addColorStop(.55,col.b);
-grad.addColorStop(1,col.d);
-c.fillStyle=grad;c.fillRect(0,0,S,S);
-/* 3. MODELÉ : ta texture en soft-light — apporte le relief SANS toucher la teinte */
-c.globalCompositeOperation='soft-light';
-c.globalAlpha=SHADE_STR;
-c.drawImage(gray,0,0);
-c.globalAlpha=1;c.globalCompositeOperation='source-over';
-/* 4. éclat diagonal ciblé haut-gauche */
-const hl=c.createRadialGradient(S*.25,S*.22,S*.05,S*.30,S*.30,S*GLOSS_SIZE);
-hl.addColorStop(0,'rgba(255,255,255,'+GLOSS+')');
-hl.addColorStop(1,'rgba(255,255,255,0)');
-c.fillStyle=hl;c.fillRect(0,0,S,S);
-/* 5. micro-boost saturation */
-const fin=document.createElement('canvas');
-fin.width=S;fin.height=S;
-const f=fin.getContext('2d');
-f.filter='saturate('+TINT_SAT+')';
-f.drawImage(cv,0,0);
-f.filter='none';
-tintCache[key]=fin;
-return fin}
+c.drawImage(im,0,0,S,S);
+tintCache[key]=cv;
+return cv}
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
 alpha=alpha==null?1:alpha;scale=scale==null?1:scale;
 mono=!!mono;sx=sx==null?1:sx;sy=sy==null?1:sy;th=th==null?theme:th;
