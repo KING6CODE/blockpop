@@ -2151,9 +2151,8 @@ function drawDiamondDeco(t){
   if(diamondPump === 0) diamondPump = t;
   const pump = Math.max(0, 1-(t-diamondPump)/220);
   const sRect = scoreEl.getBoundingClientRect();
-  const bRect = boardEl.getBoundingClientRect();
-  const dx = sRect.left + sRect.width/2 - bRect.left;
-  const dy = sRect.top + sRect.height*.5 - bRect.top;
+  const dx = sRect.left + sRect.width/2;
+  const dy = sRect.top + sRect.height*.5;
   const pulse = .5 + .5*Math.sin(t/260);
   const size = cell*(1.15 + .10*pulse + .30*pump);
   fctx.save();
