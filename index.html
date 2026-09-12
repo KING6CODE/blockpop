@@ -2017,7 +2017,7 @@ function dragCenterY(py){
   return Math.min(py - drag.lift, bottom - drag.h/2 - 4);
 }
 function onDown(e,i){
-  if(drag || state !== 'playing' || animating) return;
+  if(drag || state!=='playing' || animating) return;
   const p = tray[i];
   if(!p || p.dead) return;
   e.preventDefault();
@@ -2042,20 +2042,22 @@ function onDown(e,i){
   }));
   dragLayer.style.display = 'block';
   slotCvs[i].style.visibility = 'hidden';
-  /* La pièce se cale : bas de la grille - h/2 (à cheval sur le bord bas,
-     quelle que soit sa hauteur) */
+  /* Position de départ : DANS LE GAP entre grille et pioche (photo 2).
+     Le haut de la pièce est juste sous le bord bas de la grille. */
   const gy0 = boardRect.top + gy;
-  const startY = gy0 + cell*N - h/2;
+  const startY = gy0 + cell*N + cell*.18 + h/2;
   drag = {
     i:i, p:p, w:w, h:h,
-    startX: e.clientX,        /* référence doigt au pickup */
-    startY: e.clientY,
-    tileX: e.clientX,         /* position actuelle de la pièce */
+    fingerX: e.clientX,   /* référence doigt au moment du pickup */
+    fingerY: e.clientY,
+    startX: e.clientX,    /* position X de la PIÈCE (ancrage du delta) */
+    startY: startY,       /* position Y de la PIÈCE (ancrage du delta) */
+    tileX: e.clientX,
     tileY: startY,
     lx: e.clientX, ly: e.clientY
   };
   dragLayer.style.transform =
-    'translate(' + (e.clientX-w/2-6) + 'px,' + (startY-h/2-6) + 'px)';
+    'translate('+(e.clientX-w/2-6)+'px,'+(startY-h/2-6)+'px)';
   computeGhost(e.clientX, startY);
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
@@ -2064,14 +2066,12 @@ function onDown(e,i){
 function moveDrag(x,y){
   drag.lx = x;
   drag.ly = y;
-  /* La pièce suit le DELTA du doigt ×1,5 depuis sa position de départ.
-     Le doigt peut rester loin en bas : seule la distance parcourue compte. */
-  const dx = (x - drag.startX) * 1.5;
-  const dy = (y - drag.startY) * 1.5;
-  drag.tileX = drag.startX + dx;
-  drag.tileY = drag.startY + dy;
+  /* Le ×1,5 s'applique au DELTA du doigt, appliqué DEPUIS la position
+     du gap — la pièce ne saute jamais vers le doigt. */
+  drag.tileX = drag.startX + (x - drag.fingerX) * 1.5;
+  drag.tileY = drag.startY + (y - drag.fingerY) * 1.5;
   dragLayer.style.transform =
-    'translate(' + (drag.tileX-drag.w/2-6) + 'px,' + (drag.tileY-drag.h/2-6) + 'px)';
+    'translate('+(drag.tileX-drag.w/2-6)+'px,'+(drag.tileY-drag.h/2-6)+'px)';
   computeGhost(drag.tileX, drag.tileY);
 }
 function onMove(e){
