@@ -1218,6 +1218,7 @@ let particles = [], floats = [], flyScores = [], clearFx = [], shakeAmt = 0;
 let lastT = performance.now(), toastTimer = null, lastLand = 0, lastPrevPart = 0;
 let lastDecoPart = 0;
 let diamondPump = 0;   /* timestamp du dernier pump du losange (MODIF 8) */
+let scorePulseT = 0;
 bestVal.textContent = best;
 
 /* ---------- Géométrie ---------- */
@@ -1765,9 +1766,7 @@ function findFull(g){
   return {rows, cols};
 }
 function bumpScore(){
-  scoreEl.classList.remove('bump');
-  void scoreEl.offsetWidth;
-  scoreEl.classList.add('bump');
+  scorePulseT = performance.now();
 }
 /* MODIF 7 : plus de barre d'étoiles en classique — objBar uniquement en aventure */
 function setHudMode(){
@@ -2515,6 +2514,7 @@ function frame(t){
   const dt = Math.min(50, t-lastT);
   lastT = t;
   fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+  drawScoreHUD(t);
   const dts = dt/1000;
   const G = cell*95;
   let landed = false;
@@ -2542,6 +2542,24 @@ function frame(t){
         }
       }
     }
+  }
+  function drawScoreHUD(t){
+    const dx = boardRect.left + gx + cell*N/2;
+    const dy = boardRect.top + gy - 30;
+    const pulse = 1 + .14*Math.max(0, 1-(t-scorePulseT)/280);
+    const size = Math.round(60*pulse);
+    fctx.save();
+    fctx.font = '800 ' + size + 'px "Nunito Sans", sans-serif';
+    fctx.textAlign = 'center';
+    fctx.textBaseline = 'middle';
+    fctx.save();
+    fctx.filter = 'blur(6px)';
+    fctx.fillStyle = 'rgba(30,34,80,.55)';
+    fctx.fillText(shownScore, dx, dy + size*.10);
+    fctx.restore();
+    fctx.fillStyle = '#ffffff';
+    fctx.fillText(shownScore, dx, dy);
+    fctx.restore();
   }
   if(landed && t-lastLand > 70){
     if(!playCustom('land', .6)) SFX.land();
