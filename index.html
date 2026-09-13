@@ -1381,15 +1381,16 @@ function flash(){
 }
 function diffLevel(){
   if(mode === 'adv') return clamp(.10 + advLevel*.04, 0, .9);
-  /* Piloté par le RECORD : plus ton record est haut, plus la base est dure.
-     p = ta progression vers le record dans CETTE partie. */
-  if(best <= 0) return 0;
-  const p = clamp(score/best, 0, 1.25);
-  if(p < .35) return .25;
-  if(p < .60) return .45;
-  if(p < .80) return .68;
-  if(p < 1.0) return .85;
-  return 1.0;
+  /* Le moteur décide : la partie doit mourir vers record + 1000.
+     La pression suit le score et continue à l'infini après le record. */
+  const target = (best <= 0 ? 6000 : best + 1000);
+  const p = clamp(score / target, 0, 2.5);
+  if(best <= 0) return .10 + p*.30;
+  if(p < .45) return .30;
+  if(p < .70) return .55;
+  if(p < .90) return .78;
+  if(p < 1.0) return .95;
+  return clamp(.98 + (p-1)*.8, .98, 1.6);
 }
 function canPlaceAt(m,r,c){
   if(r<0 || c<0 || r+m.length>N || c+m[0].length>N) return false;
@@ -1527,9 +1528,9 @@ function randPieceWeighted(){
   const ws=SHAPES.map(s2=>{
     const n=s2.m.flat().length;
     let w=s2.w;
-    if(n<=3)w*=(1+fill*1.2)*(1.25-D*1.05);
-    else if(n>=6)w*=(.25+D*2.3)*Math.max(.1,1-fill*.5);
-    if(n===9)w*=.3+D*1.3;
+    if(n<=3)w*=(1+fill*.8)*(1.15-D*1.10);
+    else if(n>=6)w*=(.30+D*2.8)*Math.max(.10,1-fill*.45);
+    if(n===9)w*=.20+D*2.2;
     total+=w;return w;
   });
   let r=Math.random()*total;
@@ -1574,136 +1575,147 @@ function simSeq(sis){
   }
   return true;
 }
+/* Pression = progression vers la cible de mort décidée par le moteur */
+function pressure(){
+  const target=(best<=0?6000:best+1000);
+  return clamp(score/target,0,2.5);
+}
 function genTray(anim, forcePity){
-  const cols = [0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);
-  if(mode === 'adv' && lvl && lvl.fixed){
-    const take = lvl.fixed.slice(advFixedIdx, advFixedIdx+3);
-    advFixedIdx += take.length;
-    tray = take.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
+  const cols=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);
+  if(mode==='adv'&&lvl&&lvl.fixed){
+    const take=lvl.fixed.slice(advFixedIdx,advFixedIdx+3);
+    advFixedIdx+=take.length;
+    tray=take.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
     renderTray(anim);
     return;
   }
-  if(mode === 'adv'){
-    let set = null;
-    if(advLevel < TUNE.advPityEarly){
+  if(mode==='adv'){
+    let set=null;
+    if(advLevel<TUNE.advPityEarly){
       for(let t=0;t<30;t++){
-        const cand = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
-        if(cand.some(si=>canAnywhere(SHAPES[si].m))){ set = cand; break; }
+        const cand=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
+        if(cand.some(si=>canAnywhere(SHAPES[si].m))){set=cand;break}
       }
-    }else set = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
-    if(!set) set = [0,1,1];
-    tray = set.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
+    }else set=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
+    if(!set)set=[0,1,1];
+    tray=set.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
     renderTray(anim);
     return;
   }
 
-  /* ===== CLASSIQUE v4 : piloté par le RECORD ===== */
-  const fill = grid.flat().filter(Boolean).length/(N*N);
-  const nearNow = nearLinesNow();
-  const rec = best;
-  const prog = rec > 0 ? clamp(score/rec, 0, 1.2) : 0;
-  const kept = tray.filter(p=>p&&!p.bomb).map(p=>analyzePiece(p.si));
-  const keptCanClear = kept.some(a=>a.lines > 0);
+  /* ===== CLASSIQUE v5 : la pression décide ===== */
+  const pr=pressure();
+  const fill=grid.flat().filter(Boolean).length/(N*N);
+  const nearNow=nearLinesNow();
+  const prog=clamp(pr,0,1.2);
+  const kept=tray.filter(p=>p&&!p.bomb).map(p=>analyzePiece(p.si));
+  const keptCanClear=kept.some(a=>a.lines>0);
 
-  /* ---- MODES v4 ---- */
-  let mode2 = 'NEUTRAL';
-  if(rec <= 0) mode2 = 'TUTORIAL';
-  else if(combo >= 2 && !keptCanClear && Math.random() < .7) mode2 = 'SAVE_COMBO';
-  /* DÉSERT : dès 60% du record, phases sans aucune ligne possible */
-  else if(prog >= .60 && fill > .35 && noClearStreak >= 1 && Math.random() < .45) mode2 = 'DESERT';
-  /* GROSSE PIÈCE qui ne rentre pas : forcer à libérer l'espace */
-  else if(prog >= .55 && Math.random() < .45) mode2 = 'BIG_FORCE';
-  else if(fill < .18 && Math.random() < .40) mode2 = 'GIFT';
-  else if(prog < .35 && Math.random() < .25) mode2 = 'GIFT';
-  else if(fill < .25 && nearNow >= 2 && Math.random() < .25) mode2 = 'PERFECT';
+  /* ---- MODES méchants ---- */
+  let mode2='NEUTRAL';
+  if(best<=0&&score<4000)mode2='TUTORIAL';
+  else if(combo>=2&&!keptCanClear&&Math.random()<.65)mode2='SAVE_COMBO';
+  /* PUNITION : à 85 % de la cible de mort, une pièce toxique arrive */
+  else if(pr>=.85&&Math.random()<.55)mode2='PUNISH';
+  /* DÉSERT : à 75 %, phases sans aucune ligne possible */
+  else if(pr>=.75&&fill>.30&&Math.random()<.40)mode2='DESERT';
+  /* GROSSE PIÈCE qui ne rentre pas : libère l'espace avec les autres */
+  else if(pr>=.65&&Math.random()<.45)mode2='BIG_FORCE';
+  else if(fill<.18&&Math.random()<.30)mode2='GIFT';
+  else if(pr<.40&&Math.random()<.25)mode2='GIFT';
+  else if(fill<.25&&nearNow>=2&&Math.random()<.25)mode2='PERFECT';
 
-  /* ---- candidats de base ---- */
-  let newSi = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
+  let newSi=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
 
-  if(mode2 === 'TUTORIAL'){
-    newSi = [10, 9, 3]; /* 3x2 + 2x2 + 1x3 : pack imbriqué */
-    if(fill > .15) newSi[Math.floor(Math.random()*3)] = randPieceWeighted();
+  if(mode2==='TUTORIAL'){
+    newSi=[10,9,3]; /* 3x2 + 2x2 + 1x3 */
+    if(fill>.15)newSi[Math.floor(Math.random()*3)]=randPieceWeighted();
   }
-  else if(mode2 === 'GIFT'){
-    const pack = GIFT_PACKS[Math.floor(Math.random()*GIFT_PACKS.length)];
-    newSi = pack.slice();
-    newSi[Math.floor(Math.random()*3)] = randPieceWeighted();
+  else if(mode2==='GIFT'){
+    const pack=GIFT_PACKS[Math.floor(Math.random()*GIFT_PACKS.length)];
+    newSi=pack.slice();
+    newSi[Math.floor(Math.random()*3)]=randPieceWeighted();
   }
-  else if(mode2 === 'SAVE_COMBO'){
-    let saver = null;
+  else if(mode2==='SAVE_COMBO'){
+    let saver=null;
     for(let t=0;t<40;t++){
-      const cand = randPieceWeighted();
-      const a = analyzePiece(cand);
-      if(a.lines >= 2 || a.near > 0){ saver = cand; break; }
+      const cand=randPieceWeighted();
+      const a=analyzePiece(cand);
+      if(a.lines>=2||a.near>0){saver=cand;break}
     }
-    if(saver !== null) newSi[Math.floor(Math.random()*3)] = saver;
+    if(saver!==null)newSi[Math.floor(Math.random()*3)]=saver;
   }
-  else if(mode2 === 'DESERT'){
-    /* pièces sèches : 0 ligne, 0 near-miss post-gravité */
-    const dry = [];
-    for(let t=0;t<20 && dry.length<2;t++){
-      const cand = randPieceWeighted();
-      const a = analyzePiece(cand);
-      if(a.lines === 0 && a.near === 0 && a.allClear === 0) dry.push(cand);
+  else if(mode2==='PUNISH'){
+    let worst=null,worstSc=-1;
+    for(let t=0;t<16;t++){
+      const cand=randPieceWeighted();
+      const a=analyzePiece(cand);
+      const sc=a.toxicity*10-a.lines*6-a.near*2;
+      if(sc>worstSc){worstSc=sc;worst=cand}
     }
-    if(dry.length >= 2){
-      newSi = [dry[0], dry[1], randPieceWeighted()].sort(()=>Math.random()-.5);
+    if(worst!==null)newSi[Math.floor(Math.random()*3)]=worst;
+  }
+  else if(mode2==='DESERT'){
+    /* pièces sèches : 0 ligne, 0 near-miss, post-gravité */
+    const dry=[];
+    for(let t=0;t<22&&dry.length<2;t++){
+      const cand=randPieceWeighted();
+      const a=analyzePiece(cand);
+      if(a.lines===0&&a.near===0&&a.allClear===0)dry.push(cand);
+    }
+    if(dry.length>=2){
+      newSi=[dry[0],dry[1],randPieceWeighted()].sort(()=>Math.random()-.5);
     }
   }
-  else if(mode2 === 'BIG_FORCE'){
-    /* une grosse pièce qui NE RENTRE PAS : libère l'espace avec les autres */
-    const bigs = [24,25,20,10,11].filter(si=>!canAnywhere(SHAPES[si].m));
+  else if(mode2==='BIG_FORCE'){
+    /* indices 25=3x3 · 26=4x2 · 27=6x1 · 28=1x6 */
+    const bigs=[25,26,27,28].filter(si=>!canAnywhere(SHAPES[si].m));
     if(bigs.length){
-      newSi[Math.floor(Math.random()*3)] = bigs[Math.floor(Math.random()*bigs.length)];
-      let helper = null;
+      newSi[Math.floor(Math.random()*3)]=bigs[Math.floor(Math.random()*bigs.length)];
+      let helper=null;
       for(let t=0;t<30;t++){
-        const cand = randPieceWeighted();
-        if(analyzePiece(cand).lines > 0){ helper = cand; break; }
+        const cand=randPieceWeighted();
+        if(analyzePiece(cand).lines>0){helper=cand;break}
       }
-      if(helper !== null) newSi[Math.floor(Math.random()*3)] = helper;
+      if(helper!==null)newSi[Math.floor(Math.random()*3)]=helper;
     }
   }
-  else if(mode2 === 'PERFECT'){
-    let best2 = null, bestSc = -1;
+  else if(mode2==='PERFECT'){
+    let best2=null,bestSc=-1;
     for(let t=0;t<14;t++){
-      const cand = randPieceWeighted();
-      const a = analyzePiece(cand);
-      const sc = a.allClear*20 + a.near*2 - a.toxicity*5;
-      if(sc > bestSc){ bestSc = sc; best2 = cand; }
+      const cand=randPieceWeighted();
+      const a=analyzePiece(cand);
+      const sc=a.allClear*20+a.near*2-a.toxicity*5;
+      if(sc>bestSc){bestSc=sc;best2=cand}
     }
-    if(best2 !== null) newSi[Math.floor(Math.random()*3)] = best2;
+    if(best2!==null)newSi[Math.floor(Math.random()*3)]=best2;
   }
   else{
     /* NEUTRAL : encastrage une fois sur trois */
-    if(Math.random() < .33){
+    if(Math.random()<.33){
       for(let t=0;t<14;t++){
-        const cand = randPieceWeighted();
-        if(analyzePiece(cand).nest){ newSi[Math.floor(Math.random()*3)] = cand; break; }
+        const cand=randPieceWeighted();
+        if(analyzePiece(cand).nest){newSi[Math.floor(Math.random()*3)]=cand;break}
       }
     }
   }
 
-  /* ---- garde-fou : séquence des 3 pièces viable ----
-     Interdit en PUNISH/DESERT... mais jamais 2 fois de suite. */
+  /* garde-fou : séquence des 3 viable — sauf si la pression l'a décidé.
+     La pitié s'effondre avec la pression (100 % → 60 % → 35 %). */
   if(!simSeq(newSi)){
-    if(mode2 !== 'PUNISH' && mode2 !== 'DESERT'){
+    const mercy=pr>1?.35:(pr>.9?.6:1);
+    if(Math.random()<mercy){
       for(let t=0;t<40;t++){
-        const test = newSi.slice();
-        test[Math.floor(Math.random()*3)] = randPieceWeighted();
-        if(simSeq(test)){ newSi = test; break; }
+        const test=newSi.slice();
+        test[Math.floor(Math.random()*3)]=randPieceWeighted();
+        if(simSeq(test)){newSi=test;break}
       }
-    }else if(noDesertRun >= 1){
-      for(let t=0;t<40;t++){
-        const test = newSi.slice();
-        test[Math.floor(Math.random()*3)] = randPieceWeighted();
-        if(simSeq(test)){ newSi = test; noDesertRun = 0; break; }
-      }
-    }else noDesertRun++;
-  }else noDesertRun = 0;
+    }
+  }
 
-  tray = newSi.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
-  if(mode === 'classic' && score >= TUNE.bombMinScore && Math.random() < TUNE.bombChance){
-    tray[Math.floor(Math.random()*3)] = {bomb:true, m:[[1]], si:-1, ci:2, dead:false};
+  tray=newSi.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
+  if(mode==='classic'&&score>=TUNE.bombMinScore&&Math.random()<TUNE.bombChance){
+    tray[Math.floor(Math.random()*3)]={bomb:true,m:[[1]],si:-1,ci:2,dead:false};
   }
   renderTray(anim);
 }
@@ -1925,9 +1937,8 @@ function doClear(rows, cols, chain){
   }
   const lines = rows.length + cols.length;
   linesTotal += lines;
-  /* Score Block Blast : chaque ligne vaut 10 pts/case (80),
-     les multi-lignes montent exponentiellement :
-     1 ligne=80 · 2=240 · 3=480 · 4=800... */
+  /* Score lignes Block Blast : 10 pts/case × ligne.
+     1 ligne=80 · 2=240 · 3=480 · 4=800. Combo : +15 % par palier. */
   const linePts = lines * (lines+1) / 2 * 80;
   const gain = Math.round(linePts * (1 + Math.min(combo-1,6)*.15) + (chain ? 150 : 0));
   score += gain;
@@ -2149,12 +2160,10 @@ function applyPlace(i,r,c){
   placedCount++;
   advPlaced++;
   if(!store.get('bp_tut')) store.set('bp_tut','1');
-  /* Score Block Blast : 10 pts par case posée */
   score += p.m.flat().length * 10;
   bumpScore();
   SFX.place();
   vib(12);
-  /* paillettes multicolores */
   p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
     if(!v) return;
     const px = gx+(c+dc)*cell+cell/2;
