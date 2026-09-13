@@ -5,16 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#4a55a8"/>
 <title>BLOCKPOP</title>
-<!-- v23 : FIX position des textes (x/y undefined), textes BB multi-segments
-     (COMBO blanc/bord bleu + chiffre jaune, praise couleur style, PERFECT blanc/orange),
-     relief 3D (extrusion + dégradé vertical), palette classique 16 couleurs,
-     recolorisation universelle (1 texture/style → 8 couleurs), styles Sculpté + Ambre -->
+<!-- v24 : score remonté (54px), losange réduit (ne touche plus la grille),
+     fond UNI (plus de dégradé, change selon style), relief au bord du canvas
+     (carré extérieur arrondi comme avant, couleur = fond assombri),
+     ghost = texture réelle à faible opacité, contours de textes affinés,
+     pouces blancs/contour bleu sur CHAQUE bloc d'un bon placement -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{--panel:rgba(255,255,255,.10);--panel2:rgba(255,255,255,.17);--line:rgba(255,255,255,.15);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{color-scheme:dark}html,body{height:100%}
-body{background:linear-gradient(180deg,#5a67b8 0%,#4a55a8 100%);color:var(--ink);font-family:'Fredoka',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
+body{background:#4a55a8;color:var(--ink);font-family:'Fredoka',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
 body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:80;background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(8,10,28,.40) 100%)}
 #bgFx{position:fixed;inset:0;z-index:-1;opacity:0;transition:opacity .9s,background .9s}
 #glow{position:fixed;inset:0;z-index:79;pointer-events:none;opacity:0;transition:opacity .6s;box-shadow:inset 0 0 90px 24px rgba(255,120,40,.55)}
@@ -277,15 +278,14 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 var k = 0; /* filet anti-crash boucle legacy */
 
 /* ================================================================
-   BLOCKPOP v23
-   - Textes BB : drawFancyText multi-segments, relief 3D (extrusion +
-     dégradé creux), COMBO blanc/bleu + chiffre jaune, praise couleur
-     style, PERFECT blanc/orange — POSITION FIXE (x/y dans setBigPop)
-   - COLORS : 16 teintes (8 base + 8 décalées harmonieuses)
-   - Gel CLASSIC16 : 16 couleurs visibles (alternance positionnelle)
-   - Recolorisation universelle : 1 texture/style → toutes les couleurs
-   - Nouveaux styles : Sculpté (T2), Ambre (T4) → 31 styles
-   - v22 conservé : bigPop unique, pouces vectoriels, FILL, EVIL/ASSASSIN
+   BLOCKPOP v24
+   - Score remonté (54px), losange réduit (ne touche plus la grille)
+   - Fond UNI (couleur du style mélangée à la base, fondu au changement)
+   - Relief : bord du canvas carré-arrondi taille d'origine, fond assombri
+   - Ghost = texture réelle à faible opacité (préview fidèle)
+   - Textes BB : contours affinés, pouces blancs/bleu sur chaque bloc
+   - v23 conservé : drawFancyText relief 3D, 16 couleurs, 31 styles,
+     recolorisation universelle, FILL, EVIL/ASSASSIN, dpr≤2, zéro filter
    ================================================================ */
 
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70};
@@ -352,7 +352,6 @@ return true}
 
 /* ---------- Constantes ---------- */
 const N=8,STAR_GOALS=[20000,60000,140000];
-/* v23 : 16 teintes — 8 de base + 8 décalées de ~+32° (dégradé continu, assorties) */
 const COLORS=[
 {l:'#FF9D8A',b:'#E85B4A',d:'#B03326'},
 {l:'#FFB85C',b:'#F08A1D',d:'#C4680C'},
@@ -370,7 +369,6 @@ const COLORS=[
 {l:'#9A8AFF',b:'#5F4AE8',d:'#3D2CC0'},
 {l:'#E88AFF',b:'#C02EE8',d:'#901CB8'},
 {l:'#FF7A9A',b:'#E82E5F',d:'#B81C40'}];
-/* teintes cibles des 16 couleurs (pour la recolorisation universelle) */
 const HUE_T=COLORS.map(c2=>{const n=parseInt(c2.b.slice(1),16);return hslOf((n>>16)&255,(n>>8)&255,n&255)[0]});
 const SHAPES=[
 {m:[[1]],w:3},
@@ -501,7 +499,7 @@ const STYLES=[
 {id:'galaxie',name:'Galaxie',bg:'#1b1b38',pv:3,snd:{w:'sine',m:1.35},burst:[2,'l'],tier:6}];
 const STYLE_TH=STYLES.map((_,i)=>i===0?0:Math.floor(3+Math.pow(i,1.45)));
 
-/* ---------- Recolorisation PAR PIXEL (compat mobile) ---------- */
+/* ---------- Recolorisation PAR PIXEL ---------- */
 function pxFilter(src,key){
 const cv=document.createElement('canvas');
 cv.width=src.width;cv.height=src.height;
@@ -521,7 +519,6 @@ else if(key==='violet'){const h=hslOf(r,g,b);const o=rgbOf((h[0]+.3056)%1,h[1]*.
 px[i]=r>255?255:r;px[i+1]=g>255?255:g;px[i+2]=b>255?255:b}
 c.putImageData(d,0,0);
 return cv}
-/* rotation de teinte (recolorisation universelle) */
 function hueShiftTile(src,deg){
 const cv=document.createElement('canvas');
 cv.width=src.width;cv.height=src.height;
@@ -549,10 +546,9 @@ sx+=Math.cos(h[0]*6.283);sy+=Math.sin(h[0]*6.283);n++}
 if(!n)return 0;
 return (Math.atan2(sy,sx)/6.283+1)%1}
 
-/* ---------- Tuiles : chargement À LA DEMANDE + génération des couleurs manquantes ---------- */
+/* ---------- Tuiles : chargement À LA DEMANDE + couleurs générées ---------- */
 const SUFFIXES=['red','orange','yellow','green','cyan','blue','purple','pink'];
 const tileCache={};
-/* une tuile arrivée génère toutes les couleurs manquantes du style par rotation de teinte */
 function genMissing(stId,i,srcCv){
 const max=stId==='gel'?16:8;
 const ah=avgHue(srcCv);
@@ -578,7 +574,6 @@ const cv=document.createElement('canvas');
 cv.width=im.width;cv.height=im.height;
 cv.getContext('2d').drawImage(im,0,0);
 tileCache[key]=cv;
-/* v23 : génère les couleurs manquantes du style (1 fichier suffit) */
 genMissing(stId,SUFFIXES.indexOf(suf),cv);
 regenAllPalettes();renderTray(false);
 console.log('✔ chargé :',stId+'_'+suf)});
@@ -589,6 +584,7 @@ function ensureTiles(idx){
 const st=STYLES[idx];if(!st)return;
 if(triedTiles[st.id])return;triedTiles[st.id]=true;
 tryLoadSfx('clear_'+st.id);tryLoadSfx('combo_'+st.id);
+/* pal + srcTex → texture source ; pal seule (gel) → ses propres fichiers */
 if(st.pal&&st.srcTex)loadTilesFile(st.srcTex);
 else loadTilesFile(st.id)}
 tryLoadSfx('land');
@@ -752,38 +748,36 @@ c.fillStyle='#7ee7ff';
 c.beginPath();c.moveTo(0,-r2);c.lineTo(r2*.85,-r2*.25);c.lineTo(0,r2);c.lineTo(-r2*.85,-r2*.25);c.closePath();c.fill();
 c.fillStyle='#fff';c.globalAlpha=.5+w*.4;
 c.beginPath();c.moveTo(0,-r2);c.lineTo(r2*.85,-r2*.25);c.lineTo(0,-r2*.1);c.closePath();c.fill();c.restore()}
+/* v24 : ghost = texture RÉELLE à faible opacité (remplace le carré plat) */
 function drawGhostCell(c,x,y,s,ci){
-const bw=s;
-c.save();c.globalAlpha=.28;c.fillStyle=COLORS[ci].b;c.fillRect(x,y,bw,bw);
-c.globalAlpha=.55;c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=1;
-c.strokeRect(x+.5,y+.5,bw-1,bw-1);c.restore()}
+const tile=tileCache[STYLES[theme].id+'_'+ci]||tileCache['gel_'+ci];
+c.save();c.globalAlpha=.34;
+if(tile)c.drawImage(tile,0,0,tile.width,tile.height,x,y,s,s);
+else{c.fillStyle=COLORS[ci].b;c.fillRect(x,y,s,s)}
+c.restore()}
 function drawEmpty(c,x,y,s){
 const gap=Math.max(1,s*.035),bx=x+gap,by=y+gap,bw=s-gap*2,r=bw*.02;
 c.save();c.fillStyle='rgba(255,255,255,.06)';rr(c,bx,by,bw,bw,r);c.fill();c.restore()}
-function boardBG(){
+/* v24 : fond UNI — couleur du style mélangée à la base, fondu au changement */
+function colBodyTheme(){
 let bg=STYLES[theme].bg;
 if(themeTrans){
 const kk=clamp((performance.now()-themeTrans.t0)/700,0,1);
-if(kk>=1)themeTrans=null;else bg=mixHex(themeTrans.from,themeTrans.to,kk)}
-return mixHex(bg,'#000000',.22)}
-function colBGBody(){
-if(combo>=6)return '#8a2f6f';if(combo>=4)return '#7a4fb0';if(combo>=2)return '#b65c69';return '#4a55a8'}
-function mixRelief(){return mixHex(colBGBody(),'#000000',.15)}
-function updateBg(){let g=null,op=0;
-if(combo>=6){g='linear-gradient(180deg,#e0533f,#8a2f6f)';op=.62}
-else if(combo>=4){g='linear-gradient(180deg,#c95f8a,#7a4fb0)';op=.58}
-else if(combo>=2){g='linear-gradient(180deg,#cf8a5f,#b65c69)';op=.5}
-if(g){bgFx.style.background=g;bgFx.style.opacity=op}else bgFx.style.opacity=0;
-glowEl.style.opacity=combo>=4?(.4+Math.min(combo,8)*.07):0}
+if(kk>=1){themeTrans=null;bg=STYLES[theme].bg}
+else bg=mixHex(themeTrans.from,themeTrans.to,kk)}
+return mixHex('#4a55a8',bg,.42)}
+function boardBG(){return mixHex(STYLES[theme].bg,'#000000',.22)}
+function mixRelief(){return mixHex(colBodyTheme(),'#000000',.20)}
+function updateBg(){glowEl.style.opacity=combo>=4?(.4+Math.min(combo,8)*.07):0}
 function flash(){flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go')}
 
-/* ---------- Couleur effective (duo16 = 16 couleurs, pos = palettes spéciales) ---------- */
+/* ---------- Couleur effective ---------- */
 function effColor(ci,dr,dc){const st=STYLES[theme];
 if(st.duo16)return ci+(((dr+dc)&1)?8:0);
 if(st.pos)return st.pos[(dr+dc)%st.pos.length];
 return ci}
 
-/* ---------- EFFETS v23 : textes BB multi-segments à relief 3D ---------- */
+/* ---------- EFFETS : textes BB à relief 3D, contours affinés ---------- */
 const ACC={gel:'#5B8CFF',gel_bleu:'#4A7DE8',gel_vert:'#4CC22E',gel_azur:'#3FC8EE',
 gel_jaune:'#F5C11E',gel_menthe:'#57D9A3',gel_duo:'#F08A1D',gel_terne:'#8A93B8',
 gel_primaire:'#E85B4A',gel_pastel:'#F0A8D8',coussin:'#8C9EFF',bonbon:'#EE5BB0',
@@ -793,7 +787,7 @@ glace_violet:'#B48CFF',glace_beige:'#E8D5A8',ambre:'#FFB53D',pasteque:'#E8503A',
 miel:'#F5A623',rubis:'#E84A6F',diamant:'#8FE0FF',or:'#FFD23D',
 neon:'#3DF0C0',robotique:'#9AA8C0',galaxie:'#B48CFF'};
 function styleAcc(){return ACC[STYLES[theme].id]||'#5B8CFF'}
-/* police arrondie, extrusion sombre, contour épais, dégradé « creux » en bas */
+/* v24 : contour affiné (fs*.16 au lieu de .24), extrusion douce conservée */
 function drawFancyText(c,segs,cx,cy,size,alpha,scale){
 alpha=alpha==null?1:alpha;scale=scale||1;
 c.save();c.globalAlpha=alpha;
@@ -808,15 +802,12 @@ const fs=Math.round(size*sg.sc);
 c.font='700 '+fs+'px Fredoka, sans-serif';
 const bord=sg.bord||'#3D6DE8';
 const bordD=mixHex(bord,'#000000',.5);
-const dep=Math.max(2,fs*.08);
-/* extrusion 3D (relief) */
+const dep=Math.max(2,fs*.07);
 c.fillStyle=bordD;
-for(let o=dep;o>=1;o--)c.fillText(sg.txt,x+o*.55,o*.85);
-/* contour épais */
-c.lineWidth=fs*.24;
+for(let o=dep;o>=1;o--)c.fillText(sg.txt,x+o*.5,o*.8);
+c.lineWidth=fs*.16;
 c.strokeStyle=bord;
 c.strokeText(sg.txt,x,0);
-/* remplissage : haut clair → bas sombre (creux intérieur) */
 const g=c.createLinearGradient(0,-fs*.55,0,fs*.45);
 g.addColorStop(0,mixHex(sg.col,'#ffffff',.45));
 g.addColorStop(.42,sg.col);
@@ -833,7 +824,6 @@ function praiseSegs(word,col){return[
 {txt:word,col:col,bord:mixHex(col,'#000000',.48),sc:1}]}
 function perfectSegs(word){return[
 {txt:word,col:'#FFFFFF',bord:'#FF8A1D',sc:1}]}
-/* UN SEUL gros texte : priorité PERFECT(3) > COMBO(2) > praise(1) */
 function setBigPop(segs,sub,prio,life,size){
 const now=performance.now();
 if(bigPop){
@@ -842,9 +832,7 @@ if(prio<bigPop.prio&&age<bigPop.life*.6)return}
 bigPop={segs:segs,sub:sub||null,prio:prio,t0:now,life:life||1000,size:size||cell*.85,
 x:boardRect?boardRect.left+gx+cell*N/2:window.innerWidth/2,
 y:boardRect?boardRect.top+gy+cell*2.2:window.innerHeight*.3}}
-function addThumb(x,y){if(thumbs.length>=4)thumbs.shift();
-thumbs.push({x:x,y:y,t0:performance.now(),life:900})}
-/* pouce vectoriel façon BB */
+/* v24 : pouce BLANC à contour BLEU, posé sur chaque bloc du bon placement */
 function drawThumb(c,x,y,s,t,age){
 const kk=age/900;
 const pop=age<180?backOut(age/180):1;
@@ -852,32 +840,20 @@ const wig=Math.sin(t/90)*.06*(1-kk);
 const al=kk<.7?1:1-(kk-.7)/.3;
 c.save();c.globalAlpha=al;
 c.translate(x,y-14*kk);c.rotate(wig);c.scale(pop,pop);
-const halo=c.createRadialGradient(0,0,s*.1,0,0,s*.95);
-halo.addColorStop(0,'rgba(255,220,120,.85)');
-halo.addColorStop(.55,'rgba(255,180,60,.35)');
-halo.addColorStop(1,'rgba(255,160,40,0)');
-c.fillStyle=halo;c.beginPath();c.arc(0,0,s*.95,0,6.3);c.fill();
-c.save();c.rotate(t/600);
-c.strokeStyle='rgba(255,230,150,.75)';c.lineWidth=s*.07;c.lineCap='round';
-for(let i2=0;i2<8;i2++){const a=i2/8*6.283;
-c.beginPath();c.moveTo(Math.cos(a)*s*.42,Math.sin(a)*s*.42);
-c.lineTo(Math.cos(a)*s*.6,Math.sin(a)*s*.6);c.stroke()}
-c.restore();
-c.fillStyle='#FFF3B0';
-for(let i2=0;i2<3;i2++){const a=t/300+i2*2.1,r2=s*(.5+.08*Math.sin(t/140+i2));
-const sx=Math.cos(a)*r2,sy=Math.sin(a)*r2;
-c.save();c.translate(sx,sy);c.rotate(a);
-c.beginPath();c.moveTo(0,-s*.07);c.lineTo(s*.02,-s*.02);c.lineTo(s*.07,0);
-c.lineTo(s*.02,s*.02);c.lineTo(0,s*.07);c.lineTo(-s*.02,s*.02);
-c.lineTo(-s*.07,0);c.lineTo(-s*.02,-s*.02);c.closePath();c.fill();c.restore()}
+/* petit halo doux pour la lisibilité */
+const halo=c.createRadialGradient(0,0,s*.2,0,0,s*.75);
+halo.addColorStop(0,'rgba(255,255,255,.30)');
+halo.addColorStop(1,'rgba(255,255,255,0)');
+c.fillStyle=halo;c.beginPath();c.arc(0,0,s*.75,0,6.3);c.fill();
+/* le pouce : gant blanc, contour bleu */
 const g=c.createLinearGradient(0,-s*.5,0,s*.5);
-g.addColorStop(0,'#FFE08A');g.addColorStop(.5,'#FFB53D');g.addColorStop(1,'#E8890F');
-c.strokeStyle='#7A4A08';c.lineWidth=s*.08;c.lineJoin='round';
+g.addColorStop(0,'#FFFFFF');g.addColorStop(1,'#DDE4F5');
+c.strokeStyle='#3D6DE8';c.lineWidth=s*.10;c.lineJoin='round';
 c.fillStyle=g;
 rr(c,-s*.38,-s*.08,s*.76,s*.5,s*.14);c.fill();c.stroke();
 rrPath(c,-s*.05,-s*.52,s*.26,s*.56,s*.12);c.fill();c.stroke();
-c.fillStyle='#E8890F';
-rr(c,-s*.5,s*.28,s*.24,s*.2,s*.06);c.fill();
+c.fillStyle='#C8D2EC';
+rr(c,-s*.5,s*.28,s*.24,s*.2,s*.06);c.fill();c.stroke();
 c.restore()}
 
 /* ---------- Difficulté ---------- */
@@ -1255,7 +1231,6 @@ vx:(Math.random()-.5)*.5,vy:-(.15+Math.random()*.25),sz:cell*.13,
 col:k2%2?'#7ee7ff':'#ffffff',t0:performance.now(),life:600,sh:2,g:.6,rot:Math.random()*6.3,vr:.2});
 floats.push({x:px,y:py,txt:'💎+200',t0:performance.now(),life:800});
 SFX.gem();updateObjHUD()}
-/* COMBO doré/blanc façon BB (chiffre plus grand) */
 function showBanner(cb,lines,chain,mult){
 let sub;
 if(cb>=2){
@@ -1290,17 +1265,11 @@ const gain=Math.round(linePts*(1+Math.min(combo-1,6)*.15)+(chain?150:0));
 score+=gain;
 flyScores.push({x:gx+(sx/cleared.length)*cell+cell/2,y:gy+(sy/cleared.length)*cell+cell/2,txt:'+'+gain,t0:t0,life:1000});
 if(!playCustom('clear_'+STYLES[theme].id,.85))SFX.clearByStyle(lines,theme);
-/* gros texte : combo prioritaire, sinon praise couleur du style */
 if(combo>=2){
 if(!playCustom('combo_'+STYLES[theme].id,.8))SFX.comboByStyle(combo,theme);
 showBanner(combo,lines,chain,1)}
 else if(lines>=2){
 setBigPop(praiseSegs(lines>=3?'Amazing!':'Great!',styleAcc()),null,1,900,cell*.8)}
-const tx0=boardRect.left+gx+(sx/cleared.length)*cell+cell/2;
-const ty0=boardRect.top+gy+(sy/cleared.length)*cell+cell/2;
-if(lines>=3){addThumb(tx0-cell*1.4,ty0-cell*.6);addThumb(tx0+cell*1.4,ty0-cell*.6)}
-else if(lines>=2)addThumb(tx0,ty0-cell*.8);
-else if(chain)addThumb(tx0+cell*1.5,ty0-cell);
 flash();shakeAmt=Math.min(16,3+lines*2.5+Math.min(combo,4)+(chain?2:0));
 vib(lines>1?[25,35,25]:[20,20,20]);
 if(chain&&!store.get('bp_chain')){store.set('bp_chain','1');
@@ -1420,10 +1389,12 @@ tray[i]=null;renderTray(false);
 updateObjHUD();
 const fc=findFull(grid);
 const tot=fc.rows.length+fc.cols.length;
-/* praise léger (Good!) si pose utile sans clear ni combo */
-if(tot===0&&combo<2&&nearLinesNow()>=3){
-addThumb(boardRect.left+gx+(c+p.m[0].length/2)*cell,
-boardRect.top+gy+(r+p.m.length/2)*cell-cell*.4);
+/* v24 : pouce BLANC/bleu sur CHAQUE bloc d'un bon placement */
+if(tot>0){
+p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
+if(v)addThumb(boardRect.left+gx+(c+dc)*cell+cell/2,
+boardRect.top+gy+(r+dr)*cell+cell/2)}))}
+else if(combo<2&&nearLinesNow()>=3){
 setBigPop(praiseSegs('Good!',styleAcc()),null,1,750,cell*.7)}
 /* détection du COUP RATÉ → EVIL intelligent */
 if(mode==='classic'&&tot===0&&evilLeft===0){
@@ -1568,15 +1539,15 @@ dragLayer.style.display='none';slotCvs[sl].style.visibility=''}}}
 slotEls.forEach((el,i)=>el.addEventListener('pointerdown',e=>onDown(e,i)));
 dragLayer.addEventListener('contextmenu',e=>e.preventDefault());
 
-/* ---------- Losange doré : dessiné sur fxBack (DERRIÈRE la grille) ---------- */
+/* ---------- Losange doré : RÉDUIT, centré sur le score, ne touche plus la grille ---------- */
 function drawDiamondDeco(t){
 if(combo<3)return;
 if(diamondPump===0)diamondPump=t;
 const pump=Math.max(0,1-(t-diamondPump)/220);
 const dx=boardRect.left+gx+cell*N/2;
-const dy=boardRect.top+gy-46;
+const dy=boardRect.top+gy-52;
 const pulse=.5+.5*Math.sin(t/260);
-const size=cell*(1.05+.08*pulse+.28*pump);
+const size=cell*(.62+.05*pulse+.18*pump);
 fbctx.save();
 fbctx.translate(dx,dy);
 fbctx.rotate(Math.PI/4);
@@ -1595,10 +1566,10 @@ particles.push({x:dx+(Math.random()-.5)*size,y:dy+size*.35,
 vx:(Math.random()-.5)*.08,vy:-(.10+Math.random()*.14),sz:cell*.07,
 col:Math.random()<.5?'#FFF3B0':'#ffffff',t0:t,life:700,sh:1,g:0,rot:0,vr:0})}}
 
-/* ---------- Score HUD (ombre via shadowBlur, 64px) ---------- */
+/* ---------- Score HUD (remonté : 56px au-dessus de la grille) ---------- */
 function drawScoreHUD(t){
 const dx=boardRect.left+gx+cell*N/2;
-const dy=boardRect.top+gy-46;
+const dy=boardRect.top+gy-56;
 const pulse=1+.14*Math.max(0,1-(t-scorePulseT)/280);
 const size=Math.round(64*pulse);
 fctx.save();
@@ -1657,7 +1628,7 @@ fbctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 drawDiamondDeco(t);
 drawScoreHUD(t);
-/* v23 : LE gros texte unique — segments façon BB, relief 3D */
+/* LE gros texte unique — segments BB, relief 3D, contours affinés */
 if(bigPop){const kk=(t-bigPop.t0)/bigPop.life;
 if(kk>=1)bigPop=null;
 else{
@@ -1668,27 +1639,28 @@ drawFancyText(fctx,bigPop.segs,bigPop.x,bigPop.y+drift,bigPop.size,al,pop);
 if(bigPop.sub){fctx.save();
 fctx.font='700 '+Math.round(bigPop.size*.34)+'px Fredoka, sans-serif';
 fctx.textAlign='center';fctx.textBaseline='middle';fctx.globalAlpha=al;
-fctx.lineWidth=Math.max(3,bigPop.size*.09);fctx.lineJoin='round';
+fctx.lineWidth=Math.max(3,bigPop.size*.08);fctx.lineJoin='round';
 fctx.strokeStyle='rgba(15,12,28,.85)';
 fctx.strokeText(bigPop.sub,bigPop.x,bigPop.y+drift+bigPop.size*.75);
 fctx.fillStyle='#ffffff';
 fctx.fillText(bigPop.sub,bigPop.x,bigPop.y+drift+bigPop.size*.75);fctx.restore()}}}
-/* pouces vectoriels animés */
+/* pouces vectoriels (blancs/bleu) */
 thumbs=thumbs.filter(th=>{const kk=(t-th.t0)/th.life;
 if(kk>=1)return false;
-drawThumb(fctx,th.x,th.y,cell*1.05,t,t-th.t0);
+drawThumb(fctx,th.x,th.y,cell*.9,t,t-th.t0);
 return true});
 bctx.clearRect(0,0,cw,chh);
 bctx.save();
 if(shakeAmt>.4){bctx.translate((Math.random()-.5)*shakeAmt,(Math.random()-.5)*shakeAmt);shakeAmt*=.88}
 else shakeAmt=0;
-/* PLATEAU */
+/* PLATEAU : relief au bord (carré-arrondi taille d'origine, fond assombri)
+   + fond de grille teinté matière + cellules vides */
 const lastClear=clearFx.length?clearFx[clearFx.length-1].t0:0;
 const glowK=(t-lastClear<450)?(1-(t-lastClear)/450):0;
 const glowA=glowK*.5;
 bctx.fillStyle=mixRelief();
 rr(bctx,gx-10,gy-10,cell*N+20,cell*N+20,10);bctx.fill();
-bctx.strokeStyle='rgba(255,255,255,'+(.10+glowA)+')';
+bctx.strokeStyle='rgba(255,255,255,'+(.08+glowA*.6)+')';
 bctx.lineWidth=3;
 rr(bctx,gx-8,gy-8,cell*N+16,cell*N+16,9);bctx.stroke();
 if(glowA>0){
@@ -1754,7 +1726,7 @@ if(o.fall.squash){const kk=(t-o.fall.squash)/130;
 if(kk<1){const s2=Math.sin(kk*Math.PI);sx=1+.16*s2;sy=1-.2*s2}}}
 drawBlock(bctx,gx+c*cell,gy+r*cell+oy,cell,o.c,1,pop,false,sx,sy);
 if(o.gem)drawGemIcon(bctx,gx+c*cell,gy+r*cell+oy,cell,t)}
-/* ombre + ghost du drag */
+/* ombre + ghost du drag (ghost = texture réelle, cf. drawGhostCell) */
 if(drag&&ghost&&state==='playing'){
 bctx.fillStyle='rgba(10,12,30,.30)';
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
@@ -1821,7 +1793,7 @@ bctx.globalAlpha=1;return true});
 /* SCORE VOLANT 3D (couleur du style) */
 if(flyScores.length){
 const tx=boardRect.left+gx+cell*N/2;
-const ty=boardRect.top+gy-44;
+const ty=boardRect.top+gy-54;
 flyScores=flyScores.filter(f=>{
 const age=t-f.t0;
 if(age>=f.life){bumpScore();return false}
