@@ -589,7 +589,7 @@ function ensureTiles(idx){
 const st=STYLES[idx];if(!st)return;
 if(triedTiles[st.id])return;triedTiles[st.id]=true;
 tryLoadSfx('clear_'+st.id);tryLoadSfx('combo_'+st.id);
-if(st.pal){if(st.srcTex)loadTilesFile(st.srcTex)}
+if(st.pal&&st.srcTex)loadTilesFile(st.srcTex);
 else loadTilesFile(st.id)}
 tryLoadSfx('land');
 
