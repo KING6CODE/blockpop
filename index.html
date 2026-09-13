@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#4a55a8"/>
 <title>BLOCKPOP</title>
-<!-- v18 : pièces 6x1/1x6 supprimées, losange sur fxBack DERRIÈRE la grille,
-     pioche à 46px sous la grille (= distance score↔grille), canvas épouse la grille -->
+<!-- v19 : 30 styles en 7 tiers (trame), palettes générées en code depuis les 8 PNG gel,
+     collection débloquée au Perfect Clear (bp_coll), contours de blocs dessinés en code,
+     losange sur fxBack derrière la grille, pioche collée à la grille -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{--panel:rgba(255,255,255,.10);--panel2:rgba(255,255,255,.17);--line:rgba(255,255,255,.15);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
@@ -45,7 +46,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 #combo .sub{font-size:17px;font-weight:600;margin-top:2px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
 #combo.show{animation:comboPop .95s ease forwards}
 @keyframes comboPop{0%{opacity:0;transform:scale(.4)}18%{opacity:1;transform:scale(1.18)}32%{transform:scale(1)}72%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04) translateY(-16px)}}
-/* Pioche collée à 46px sous la grille : même distance que score↔grille */
+/* Pioche collée sous la grille : 36px de marge + 10px de relief dans le canvas = 46px visuels */
 #tray{display:flex;gap:10px;padding:0 0 6px;margin-top:36px}
 #botSpacer{flex:1}
 .slot{flex:1;height:120px;display:grid;place-items:center;touch-action:none;background:transparent;border:none;box-shadow:none}
@@ -95,6 +96,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .wstars{display:flex;justify-content:center;gap:10px;margin:10px 0 4px}
 .wstars svg{width:44px;height:44px;fill:rgba(255,255,255,.18);transform:scale(.5);opacity:.4;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
 .wstars svg.on{fill:var(--gold);transform:scale(1);opacity:1}
+#devStyle{width:100%;margin-top:8px;padding:8px;border-radius:10px;background:#1c2040;color:#fff;border:1px solid rgba(255,255,255,.2);font-family:inherit;font-size:13px}
 #toast{position:fixed;left:50%;bottom:150px;z-index:200;transform:translateX(-50%) translateY(12px);background:#2b3157;border:1px solid rgba(255,255,255,.14);padding:10px 18px;border-radius:14px;font-size:14.5px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;max-width:92vw;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%)}
 .cf{position:fixed;top:-20px;width:9px;height:14px;border-radius:2px;z-index:120;pointer-events:none;animation:fall linear forwards}
@@ -175,7 +177,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
       </div>
       <div class="rule">
         <svg viewBox="0 0 24 24"><path d="M12 3l3 4.5L12 12 9 7.5 12 3z" fill="#3DC9EC"/><path d="M9 7.5 12 12l3-4.5L12 17 9 7.5z" fill="#5B8CFF"/></svg>
-        <p>Les <b>matières</b> évoluent au fil du score !</p>
+        <p><b>Perfect Clear</b> → nouveaux styles !</p>
       </div>
     </div>
     <button class="btn blue" id="btnAdv">🏔 &nbsp;Mode Aventure</button>
@@ -192,6 +194,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
         <button class="btn ghost" id="devP1" style="width:auto;padding:8px 12px;margin:0">+1k</button>
         <button class="btn ghost" id="devP5" style="width:auto;padding:8px 12px;margin:0">+5k</button>
       </div>
+      <select id="devStyle"></select>
+      <button class="btn ghost" id="devUnlockAll" style="margin-top:8px;padding:8px;font-size:13px">Débloquer tous les styles</button>
     </div>
   </div>
 </div>
@@ -273,14 +277,18 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 var k = 0; /* filet anti-crash boucle legacy */
 
 /* ================================================================
-   BLOCKPOP v18
-   - Pièces 6x1 / 1x6 SUPPRIMÉES (SHAPES 0..26 ; 25=3x3, 26=4x2)
-   - Losange combo sur fxBack (z1) DERRIÈRE la grille (#app z2)
-   - Pioche à 46px sous la grille (= distance score↔grille),
-     canvas épouse la grille : gy=0, chh=cell*N, botSpacer flex:1
-   - Score dessiné sur canvas FX (drawScoreHUD) au-dessus de la grille
-   - Algo v5 : piloté par RECORD, cible de mort record+1000
-   - Assets par couleur : assets/blocks/<matiere>_<couleur>.png
+   BLOCKPOP v19
+   - 30 styles en 7 TIERS (trame de déblocage façon BB)
+   - Palettes (MONO/DUO/TERNE/PASTEL...) générées EN CODE depuis
+     les 8 PNG gel : aucun dessin supplémentaire pour les variantes
+   - COLLECTION : Perfect Clear → nouveau style (65 %) ou déjà vu (35 %),
+     le style gagné devient le style de départ de la prochaine partie,
+     progression en partie limitée au tier du style de départ (bp_coll)
+   - Contours de blocs dessinés en code (PNG sans contour)
+   - Contours/fantôme/pioche utilisent effColor (palettes positionnelles)
+   - Pièces 6x1 / 1x6 supprimées (25=3x3, 26=4x2 pour BIG_FORCE)
+   - Losange combo sur fxBack DERRIÈRE la grille (#app z2)
+   - Pioche à 46px visuels sous la grille, canvas épouse la grille
    ================================================================ */
 
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70};
@@ -348,8 +356,7 @@ const COLORS=[
 {l:'#7FA6FF',b:'#4A7DE8',d:'#2E54C0'},
 {l:'#C98FFF',b:'#A05CE6',d:'#7638C4'},
 {l:'#FF8AD1',b:'#EE5BB0',d:'#C4338C'}];
-/* v18 : 6x1 et 1x6 SUPPRIMÉES (les 2x5/5x2 n'ont jamais existé).
-   Indices préservés : 25=3x3, 26=4x2 (utilisés par BIG_FORCE) */
+/* v19 : 6x1 et 1x6 SUPPRIMÉES. Indices préservés : 25=3x3, 26=4x2 */
 const SHAPES=[
 {m:[[1]],w:3},
 {m:[[1,1]],w:5},{m:[[1],[1]],w:5},
@@ -368,80 +375,87 @@ const SHAPES=[
 {m:[[1,1,1],[1,1,1],[1,1,1]],w:2},
 {m:[[1,1,1,1],[1,1,1,1]],w:2}];
 
-/* ---------- Bombe ---------- */
-const Assets={imgs:{},
-load(id){try{const im=new Image();
-im.addEventListener('load',()=>{Assets.imgs[id]=im});
-im.addEventListener('error',()=>{});
-im.src='assets/blocks/'+id+'.png'}catch(e){}},
-get(id){return this.imgs[id]||null}};
-Assets.load('bomb');
+/* ---------- Recettes de couleur (générées depuis les 8 PNG gel) ---------- */
+const FILT={pastel:'saturate(.55) brightness(1.22)',terne:'saturate(.60) brightness(.88)',
+blanc:'saturate(0) brightness(1.5)',menthe:'brightness(1.18) saturate(1.05)',
+beige:'saturate(.28) brightness(1.15)',violet:'hue-rotate(110deg) saturate(.85) brightness(.85)'};
+const rec=(s,f)=>({s:s,f:f||''});
+const PAL={
+CLASSIC:[0,1,2,3,4,5,6,7].map(i=>rec(i)),
+BLEU:Array(8).fill(0).map(()=>rec(5)),
+VERT:Array(8).fill(0).map(()=>rec(3)),
+AZUR:Array(8).fill(0).map(()=>rec(4)),
+JAUNE:Array(8).fill(0).map(()=>rec(2)),
+MENTHE:Array(8).fill(0).map(()=>rec(3,FILT.menthe)),
+DUO:[0,1,2,3,4,5,6,7].map(i=>rec(i%2?1:3)),
+TERNE:[rec(5,FILT.terne),rec(2,FILT.terne),rec(3,FILT.terne),rec(0,FILT.terne),
+rec(5,FILT.terne),rec(2,FILT.terne),rec(3,FILT.terne),rec(0,FILT.terne)],
+PRIMAIRE:[rec(2),rec(2,FILT.blanc),rec(5),rec(0),rec(2),rec(2,FILT.blanc),rec(5),rec(0)],
+PASTEL:[0,1,2,3,4,5,6,7].map(i=>rec(i,FILT.pastel)),
+GVIOLET:Array(8).fill(0).map(()=>rec(0,FILT.violet)),
+GBEIGE:Array(8).fill(0).map(()=>rec(0,FILT.beige))};
 
-/* ---------- Rendu gel (recours final) ---------- */
-function shade(c,x,y,w,h,r,depth,alpha){
-[[2,.26],[1.45,.28],[1,.32],[.6,.38]].forEach(p=>{
-c.lineWidth=Math.max(.8,depth*p[0]*2);c.strokeStyle='rgba(0,0,0,'+(alpha*p[1])+')';
-rr(c,x+.5,y+.5,w-1,h-1,r);c.stroke()})}
-function dGel(c,x,y,s,ci,alpha,mono){
-const col=mono?{l:'#8f93ad',b:'#6a6e8a',d:'#4a4e68'}:COLORS[ci];
-const bw=s,r=bw*.26,depth=Math.max(1.5,bw*.08);
-c.save();c.globalAlpha=alpha;
-c.fillStyle='rgba(0,0,0,.20)';rr(c,x+1.5,y+4,bw-3,bw-3,r);c.fill();
-const g=c.createLinearGradient(0,y,0,y+bw);
-g.addColorStop(0,col.l);g.addColorStop(.20,col.b);g.addColorStop(.66,col.b);g.addColorStop(1,col.d);
-c.fillStyle=g;rr(c,x,y,bw,bw,r);c.fill();
-c.save();rr(c,x,y,bw,bw,r);c.clip();
-shade(c,x,y,bw,bw,r,depth,.20);
-const fh=bw*.34,fg=c.createLinearGradient(0,y+bw-fh,0,y+bw);
-fg.addColorStop(0,'rgba(0,0,0,0)');fg.addColorStop(.6,'rgba(0,0,0,.15)');fg.addColorStop(1,'rgba(0,0,0,.25)');
-c.fillStyle=fg;c.fillRect(x,y+bw-fh,bw,fh);
-const rg=c.createRadialGradient(x+bw/2,y+bw*.24,bw*.05,x+bw/2,y+bw*.38,bw*.75);
-rg.addColorStop(0,'rgba(255,255,255,.30)');rg.addColorStop(.55,'rgba(255,255,255,.06)');rg.addColorStop(1,'rgba(255,255,255,0)');
-c.fillStyle=rg;c.fillRect(x,y,bw,bw);
-c.save();c.beginPath();c.rect(x,y,bw,bw*.5);c.clip();
-[[2.2,.34],[1.4,.30]].forEach(p=>{c.lineWidth=Math.max(1,bw*.045*p[0]*2);
-c.strokeStyle='rgba(255,255,255,'+(.57*p[1])+')';rr(c,x+.5,y+.5,bw-1,bw-1,r);c.stroke()});
-c.restore();
-const tg=c.createLinearGradient(0,y,0,y+bw*.30);
-tg.addColorStop(0,'rgba(255,255,255,.31)');tg.addColorStop(1,'rgba(255,255,255,0)');
-c.fillStyle=tg;c.fillRect(x,y,bw,bw*.30);
-c.restore();
-const csz=bw*.60,cx=x+(bw-csz)/2,cy=y+(bw-csz)/2,cr=csz*.30;
-c.fillStyle='rgba(0,0,0,.16)';rr(c,cx+1,cy+3,csz,csz,cr);c.fill();
-const cg=c.createLinearGradient(0,cy,0,cy+csz);
-cg.addColorStop(0,col.l);cg.addColorStop(.55,col.b);cg.addColorStop(1,col.b);
-c.fillStyle=cg;rr(c,cx,cy,csz,csz,cr);c.fill();
-c.save();rr(c,cx,cy,csz,csz,cr);c.clip();
-const cg2=c.createRadialGradient(cx+csz/2,cy+csz*.30,csz*.05,cx+csz/2,cy+csz*.45,csz*.72);
-cg2.addColorStop(0,'rgba(255,255,255,.30)');cg2.addColorStop(1,'rgba(255,255,255,0)');
-c.fillStyle=cg2;c.fillRect(cx,cy,csz,csz);
-const cb=c.createLinearGradient(0,cy+csz-csz*.30,0,cy+csz);
-cb.addColorStop(0,'rgba(0,0,0,0)');cb.addColorStop(1,'rgba(0,0,0,.14)');
-c.fillStyle=cb;c.fillRect(cx,cy+csz-csz*.30,csz,csz*.30);c.restore();
-c.save();c.beginPath();c.rect(cx-1,cy-1,csz+2,csz*.45);c.clip();
-c.strokeStyle='rgba(255,255,255,.65)';c.lineWidth=Math.max(1,csz*.05);
-rr(c,cx+.5,cy+.5,csz-1,csz-1,cr);c.stroke();c.restore();
-c.save();c.translate(cx+csz*.30,cy+csz*.26);c.rotate(-.5);
-c.fillStyle='rgba(255,255,255,.40)';rr(c,-csz*.16,-csz*.055,csz*.32,csz*.11,csz*.055);c.fill();c.restore();
-c.restore()}
-
-/* ---------- 10 matières ---------- */
+/* ---------- Styles — l'ORDRE du tableau est la trame de déblocage ----------
+   tex  : nom de fichier des textures optionnelles assets/blocks/<tex>_<couleur>.png
+   pal  : palette générée en code depuis srcTex (défaut gel). Absent = tes propres PNG
+   pos  : répartition positionnelle des couleurs (dr+dc)%longueur
+   tier : tier de la trame (0 = départ)                                          */
 const STYLES=[
-{id:'gel',name:'Gel',bg:'#262b47',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l']},
-{id:'diamant',name:'Diamant',bg:'#2c2850',pv:2,snd:{w:'sine',m:1.30},burst:[2,'l']},
-{id:'pierre',name:'Pierre',bg:'#27303c',pv:1,snd:{w:'sine',m:.55},burst:[0,'d']},
-{id:'bonbon',name:'Bonbon',bg:'#3a2a50',pv:0,snd:{w:'square',m:1.10},burst:[1,'l']},
-{id:'laine',name:'Laine',bg:'#2b3a4a',pv:2,snd:{w:'sine',m:.80},burst:[0,'b']},
-{id:'rubis',name:'Rubis',bg:'#42293e',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l']},
-{id:'miel',name:'Miel',bg:'#3c3320',pv:3,snd:{w:'sine',m:.70},burst:[1,'b']},
-{id:'neon',name:'Néon',bg:'#171a33',pv:3,snd:{w:'sawtooth',m:1.25},burst:[1,'b']},
-{id:'bois',name:'Bois',bg:'#362a1e',pv:1,snd:{w:'triangle',m:.90},burst:[0,'d']},
-{id:'or',name:'Or',bg:'#3a3117',pv:2,snd:{w:'triangle',m:1.45},burst:[2,'l']}];
-const STYLE_TH=[0,3,7,11,16,22,29,37,46,56];
+/* T0 — Départ */
+{id:'gel',name:'Gel',bg:'#262b47',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:0},
+/* T1 — Variantes gel (100 % code, aucun PNG à faire) */
+{id:'gel_bleu',name:'Gel bleu',bg:'#232b52',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.BLEU},
+{id:'gel_vert',name:'Gel vert',bg:'#223b30',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.VERT},
+{id:'gel_azur',name:'Gel azur',bg:'#1f3a4d',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.AZUR},
+{id:'gel_jaune',name:'Gel jaune',bg:'#3d3a22',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.JAUNE},
+{id:'gel_menthe',name:'Gel menthe',bg:'#24402f',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.MENTHE},
+{id:'gel_duo',name:'Gel duo',bg:'#2a3b2e',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.DUO,pos:[3,1]},
+{id:'gel_terne',name:'Gel terne',bg:'#2c3040',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.TERNE,pos:[5,2,3,0]},
+{id:'gel_primaire',name:'Gel primaire',bg:'#313548',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.PRIMAIRE,pos:[2,1,5,0]},
+{id:'gel_pastel',name:'Gel pastel',bg:'#2e3350',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.PASTEL},
+/* T2 — Reliefs simples (textures à dessiner, fallback gel en attendant) */
+{id:'coussin',name:'Coussin',bg:'#2a2e4e',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:2},
+{id:'bonbon',name:'Bonbon',bg:'#3a2a50',pv:0,snd:{w:'square',m:1.10},burst:[1,'l'],tier:2},
+{id:'pastille',name:'Pastille',bg:'#28304a',pv:0,snd:{w:'sine',m:1.05},burst:[1,'l'],tier:2},
+{id:'biscuit',name:'Biscuit',bg:'#3a3226',pv:0,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:2},
+/* T3 — Matières naturelles */
+{id:'bois',name:'Bois',bg:'#362a1e',pv:1,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:3},
+{id:'laine',name:'Laine',bg:'#2b3a4a',pv:2,snd:{w:'sine',m:.80},burst:[0,'b'],tier:3},
+{id:'moelleux',name:'Moelleux',bg:'#31344f',pv:2,snd:{w:'sine',m:.75},burst:[0,'b'],tier:3},
+{id:'pierre',name:'Pierre',bg:'#27303c',pv:1,snd:{w:'sine',m:.55},burst:[0,'d'],tier:3},
+{id:'brique',name:'Brique',bg:'#3c2a26',pv:1,snd:{w:'square',m:.60},burst:[0,'d'],tier:3},
+/* T4 — Frais / translucides */
+{id:'glace',name:'Glace',bg:'#1f3d52',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4},
+{id:'glace_violet',name:'Glace violette',bg:'#2f2852',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,srcTex:'glace',pal:PAL.GVIOLET},
+{id:'glace_beige',name:'Glace beige',bg:'#3a3628',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,srcTex:'glace',pal:PAL.GBEIGE},
+{id:'pasteque',name:'Pastèque',bg:'#22392c',pv:0,snd:{w:'triangle',m:1.10},burst:[1,'l'],tier:4},
+{id:'miel',name:'Miel',bg:'#3c3320',pv:3,snd:{w:'sine',m:.70},burst:[1,'b'],tier:4},
+/* T5 — Précieux */
+{id:'rubis',name:'Rubis',bg:'#42293e',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l'],tier:5},
+{id:'diamant',name:'Diamant',bg:'#2c2850',pv:2,snd:{w:'sine',m:1.30},burst:[2,'l'],tier:5},
+{id:'or',name:'Or',bg:'#3a3117',pv:2,snd:{w:'triangle',m:1.45},burst:[2,'l'],tier:5},
+/* T6 — Exotiques */
+{id:'neon',name:'Néon',bg:'#171a33',pv:3,snd:{w:'sawtooth',m:1.25},burst:[1,'b'],tier:6},
+{id:'robotique',name:'Robotique',bg:'#20242e',pv:3,snd:{w:'sawtooth',m:1.00},burst:[1,'b'],tier:6},
+{id:'galaxie',name:'Galaxie',bg:'#1b1b38',pv:3,snd:{w:'sine',m:1.35},burst:[2,'l'],tier:6}];
+/* Seuils de progression en partie (points de style) — à tuner après test */
+const STYLE_TH=STYLES.map((_,i)=>i===0?0:Math.floor(3+Math.pow(i,1.45)));
 
 /* ---------- Tuiles par couleur ---------- */
 const SUFFIXES=['red','orange','yellow','green','cyan','blue','purple','pink'];
 const tileCache={};
+function genPaletteTiles(st){
+const base=st.srcTex||'gel';
+for(let ci=0;ci<8;ci++){
+const r=st.pal[ci];if(!r)continue;
+const src=tileCache[base+'_'+r.s];if(!src)continue;
+const cv=document.createElement('canvas');
+cv.width=src.width;cv.height=src.height;
+const c=cv.getContext('2d');
+if(r.f)c.filter=r.f;
+c.drawImage(src,0,0);
+tileCache[st.id+'_'+ci]=cv}}
+function regenAllPalettes(){STYLES.forEach(st=>{if(st.pal)genPaletteTiles(st)})}
 function loadTiles(stId){
 SUFFIXES.forEach(suf=>{
 try{const im=new Image();
@@ -450,11 +464,12 @@ const key=stId+'_'+SUFFIXES.indexOf(suf);
 const cv=document.createElement('canvas');
 cv.width=im.width;cv.height=im.height;
 cv.getContext('2d').drawImage(im,0,0);
-tileCache[key]=cv;renderTray(false);
+tileCache[key]=cv;
+regenAllPalettes();renderTray(false);
 console.log('✔ chargé :',stId+'_'+suf)});
 im.addEventListener('error',()=>{});
 im.src='assets/blocks/'+stId+'_'+suf+'.png'}catch(e){}})}
-STYLES.forEach(st=>loadTiles(st.id));
+STYLES.forEach(st=>{if(!st.pal)loadTiles(st.id)});
 ['clear','combo'].forEach(kind=>{STYLES.forEach(st=>tryLoadSfx(kind+'_'+st.id))});
 tryLoadSfx('land');
 
@@ -509,6 +524,35 @@ const slotEls=[...document.querySelectorAll('.slot')];
 const slotCvs=slotEls.map(s2=>s2.querySelector('canvas'));
 window.addEventListener('error',e=>{try{toast('⚠ '+(e.message||'Erreur'),5000)}catch(_){}});
 
+/* ---------- COLLECTION (trame façon BB) ---------- */
+function getColl(){
+try{const c=JSON.parse(store.get('bp_coll'));
+if(c&&Array.isArray(c.unlocked)&&c.unlocked[0]==='gel'&&STYLES.some(s2=>s2.id===c.current))return c}catch(e){}
+return{unlocked:['gel'],current:'gel'}}
+let coll=getColl();
+function saveColl(){store.set('bp_coll',JSON.stringify(coll))}
+function styleIdxById(id){return STYLES.findIndex(s2=>s2.id===id)}
+/* La progression en partie parcourt UNIQUEMENT les styles débloqués du tier
+   du style de départ (trame cohérente : pas de gel→robot en une partie) */
+function buildThemeOrder(){
+const startIdx=styleIdxById(coll.current);
+const startTier=STYLES[startIdx].tier;
+const pool=STYLES.map((s2,i)=>i).filter(i=>i!==startIdx&&STYLES[i].tier===startTier&&coll.unlocked.indexOf(STYLES[i].id)>=0)
+.sort(()=>Math.random()-.5);
+return[startIdx].concat(pool)}
+/* Perfect Clear : 65 % nouveau style du premier tier non complété,
+   35 % style déjà possédé (célébration quand même). Retourne l'id ou null */
+function collectRoll(){
+const allDone=coll.unlocked.length>=STYLES.length;
+if(allDone)return coll.unlocked[Math.floor(Math.random()*coll.unlocked.length)];
+let nextTier=-1;
+for(let t=0;t<=6&&nextTier<0;t++){
+if(STYLES.some(s2=>s2.tier===t&&coll.unlocked.indexOf(s2.id)<0))nextTier=t}
+if(Math.random()<.65){
+const pool=STYLES.filter(s2=>s2.tier===nextTier&&coll.unlocked.indexOf(s2.id)<0);
+if(pool.length)return pool[Math.floor(Math.random()*pool.length)].id}
+return coll.unlocked[Math.floor(Math.random()*coll.unlocked.length)]}
+
 /* ---------- État ---------- */
 let grid=[],tray=[null,null,null];
 let best=parseInt(store.get('bp_best'))||0;
@@ -522,7 +566,7 @@ let advStars=(()=>{try{const a=JSON.parse(store.get('bp_adv'));if(Array.isArray(
 let state='title';
 let animating=false,turnId=0;
 let stylePts=0,styleRingT=0,reviveUsed=false,gameStart=0;
-let theme=0,styleLevel=0,themeOrder=[0,1,2,3,4,5,6,7,8,9];
+let theme=0,styleLevel=0,themeOrder=Array.from({length:STYLES.length},(_,i)=>i);
 let cell=40,mini=16,gx=0,gy=0,cw=0,chh=0;
 let drag=null,ghost=null,boardRect=null;
 let particles=[],floats=[],flyScores=[],clearFx=[],shakeAmt=0;
@@ -535,9 +579,8 @@ bestVal.textContent=best;
 function updateBoardRect(){boardRect=boardEl.getBoundingClientRect()}
 function resize(){
 const r=boardWrap.getBoundingClientRect();cw=r.width;
-/* v18.1 : canvas = grille + 10px de relief tout autour (gy=10).
-   Cellule plafonnée aussi par la hauteur d'écran : header, pioche
-   et zone score réservés → la grille ne peut plus être rognée */
+/* canvas = grille + 10px de relief tout autour (gy=10).
+   Cellule plafonnée aussi par la hauteur d'écran → grille jamais rognée */
 cell=clamp(Math.floor(Math.min((cw-24)/N,(window.innerHeight-300)/N)),24,60);
 mini=clamp(Math.round(cell*.52),14,20);
 gx=Math.round((cw-cell*N)/2);gy=10;
@@ -555,17 +598,26 @@ fbctx.setTransform(dpr,0,0,dpr,0,0);
 updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
-/* ---------- Rendu d'un bloc ---------- */
+/* ---------- Rendu d'un bloc (avec contour dessiné) ---------- */
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
 alpha=alpha==null?1:alpha;scale=scale==null?1:scale;mono=!!mono;
 sx=sx==null?1:sx;sy=sy==null?1:sy;th=th==null?theme:th;
 c.save();c.globalAlpha=alpha;
 if(scale!==1){c.translate(x+s/2,y+s/2);c.scale(scale,scale);c.translate(-(x+s/2),-(y+s/2))}
 if(sx!==1||sy!==1){c.translate(x+s/2,y+s);c.scale(sx,sy);c.translate(-(x+s/2),-(y+s))}
-const tile=mono?null:(tileCache[th+'_'+ci]||tileCache['gel_'+ci]);
+const st=STYLES[th]||STYLES[0];
+/* v19 : recherche par ID du style (ex 'bois_3'), fallback gel, fallback dGel */
+const tile=mono?null:(tileCache[st.id+'_'+ci]||tileCache['gel_'+ci]);
 if(tile){
 c.drawImage(tile,0,0,tile.width,tile.height,x,y,s,s);
 if(mono){c.fillStyle='rgba(40,42,60,.55)';rr(c,x,y,s,s,s*.10);c.fill()}
+/* v19 : contour sombre dessiné en code (PNG sans contour) */
+if(!mono){
+c.globalAlpha=alpha*.55;
+c.strokeStyle='rgba(20,14,26,.85)';
+c.lineWidth=Math.max(1.5,s*.045);
+rr(c,x+c.lineWidth*.5,y+c.lineWidth*.5,s-c.lineWidth,s-c.lineWidth,s*.24);
+c.stroke()}
 }else{dGel(c,x,y,s,ci,alpha,mono)}
 c.restore()}
 function drawBomb(c,x,y,s,t){
@@ -605,7 +657,12 @@ if(g){bgFx.style.background=g;bgFx.style.opacity=op}else bgFx.style.opacity=0;
 glowEl.style.opacity=combo>=4?(.4+Math.min(combo,8)*.07):0}
 function flash(){flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go')}
 
-/* ---------- Difficulté : cible de mort record+1000, infinie après ---------- */
+/* ---------- Couleur effective (palettes positionnelles duo/terne/primaire) ---------- */
+function effColor(ci,dr,dc){const st=STYLES[theme];
+if(st.pos)return st.pos[(dr+dc)%st.pos.length];
+return ci}
+
+/* ---------- Difficulté : cible de mort record+1000 ---------- */
 function deathTarget(){return best<=0?6000:best+1000}
 function pressure(){return clamp(score/deathTarget(),0,2.5)}
 function diffLevel(){
@@ -773,7 +830,7 @@ const cand=randPieceWeighted();const a=analyzePiece(cand);
 if(a.lines===0&&a.near===0&&a.allClear===0)dry.push(cand)}
 if(dry.length>=2){newSi=[dry[0],dry[1],randPieceWeighted()].sort(()=>Math.random()-.5)}}
 else if(mode2==='BIG_FORCE'){
-/* v18 : 27/28 n'existent plus → grosses pièces = 3x3 (25) et 4x2 (26) */
+/* v19 : grosses pièces = 3x3 (25) et 4x2 (26) uniquement */
 const bigs=[25,26].filter(si=>!canAnywhere(SHAPES[si].m));
 if(bigs.length){
 newSi[Math.floor(Math.random()*3)]=bigs[Math.floor(Math.random()*bigs.length)];
@@ -804,6 +861,19 @@ if(mode==='classic'&&score>=TUNE.bombMinScore&&Math.random()<TUNE.bombChance){
 tray[Math.floor(Math.random()*3)]={bomb:true,m:[[1]],si:-1,ci:2,dead:false}}
 renderTray(anim)}
 
+/* ---------- COLLECTION : style gagné au Perfect Clear ---------- */
+function grantCollect(){
+if(mode!=='classic')return;
+const won=collectRoll();
+if(!won)return;
+const isNew=coll.unlocked.indexOf(won)<0;
+coll.current=won;
+if(isNew)coll.unlocked.push(won);
+saveColl();
+const st=STYLES[styleIdxById(won)];
+if(isNew){toast('🎁 Nouveau style débloqué : '+st.name+' !\nProchaine partie…',4200);confetti();SFX.win()}
+else toast('Style : '+st.name+' ✓ — prochaine partie',3000)}
+
 /* ---------- Pioche visuelle ---------- */
 function renderTray(anim){
 const dpr=window.devicePixelRatio||1,t=performance.now();
@@ -820,7 +890,7 @@ c.fill();
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(!v)return;
 if(p.bomb)drawBomb(c,ox+dc*mini,oy+dr*mini,mini,t);
-else drawBlock(c,ox+dc*mini,oy+dr*mini,mini,p.ci,1,1,p.dead)}))}
+else drawBlock(c,ox+dc*mini,oy+dr*mini,mini,effColor(p.ci,dr,dc),1,1,p.dead)}))}
 slotEls[i].classList.toggle('dead',!!(p&&p.dead&&!p.bomb));
 if(anim&&p){const el=slotEls[i];el.classList.remove('spawn');void el.offsetWidth;
 el.style.animationDelay=(i*70)+'ms';el.classList.add('spawn')}})}
@@ -893,7 +963,7 @@ if(combo>=4){for(let i=0;i<10;i++)particles.push({
 x:gx+Math.random()*cell*N,y:gy+cell*N,
 vx:(Math.random()-.5)*.2,vy:-(.25+Math.random()*.3),sz:cell*.12,
 col:i%2?'#ff8c28':'#ffd23d',t0:t0,life:700+Math.random()*400,sh:1,g:-.02,rot:0,vr:.1})}
-const lines=rows.length+cols.length;linesTotal+=lines;
+const lines=rows.length+cols.length;linesTotal+=lines;advLines+=lines;
 /* Score lignes Block Blast : 1=80 · 2=240 · 3=480 · 4=800, combo +15 %/palier */
 const linePts=lines*(lines+1)/2*80;
 const gain=Math.round(linePts*(1+Math.min(combo-1,6)*.15)+(chain?150:0));
@@ -908,7 +978,9 @@ vib(lines>1?[25,35,25]:[20,20,20]);
 if(chain&&!store.get('bp_chain')){store.set('bp_chain','1');
 setTimeout(function(){toast('Les chutes créent des chaînes !')},800)}
 stylePts+=Math.round((1+(lines-1)*2+(chain?2:0)+Math.floor(combo/3))*(.7+Math.random()*.7));
-while(styleLevel<STYLES.length-1&&stylePts>=STYLE_TH[styleLevel+1]){
+/* v19 : le seuil est celui du style CIBLE (themeOrder), pas de la position.
+   En classique on ne progresse que dans les styles débloqués du tier (buildThemeOrder). */
+while(styleLevel<themeOrder.length-1&&stylePts>=STYLE_TH[themeOrder[styleLevel+1]]){
 styleLevel++;theme=themeOrder[styleLevel];
 styleRingT=performance.now();flash();SFX.up();vib([10,30,10]);
 toast('✦ Matière : '+STYLES[theme].name)}
@@ -952,7 +1024,9 @@ comboBig.textContent='PERFECT CLEAR !';
 comboSub.textContent='Grille vide — +'+bonus;
 comboEl.classList.remove('show');void comboEl.offsetWidth;comboEl.classList.add('show');
 SFX.perfect();vib([30,50,30,50,30]);flash();
-checkBest()}
+checkBest();
+/* v19 : tirage de collection au Perfect Clear (classique uniquement) */
+grantCollect()}
 animating=false;endTurn()}
 async function bombExplode(r,c){
 const my=++turnId;animating=true;
@@ -1006,7 +1080,8 @@ function applyPlace(i,r,c){
 const p=tray[i],now=performance.now();
 if(p.bomb){tray[i]=null;renderTray(false);bombExplode(r,c);return}
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
-if(v)grid[r+dr][c+dc]={c:p.ci,t:now,fall:null}}));
+/* v19 : couleur effective (palettes duo/terne/primaire) */
+if(v)grid[r+dr][c+dc]={c:effColor(p.ci,dr,dc),t:now,fall:null}}));
 placedCount++;advPlaced++;
 if(!store.get('bp_tut'))store.set('bp_tut','1');
 score+=p.m.flat().length*10;bumpScore();
@@ -1048,7 +1123,8 @@ combo=d.combo;grace=d.grace!=null?d.grace:3;
 maxCombo=d.maxCombo;placedCount=d.placedCount;linesTotal=d.linesTotal;
 bestAtStart=d.bestAtStart;stylePts=d.stylePts||0;
 styleLevel=d.styleLevel||0;
-themeOrder=(d.themeOrder&&d.themeOrder.length===STYLES.length)?d.themeOrder:[0,1,2,3,4,5,6,7,8,9];
+/* v19 : garde anti-vieille-sauvegarde (10 styles) → reconstruit */
+themeOrder=(d.themeOrder&&d.themeOrder.length===STYLES.length)?d.themeOrder:buildThemeOrder();
 theme=(d.theme!=null&&d.theme<STYLES.length)?d.theme:themeOrder[styleLevel];
 reviveUsed=!!d.reviveUsed;gameStart=d.gameStart||performance.now();
 newRecordShown=false;
@@ -1112,8 +1188,9 @@ dragLayer.style.width=(w+m*2)+'px';dragLayer.style.height=(h+m*2)+'px';
 dctx.setTransform(dpr,0,0,dpr,0,0);dctx.clearRect(0,0,w+m*2,h+m*2);
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(!v)return;
+/* v19 : couleur effective (palettes positionnelles) */
 if(p.bomb)drawBomb(dctx,m+dc*cell,m+dr*cell,cell,performance.now());
-else drawBlock(dctx,m+dc*cell,m+dr*cell,cell,p.ci)}));
+else drawBlock(dctx,m+dc*cell,m+dr*cell,cell,effColor(p.ci,dr,dc))}));
 dragLayer.style.display='block';slotCvs[i].style.visibility='hidden';
 const gy0=boardRect.top+gy;
 const startY=gy0+cell*N;
@@ -1243,7 +1320,7 @@ if(f.oy>=0){f.oy=0;
 if(f.vy>cell*2.5&&f.bounces<2){f.vy=-f.vy*.32;f.bounces++;f.squash=performance.now();landed=true}
 else{f.done=true;if(!f.squash)f.squash=performance.now();f.vy=0;landed=true}}}}
 if(landed&&t-lastLand>70){if(!playCustom('land',.6))SFX.land();lastLand=t}
-/* v18 : fxBack (losange, DERRIÈRE la grille) + fxLayer (score, DEVANT) */
+/* v19 : fxBack (losange, DERRIÈRE la grille) + fxLayer (score, DEVANT) */
 fbctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 drawDiamondDeco(t);
@@ -1325,13 +1402,13 @@ if(o.fall.squash){const kk=(t-o.fall.squash)/130;
 if(kk<1){const s2=Math.sin(kk*Math.PI);sx=1+.16*s2;sy=1-.2*s2}}}
 drawBlock(bctx,gx+c*cell,gy+r*cell+oy,cell,o.c,1,pop,false,sx,sy);
 if(o.gem)drawGemIcon(bctx,gx+c*cell,gy+r*cell+oy,cell,t)}
-/* ombre carrée + ghost du drag */
+/* ombre carrée + ghost du drag (v19 : couleur effective) */
 if(drag&&ghost&&state==='playing'){
 bctx.fillStyle='rgba(10,12,30,.30)';
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v){rr(bctx,gx+(ghost.c+dc)*cell+4,gy+(ghost.r+dr)*cell+7,cell,cell,cell*.05);bctx.fill()}}));
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
-if(v)drawGhostCell(bctx,gx+(ghost.c+dc)*cell,gy+(ghost.r+dr)*cell,cell,drag.p.ci)}))}
+if(v)drawGhostCell(bctx,gx+(ghost.c+dc)*cell,gy+(ghost.r+dr)*cell,cell,effColor(drag.p.ci,dr,dc))}))}
 /* EXPLOSIONS PAR MATIÈRE */
 clearFx=clearFx.filter(fx=>{
 const age=t-fx.t0;if(age<0)return true;
@@ -1433,7 +1510,7 @@ el.addEventListener('pointerdown',go);el.addEventListener('click',go)}
 /* ---------- Pause ---------- */
 function openPause(){if(state!=='playing')return;
 state='paused';
- $('pauseInfo').textContent=mode==='adv'?('Niveau '+(advLevel+1)+' — '+lvl.name):('Score : '+score);
+ $('pauseInfo').textContent=mode==='adv'?('Niveau '+(advLevel+1)+' — '+lvl.name):('Score : '+score+' · Style : '+STYLES[theme].name);
  $('btnPMap').style.display=mode==='adv'?'block':'none';
 refreshPauseToggles();ovPause.classList.add('show')}
 function refreshPauseToggles(){
@@ -1459,7 +1536,11 @@ score=0;shownScore=0;
 combo=0;grace=3;maxCombo=0;placedCount=0;advPlaced=0;
 linesTotal=0;advLines=0;advChain=0;advComboMax=0;advGems=0;advFixedIdx=0;
 stars=0;
-themeOrder=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);themeOrder.unshift(0);
+/* v19 : l'Aventure suit la TRAME COMPLÈTE (gel → tiers, mélangé dans le tier) */
+themeOrder=[0];
+for(let t=1;t<=6;t++){
+const pool=STYLES.map((s2,i2)=>i2).filter(i2=>STYLES[i2].tier===t).sort(()=>Math.random()-.5);
+themeOrder=themeOrder.concat(pool)}
 styleLevel=0;theme=0;stylePts=0;styleRingT=0;
 reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=-1;
@@ -1534,8 +1615,9 @@ ovTitle.classList.remove('show');ovOver.classList.remove('show');ovPause.classLi
 grid=Array.from({length:N},()=>Array(N).fill(null));
 score=0;shownScore=0;
 combo=0;grace=3;maxCombo=0;placedCount=0;linesTotal=0;stars=0;
-themeOrder=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);themeOrder.unshift(0);
-styleLevel=0;theme=0;stylePts=0;styleRingT=0;
+/* v19 : la partie démarre sur le style de la collection (trame BB) */
+themeOrder=buildThemeOrder();
+styleLevel=0;theme=themeOrder[0];stylePts=0;styleRingT=0;
 reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=best;
 particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
@@ -1564,7 +1646,7 @@ if(gap>0&&bestAtStart>0)statsTxt+='\n— À '+gap+' pts de battre ton record ! �
 ovOver.classList.add('show')}
 function refreshTitle(){
  $('titleBest').innerHTML=best>0?('Record classique&nbsp;: <b>'+best+'</b>'):'Première partie — bonne chance !';
- $('titleStats').textContent=stats.games>0?(stats.games+' parties · '+stats.lines+' lignes éclatées'):'';
+ $('titleStats').textContent=stats.games>0?(stats.games+' parties · '+stats.lines+' lignes éclatées · '+coll.unlocked.length+'/'+STYLES.length+' styles'):('Collection : '+coll.unlocked.length+'/'+STYLES.length+' styles · style : '+STYLES[styleIdxById(coll.current)].name);
  $('btnResume').style.display=hasSave()?'block':'none'}
 /* ---------- Liaisons ---------- */
 bindTap($('btnPlay'),()=>{SFX.init();newGame()});
@@ -1593,7 +1675,7 @@ if(SFX.on){SFX.init();SFX.pick()}});
 bindTap($('btnPVib'),()=>{vibOn=!vibOn;
 store.set('bp_vib',vibOn?'1':'0');
 refreshPauseToggles();vib(20)});
-/* ---------- OUTIL DEV : highscore (5 taps sur le record) ---------- */
+/* ---------- OUTIL DEV : highscore + collection (5 taps sur le record) ---------- */
 let devTaps=0,devLastTap=0;
  $('titleBest').addEventListener('pointerdown',()=>{
 const now=performance.now();
@@ -1617,6 +1699,19 @@ bindTap($('devM5'),()=>devBest(-5000));
 bindTap($('devM1'),()=>devBest(-1000));
 bindTap($('devP1'),()=>devBest(1000));
 bindTap($('devP5'),()=>devBest(5000));
+/* v19 : sélecteur de style (applique à la PROCHAINE partie, trame BB) */
+(function(){const sel=$('devStyle');
+STYLES.forEach(s2=>{const o=document.createElement('option');
+o.value=s2.id;o.textContent=s2.name;sel.appendChild(o)});
+sel.value=coll.current;
+sel.addEventListener('change',()=>{
+if(coll.unlocked.indexOf(sel.value)<0)coll.unlocked.push(sel.value);
+coll.current=sel.value;saveColl();
+toast('Style de départ : '+STYLES[styleIdxById(sel.value)].name)})})();
+bindTap($('devUnlockAll'),()=>{
+coll.unlocked=STYLES.map(s2=>s2.id);saveColl();
+ $('devStyle').value=coll.current;
+refreshTitle();toast('Tous les styles débloqués !')});
 /* ---------- Init ---------- */
 grid=Array.from({length:N},()=>Array(N).fill(null));
 genTray(false);refreshTitle();setHudMode();
