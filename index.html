@@ -110,16 +110,10 @@ header{
   flex:1;
   position:relative;
   z-index:110;
-  margin-bottom:0;
+  min-height:12px;
 }
 #score{
-  font-family:'Nunito Sans','Fredoka',sans-serif;
-  font-size:54px;
-  font-weight:800;
-  letter-spacing:1px;
-  display:inline-block;
-  color:#ffffff;
-  text-shadow:0 3px 0 rgba(104,112,158,.85);
+  display:none;
 }
 #score.bump{
   animation:bump .28s ease;
@@ -2936,24 +2930,25 @@ function frame(t){
 function gainPx(txt){
   return (txt.replace('+','').length > 4 || parseInt(txt.replace('+','')) >= 10000) ? 26 : 20;
 }
-function drawScore3D(c,txt,x,y,sc,alpha){
-  const size = Math.max(28, gainPx(txt)+10)*sc;
-  c.save();
-  c.globalAlpha = alpha;
-  c.font = '800 ' + size + 'px "Nunito Sans", Fredoka, sans-serif';
-  c.textAlign = 'center';
-  c.fillStyle = '#8a6a12';
-  for(let o=3;o>=1;o--) c.fillText(txt, x+o*.8, y+o);
-  const g = c.createLinearGradient(0, y-size*.72, 0, y+size*.12);
-  g.addColorStop(0, '#ffffff');
-  g.addColorStop(.55, '#ffe98a');
-  g.addColorStop(1, '#ffc93d');
-  c.fillStyle = g;
-  c.fillText(txt, x, y);
-  c.strokeStyle = 'rgba(205,210,230,.55)';
-  c.lineWidth = Math.max(1, size*.055);
-  c.strokeText(txt, x, y);
-  c.restore();
+function drawScoreHUD(t){
+  const dx = boardRect.left + gx + cell*N/2;
+  const dy = boardRect.top + gy - 30;
+  const pulse = 1 + .14*Math.max(0, 1-(t-scorePulseT)/280);
+  const size = Math.round(60*pulse);
+  fctx.save();
+  fctx.font = '800 ' + size + 'px "Nunito Sans", sans-serif';
+  fctx.textAlign = 'center';
+  fctx.textBaseline = 'middle';
+  /* ombre douce : copie floutée et décalée vers le bas, elle dépasse du chiffre */
+  fctx.save();
+  fctx.filter = 'blur(6px)';
+  fctx.fillStyle = 'rgba(30,34,80,.55)';
+  fctx.fillText(shownScore, dx, dy + size*.10);
+  fctx.restore();
+  /* le chiffre blanc par-dessus */
+  fctx.fillStyle = '#ffffff';
+  fctx.fillText(shownScore, dx, dy);
+  fctx.restore();
 }
 /* ---------- UI générique ---------- */
 function toast(msg,dur){
