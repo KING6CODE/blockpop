@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#4a55a8"/>
 <title>BLOCKPOP</title>
-<!-- v17 FINALE : score canvas au-dessus de la grille, drawScore3D défini,
-     algo v5 piloté par record (cible de mort record+1000), assets par couleur -->
+<!-- v18 : pièces 6x1/1x6 supprimées, losange sur fxBack DERRIÈRE la grille,
+     pioche à 46px sous la grille (= distance score↔grille), canvas épouse la grille -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{--panel:rgba(255,255,255,.10);--panel2:rgba(255,255,255,.17);--line:rgba(255,255,255,.15);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
@@ -19,7 +19,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:80;bac
 #flash{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.5),rgba(255,255,255,0) 62%)}
 #flash.go{animation:flashA .35s ease-out}
 @keyframes flashA{0%{opacity:1}100%{opacity:0}}
-#app{max-width:470px;height:100vh;height:100dvh;margin:0 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 14px calc(10px + env(safe-area-inset-bottom))}
+#fxBack{position:fixed;inset:0;pointer-events:none;z-index:1}
+#app{position:relative;z-index:2;max-width:470px;height:100vh;height:100dvh;margin:0 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 14px calc(10px + env(safe-area-inset-bottom))}
 header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:56px}
 .hside{width:96px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .hside.right{align-items:flex-end}
@@ -36,14 +37,16 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .bar i{display:block;height:100%;width:0;background:var(--gold);border-radius:99px;transition:width .45s}
 #objTxt{font-size:13.5px;font-weight:600;white-space:nowrap}
 #objPieces{font-size:12.5px;color:var(--dim);white-space:nowrap}
-#boardWrap{flex:1;position:relative;display:grid;place-items:center;min-height:0;margin-top:4px}
+#boardWrap{flex:0 0 auto;position:relative;display:grid;place-items:center;min-height:0;margin-top:4px}
 #board{display:block}
 #combo{position:absolute;left:0;right:0;top:16%;text-align:center;pointer-events:none;opacity:0;z-index:5}
 #combo .big{font-size:36px;font-weight:700;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.4)}
 #combo .sub{font-size:17px;font-weight:600;margin-top:2px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
 #combo.show{animation:comboPop .95s ease forwards}
 @keyframes comboPop{0%{opacity:0;transform:scale(.4)}18%{opacity:1;transform:scale(1.18)}32%{transform:scale(1)}72%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04) translateY(-16px)}}
-#tray{display:flex;gap:10px;padding:6px 0 4px}
+/* Pioche collée à 46px sous la grille : même distance que score↔grille */
+#tray{display:flex;gap:10px;padding:0 0 6px;margin-top:46px}
+#botSpacer{flex:1}
 .slot{flex:1;height:120px;display:grid;place-items:center;touch-action:none;background:transparent;border:none;box-shadow:none}
 .slot canvas{cursor:grab;touch-action:none}
 .slot.dead canvas{opacity:.35;filter:grayscale(1) brightness(.75)}
@@ -139,8 +142,10 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     <div class="slot"><canvas></canvas></div>
     <div class="slot"><canvas></canvas></div>
   </footer>
+  <div id="botSpacer"></div>
 </div>
 
+<canvas id="fxBack"></canvas>
 <canvas id="dragLayer"></canvas>
 <canvas id="fxLayer"></canvas>
 
@@ -266,11 +271,13 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 var k = 0; /* filet anti-crash boucle legacy */
 
 /* ================================================================
-   BLOCKPOP v17
+   BLOCKPOP v18
+   - Pièces 6x1 / 1x6 SUPPRIMÉES (SHAPES 0..26 ; 25=3x3, 26=4x2)
+   - Losange combo sur fxBack (z1) DERRIÈRE la grille (#app z2)
+   - Pioche à 46px sous la grille (= distance score↔grille),
+     canvas épouse la grille : gy=0, chh=cell*N, botSpacer flex:1
    - Score dessiné sur canvas FX (drawScoreHUD) au-dessus de la grille
-   - Losange combo 3+ DERRIÈRE le score
-   - Algo v5 : piloté par RECORD, cible de mort record+1000,
-     gravité prédite dans les simulations, déserts, grosses pièces
+   - Algo v5 : piloté par RECORD, cible de mort record+1000
    - Assets par couleur : assets/blocks/<matiere>_<couleur>.png
    ================================================================ */
 
@@ -339,6 +346,8 @@ const COLORS=[
 {l:'#7FA6FF',b:'#4A7DE8',d:'#2E54C0'},
 {l:'#C98FFF',b:'#A05CE6',d:'#7638C4'},
 {l:'#FF8AD1',b:'#EE5BB0',d:'#C4338C'}];
+/* v18 : 6x1 et 1x6 SUPPRIMÉES (les 2x5/5x2 n'ont jamais existé).
+   Indices préservés : 25=3x3, 26=4x2 (utilisés par BIG_FORCE) */
 const SHAPES=[
 {m:[[1]],w:3},
 {m:[[1,1]],w:5},{m:[[1],[1]],w:5},
@@ -355,9 +364,7 @@ const SHAPES=[
 {m:[[1,0],[1,0],[1,1]],w:4},{m:[[0,1],[0,1],[1,1]],w:4},
 {m:[[1,1],[1,0],[1,0]],w:4},{m:[[1,1],[0,1],[0,1]],w:4},
 {m:[[1,1,1],[1,1,1],[1,1,1]],w:2},
-{m:[[1,1,1,1],[1,1,1,1]],w:2},
-{m:[[1],[1],[1],[1],[1],[1]],w:1.5},
-{m:[[1,1,1,1,1,1]],w:1.5}];
+{m:[[1,1,1,1],[1,1,1,1]],w:2}];
 
 /* ---------- Bombe ---------- */
 const Assets={imgs:{},
@@ -488,6 +495,7 @@ preset:['........','........','........','........','........','556677..','33445
 const boardEl=$('board'),bctx=boardEl.getContext('2d');
 const dragLayer=$('dragLayer'),dctx=dragLayer.getContext('2d');
 const fxLayer=$('fxLayer'),fctx=fxLayer.getContext('2d');
+const fxBack=$('fxBack'),fbctx=fxBack.getContext('2d');
 const boardWrap=$('boardWrap'),scoreEl=$('score'),bestVal=$('bestVal');
 const comboEl=$('combo'),comboBig=$('comboBig'),comboSub=$('comboSub');
 const bgFx=$('bgFx'),flashEl=$('flash'),glowEl=$('glow');
@@ -524,10 +532,13 @@ bestVal.textContent=best;
 /* ---------- Géométrie ---------- */
 function updateBoardRect(){boardRect=boardEl.getBoundingClientRect()}
 function resize(){
-const r=boardWrap.getBoundingClientRect();cw=r.width;chh=r.height;
-cell = clamp(Math.floor(Math.min((cw-24)/N, (chh-40)/N)), 24, 64);
+const r=boardWrap.getBoundingClientRect();cw=r.width;
+/* v18 : le canvas épouse la grille — chh=cell*N, gy=0,
+   la pioche est alors collée à 46px sous la grille via #tray margin */
+cell=clamp(Math.floor((cw-24)/N),24,60);
 mini=clamp(Math.round(cell*.52),14,20);
-gx=Math.round((cw-cell*N)/2);gy=Math.round((chh-cell*N)/2);
+gx=Math.round((cw-cell*N)/2);gy=0;
+chh=cell*N;
 const dpr=window.devicePixelRatio||1;
 boardEl.width=cw*dpr;boardEl.height=chh*dpr;
 boardEl.style.width=cw+'px';boardEl.style.height=chh+'px';
@@ -535,6 +546,9 @@ bctx.setTransform(dpr,0,0,dpr,0,0);
 fxLayer.width=window.innerWidth*dpr;fxLayer.height=window.innerHeight*dpr;
 fxLayer.style.width=window.innerWidth+'px';fxLayer.style.height=window.innerHeight+'px';
 fctx.setTransform(dpr,0,0,dpr,0,0);
+fxBack.width=window.innerWidth*dpr;fxBack.height=window.innerHeight*dpr;
+fxBack.style.width=window.innerWidth+'px';fxBack.style.height=window.innerHeight+'px';
+fbctx.setTransform(dpr,0,0,dpr,0,0);
 updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
@@ -607,7 +621,6 @@ for(let i=0;i<m.length;i++)for(let j=0;j<m[i].length;j++)
 if(m[i][j]&&grid[r+i][c+j])return false;return true}
 function canAnywhere(m){for(let r=0;r<=N-m.length;r++)for(let c=0;c<=N-m[0].length;c++)
 if(canPlaceAt(m,r,c))return true;return false}
-
 /* ============================================================
    MOTEUR DE PIOCHE v5 — piloté par le RECORD
    Simulations AVEC GRAVITÉ (fidèle au jeu réel).
@@ -696,7 +709,6 @@ found=true;const simC=s2.map(row=>row.slice());
 simClearChain(simC);if(bestSim===null)bestSim=simC}}
 if(!found)return false;cur=bestSim}
 return true}
-function pressure(){return clamp(score/deathTarget(),0,2.5)}
 
 function genTray(anim,forcePity){
 const cols=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);
@@ -758,7 +770,8 @@ const cand=randPieceWeighted();const a=analyzePiece(cand);
 if(a.lines===0&&a.near===0&&a.allClear===0)dry.push(cand)}
 if(dry.length>=2){newSi=[dry[0],dry[1],randPieceWeighted()].sort(()=>Math.random()-.5)}}
 else if(mode2==='BIG_FORCE'){
-const bigs=[25,26,27,28].filter(si=>!canAnywhere(SHAPES[si].m));
+/* v18 : 27/28 n'existent plus → grosses pièces = 3x3 (25) et 4x2 (26) */
+const bigs=[25,26].filter(si=>!canAnywhere(SHAPES[si].m));
 if(bigs.length){
 newSi[Math.floor(Math.random()*3)]=bigs[Math.floor(Math.random()*bigs.length)];
 let helper=null;
@@ -792,7 +805,7 @@ renderTray(anim)}
 function renderTray(anim){
 const dpr=window.devicePixelRatio||1,t=performance.now();
 tray.forEach((p,i)=>{const cv=slotCvs[i],c=cv.getContext('2d');
-const side = Math.round(mini*5+8);
+const side=Math.round(mini*5+8);
 cv.width=side*dpr;cv.height=side*dpr;
 cv.style.width=side+'px';cv.style.height=side+'px';
 c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,side,side);
@@ -1141,37 +1154,37 @@ dragLayer.style.display='none';slotCvs[sl].style.visibility=''}}}
 slotEls.forEach((el,i)=>el.addEventListener('pointerdown',e=>onDown(e,i)));
 dragLayer.addEventListener('contextmenu',e=>e.preventDefault());
 
-/* ---------- Losange doré : derrière le score, sans chiffres ---------- */
+/* ---------- Losange doré : dessiné sur fxBack (DERRIÈRE la grille) ---------- */
 function drawDiamondDeco(t){
 if(combo<3)return;
 if(diamondPump===0)diamondPump=t;
 const pump=Math.max(0,1-(t-diamondPump)/220);
 const dx=boardRect.left+gx+cell*N/2;
-const dy = boardRect.top + gy - 46;
+const dy=boardRect.top+gy-46;
 const pulse=.5+.5*Math.sin(t/260);
-const size = cell*(1.05 + .08*pulse + .28*pump);
-fctx.save();
-fctx.translate(dx,dy);
-fctx.rotate(Math.PI/4);
-fctx.shadowColor='rgba(0,0,0,.35)';
-fctx.shadowBlur=size*.30;
-fctx.shadowOffsetY=size*.10;
-const gg=fctx.createLinearGradient(0,-size,0,size);
-gg.addColorStop(0, 'rgba(255,243,176,.72)');
-gg.addColorStop(.5, 'rgba(255,210,61,.68)');
-gg.addColorStop(1, 'rgba(213,164,23,.62)');
-fctx.fillStyle=gg;
-fctx.fillRect(-size*.62,-size*.62,size*1.24,size*1.24);
-fctx.restore();
+const size=cell*(1.05+.08*pulse+.28*pump);
+fbctx.save();
+fbctx.translate(dx,dy);
+fbctx.rotate(Math.PI/4);
+fbctx.shadowColor='rgba(0,0,0,.35)';
+fbctx.shadowBlur=size*.30;
+fbctx.shadowOffsetY=size*.10;
+const gg=fbctx.createLinearGradient(0,-size,0,size);
+gg.addColorStop(0,'rgba(255,243,176,.72)');
+gg.addColorStop(.5,'rgba(255,210,61,.68)');
+gg.addColorStop(1,'rgba(213,164,23,.62)');
+fbctx.fillStyle=gg;
+fbctx.fillRect(-size*.62,-size*.62,size*1.24,size*1.24);
+fbctx.restore();
 if(t-lastDecoPart>320){lastDecoPart=t;
 particles.push({x:dx+(Math.random()-.5)*size,y:dy+size*.35,
 vx:(Math.random()-.5)*.08,vy:-(.10+Math.random()*.14),sz:cell*.07,
 col:Math.random()<.5?'#FFF3B0':'#ffffff',t0:t,life:700,sh:1,g:0,rot:0,vr:0})}}
 
-/* ---------- Score dessiné sur le canvas FX ---------- */
+/* ---------- Score dessiné sur le canvas FX (DEVANT) ---------- */
 function drawScoreHUD(t){
 const dx=boardRect.left+gx+cell*N/2;
-const dy = boardRect.top + gy - 46;
+const dy=boardRect.top+gy-46;
 const pulse=1+.14*Math.max(0,1-(t-scorePulseT)/280);
 const size=Math.round(60*pulse);
 fctx.save();
@@ -1185,7 +1198,7 @@ fctx.restore();
 fctx.fillStyle='#ffffff';
 fctx.fillText(shownScore,dx,dy);
 fctx.restore()}
-/* Score volant : rendu 3D or (DÉFINI — corrige drawScore3D is not defined) */
+/* Score volant : rendu 3D or */
 function drawScore3D(c,txt,x,y,sc,alpha){
 const size=Math.max(28,gainPx(txt)+10)*sc;
 c.save();
@@ -1227,7 +1240,8 @@ if(f.oy>=0){f.oy=0;
 if(f.vy>cell*2.5&&f.bounces<2){f.vy=-f.vy*.32;f.bounces++;f.squash=performance.now();landed=true}
 else{f.done=true;if(!f.squash)f.squash=performance.now();f.vy=0;landed=true}}}}
 if(landed&&t-lastLand>70){if(!playCustom('land',.6))SFX.land();lastLand=t}
-/* La couche FX est vidée puis redessinée : losange DERRIÈRE puis score DEVANT */
+/* v18 : fxBack (losange, DERRIÈRE la grille) + fxLayer (score, DEVANT) */
+fbctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 drawDiamondDeco(t);
 drawScoreHUD(t);
