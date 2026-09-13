@@ -287,8 +287,7 @@ var k = 0; /* filet anti-crash boucle legacy */
      PERFECT > COMBO > praise), Combo doré, praise à la couleur du style
    - Pouces = sprites VECTORIELS animés (halo + étincelles), pas d'emoji
    - Contour de blocs FIN (blocs pleine cellule qui se touchent)
-   - Mode FILL : l'algo comble les trous, fournit des pièces qui
-     s'emboîtent (les humains aiment le rangé)
+   - Mode FILL : l'algo comble les trous, pièces qui s'emboîtent
    - EVIL intelligent : déclenché par un coup raté ou un record proche,
      trio ASSASSIN sans AUCUNE ligne possible → mort en <10 coups
    - v21.1 conservé : zéro ctx.filter, dpr≤2, audio à la demande
@@ -754,7 +753,7 @@ const now=performance.now();
 if(bigPop){
 const age=now-bigPop.t0;
 if(prio<bigPop.prio&&age<bigPop.life*.6)return}
-bigPop={txt:txt,sub:sub||null,col:col,prio:prio,t0:now,life:life||1000,size:size||cell*.9}
+bigPop={txt:txt,sub:sub||null,col:col,prio:prio,t0:now,life:life||1000,size:size||cell*.9}}
 function popText(txt,x,y,size,col,life,sub){setBigPop(txt,sub,col,1,life)}
 function addThumb(x,y){if(thumbs.length>=4)thumbs.shift();
 thumbs.push({x:x,y:y,t0:performance.now(),life:900,rot:(Math.random()-.5)*.5})}
@@ -1094,7 +1093,7 @@ const sc=a.allClear*20+a.near*2-a.toxicity*5;
 if(sc>bestSc){bestSc=sc;best2=cand}}
 if(best2!==null)newSi[Math.floor(Math.random()*3)]=best2}
 else{
-/* NEUTRAL : fav rising l'emboîtement (pièces qui reposent à plat) */
+/* NEUTRAL : favorise l'emboîtement (pièces qui reposent à plat) */
 if(Math.random()<.45){
 for(let t=0;t<14;t++){const cand=randPieceWeighted();
 if(analyzePiece(cand).nest){newSi[Math.floor(Math.random()*3)]=cand;break}}}}
@@ -1196,13 +1195,13 @@ vx:(Math.random()-.5)*.5,vy:-(.15+Math.random()*.25),sz:cell*.13,
 col:k2%2?'#7ee7ff':'#ffffff',t0:performance.now(),life:600,sh:2,g:.6,rot:Math.random()*6.3,vr:.2});
 floats.push({x:px,y:py,txt:'💎+200',t0:performance.now(),life:800});
 SFX.gem();updateObjHUD()}
-/* COMBO : le gros texte doré façon BB (1 seul à la fois) */
+/* COMBO : le gros texte doré façon BB (1 seul à la fois, taille calibrée) */
 function showBanner(cb,lines,chain,mult){
 let sub;
 if(cb>=2){
 sub=chain?'CHAÎNE DE GRAVITÉ !':cb>=6?'LÉGENDAIRE !':cb>=5?'MENTAL !':cb>=4?'INCROYABLE !':cb===3?'SUPERBE !':'BIEN JOUÉ !'}
 else sub=lines>=3?'TRIPLE !':'DOUBLE !';
-setBigPop('COMBO ×'+cb,sub,COMBO_COL,2,1100,cell*(cb>=5?1.15:.95));
+setBigPop('COMBO ×'+cb,sub,COMBO_COL,2,1100,cell*(cb>=5?1.15:.95))}
 
 /* ---------- Clear : scoring Block Blast ---------- */
 function doClear(rows,cols,chain){
