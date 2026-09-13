@@ -37,6 +37,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .bar i{display:block;height:100%;width:0;background:var(--gold);border-radius:99px;transition:width .45s}
 #objTxt{font-size:13.5px;font-weight:600;white-space:nowrap}
 #objPieces{font-size:12.5px;color:var(--dim);white-space:nowrap}
+#topSpacer{flex:1}
 #boardWrap{flex:0 0 auto;position:relative;display:grid;place-items:center;min-height:0;margin-top:4px}
 #board{display:block}
 #combo{position:absolute;left:0;right:0;top:16%;text-align:center;pointer-events:none;opacity:0;z-index:5}
@@ -45,7 +46,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 #combo.show{animation:comboPop .95s ease forwards}
 @keyframes comboPop{0%{opacity:0;transform:scale(.4)}18%{opacity:1;transform:scale(1.18)}32%{transform:scale(1)}72%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04) translateY(-16px)}}
 /* Pioche collée à 46px sous la grille : même distance que score↔grille */
-#tray{display:flex;gap:10px;padding:0 0 6px;margin-top:46px}
+#tray{display:flex;gap:10px;padding:0 0 6px;margin-top:36px}
 #botSpacer{flex:1}
 .slot{flex:1;height:120px;display:grid;place-items:center;touch-action:none;background:transparent;border:none;box-shadow:none}
 .slot canvas{cursor:grab;touch-action:none}
@@ -129,6 +130,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     <span id="objPieces"></span>
   </div>
 
+  <div id="topSpacer"></div>
   <main id="boardWrap">
     <canvas id="board"></canvas>
     <div id="combo">
@@ -533,12 +535,13 @@ bestVal.textContent=best;
 function updateBoardRect(){boardRect=boardEl.getBoundingClientRect()}
 function resize(){
 const r=boardWrap.getBoundingClientRect();cw=r.width;
-/* v18 : le canvas épouse la grille — chh=cell*N, gy=0,
-   la pioche est alors collée à 46px sous la grille via #tray margin */
-cell=clamp(Math.floor((cw-24)/N),24,60);
+/* v18.1 : canvas = grille + 10px de relief tout autour (gy=10).
+   Cellule plafonnée aussi par la hauteur d'écran : header, pioche
+   et zone score réservés → la grille ne peut plus être rognée */
+cell=clamp(Math.floor(Math.min((cw-24)/N,(window.innerHeight-300)/N)),24,60);
 mini=clamp(Math.round(cell*.52),14,20);
-gx=Math.round((cw-cell*N)/2);gy=0;
-chh=cell*N;
+gx=Math.round((cw-cell*N)/2);gy=10;
+chh=cell*N+20;
 const dpr=window.devicePixelRatio||1;
 boardEl.width=cw*dpr;boardEl.height=chh*dpr;
 boardEl.style.width=cw+'px';boardEl.style.height=chh+'px';
