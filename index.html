@@ -19,13 +19,11 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:80;bac
 #flash{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.5),rgba(255,255,255,0) 62%)}
 #flash.go{animation:flashA .35s ease-out}
 @keyframes flashA{0%{opacity:1}100%{opacity:0}}
-#app{position:relative;z-index:2;max-width:470px;height:100vh;height:100dvh;margin:0 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 14px calc(10px + env(safe-area-inset-bottom))}
+#app{max-width:470px;height:100vh;height:100dvh;margin:0 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 14px calc(10px + env(safe-area-inset-bottom))}
 header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:56px}
 .hside{width:96px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .hside.right{align-items:flex-end}
 #bestWrap{display:flex;align-items:center;gap:5px;color:var(--gold);font-size:22px;font-weight:800;margin-top:4px;font-family:'Nunito Sans','Fredoka',sans-serif}
-#fxBack{position:fixed;inset:0;pointer-events:none;z-index:1}
-#botSpacer{flex:1}
 #bestWrap svg{width:24px;height:24px;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
 .icon-btn{width:46px;height:46px;border-radius:15px;flex:none;background:var(--panel);border:1px solid var(--line);color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:transform .1s}
 .icon-btn svg{width:22px;height:22px}
@@ -38,7 +36,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .bar i{display:block;height:100%;width:0;background:var(--gold);border-radius:99px;transition:width .45s}
 #objTxt{font-size:13.5px;font-weight:600;white-space:nowrap}
 #objPieces{font-size:12.5px;color:var(--dim);white-space:nowrap}
-#boardWrap{flex:1.15;position:relative;display:grid;place-items:center;min-height:0;margin-top:4px}
+#boardWrap{flex:1;position:relative;display:grid;place-items:center;min-height:0;margin-top:4px}
 #board{display:block}
 #combo{position:absolute;left:0;right:0;top:16%;text-align:center;pointer-events:none;opacity:0;z-index:5}
 #combo .big{font-size:36px;font-weight:700;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.4)}
@@ -141,12 +139,10 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     <div class="slot"><canvas></canvas></div>
     <div class="slot"><canvas></canvas></div>
   </footer>
-  <div id="botSpacer"></div>
 </div>
 
 <canvas id="dragLayer"></canvas>
 <canvas id="fxLayer"></canvas>
-<canvas id="fxBack"></canvas>
 
 <div class="overlay show" id="ovTitle">
   <div class="panel">
@@ -359,8 +355,10 @@ const SHAPES=[
 {m:[[1,0],[1,0],[1,1]],w:4},{m:[[0,1],[0,1],[1,1]],w:4},
 {m:[[1,1],[1,0],[1,0]],w:4},{m:[[1,1],[0,1],[0,1]],w:4},
 {m:[[1,1,1],[1,1,1],[1,1,1]],w:2},
-{m:[[1,1,1,1],[1,1,1,1]],w:2}
-];
+{m:[[1,1,1,1],[1,1,1,1]],w:2},
+{m:[[1],[1],[1],[1],[1],[1]],w:1.5},
+{m:[[1,1,1,1,1,1]],w:1.5}];
+
 /* ---------- Bombe ---------- */
 const Assets={imgs:{},
 load(id){try{const im=new Image();
@@ -490,7 +488,6 @@ preset:['........','........','........','........','........','556677..','33445
 const boardEl=$('board'),bctx=boardEl.getContext('2d');
 const dragLayer=$('dragLayer'),dctx=dragLayer.getContext('2d');
 const fxLayer=$('fxLayer'),fctx=fxLayer.getContext('2d');
-const fxBack=$('fxBack'),fbctx=fxBack.getContext('2d');
 const boardWrap=$('boardWrap'),scoreEl=$('score'),bestVal=$('bestVal');
 const comboEl=$('combo'),comboBig=$('comboBig'),comboSub=$('comboSub');
 const bgFx=$('bgFx'),flashEl=$('flash'),glowEl=$('glow');
@@ -538,9 +535,6 @@ bctx.setTransform(dpr,0,0,dpr,0,0);
 fxLayer.width=window.innerWidth*dpr;fxLayer.height=window.innerHeight*dpr;
 fxLayer.style.width=window.innerWidth+'px';fxLayer.style.height=window.innerHeight+'px';
 fctx.setTransform(dpr,0,0,dpr,0,0);
-fxBack.width=window.innerWidth*dpr;fxBack.height=window.innerHeight*dpr;
-fxBack.style.width=window.innerWidth+'px';fxBack.style.height=window.innerHeight+'px';
-fbctx.setTransform(dpr,0,0,dpr,0,0);
 updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
@@ -764,7 +758,7 @@ const cand=randPieceWeighted();const a=analyzePiece(cand);
 if(a.lines===0&&a.near===0&&a.allClear===0)dry.push(cand)}
 if(dry.length>=2){newSi=[dry[0],dry[1],randPieceWeighted()].sort(()=>Math.random()-.5)}}
 else if(mode2==='BIG_FORCE'){
-const bigs=[25,26].filter(si=>!canAnywhere(SHAPES[si].m));
+const bigs=[25,26,27,28].filter(si=>!canAnywhere(SHAPES[si].m));
 if(bigs.length){
 newSi[Math.floor(Math.random()*3)]=bigs[Math.floor(Math.random()*bigs.length)];
 let helper=null;
@@ -1156,12 +1150,12 @@ const dx=boardRect.left+gx+cell*N/2;
 const dy = boardRect.top + gy - 46;
 const pulse=.5+.5*Math.sin(t/260);
 const size = cell*(1.05 + .08*pulse + .28*pump);
-fbctx.save();
-fbctx.translate(dx,dy);
-fbctx.rotate(Math.PI/4);
-fbctx.shadowColor='rgba(0,0,0,.35)';
-fbctx.shadowBlur=size*.30;
-fbctx.shadowOffsetY=size*.10;
+fctx.save();
+fctx.translate(dx,dy);
+fctx.rotate(Math.PI/4);
+fctx.shadowColor='rgba(0,0,0,.35)';
+fctx.shadowBlur=size*.30;
+fctx.shadowOffsetY=size*.10;
 const gg=fctx.createLinearGradient(0,-size,0,size);
 gg.addColorStop(0, 'rgba(255,243,176,.72)');
 gg.addColorStop(.5, 'rgba(255,210,61,.68)');
@@ -1234,7 +1228,6 @@ if(f.vy>cell*2.5&&f.bounces<2){f.vy=-f.vy*.32;f.bounces++;f.squash=performance.n
 else{f.done=true;if(!f.squash)f.squash=performance.now();f.vy=0;landed=true}}}}
 if(landed&&t-lastLand>70){if(!playCustom('land',.6))SFX.land();lastLand=t}
 /* La couche FX est vidée puis redessinée : losange DERRIÈRE puis score DEVANT */
-fbctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 drawDiamondDeco(t);
 drawScoreHUD(t);
