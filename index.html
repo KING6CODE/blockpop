@@ -278,13 +278,13 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 var k = 0; /* filet anti-crash boucle legacy */
 
 /* ================================================================
-   BLOCKPOP v24
-   - Score remonté (54px), losange réduit (ne touche plus la grille)
-   - Fond UNI (couleur du style mélangée à la base, fondu au changement)
-   - Relief : bord du canvas carré-arrondi taille d'origine, fond assombri
-   - Ghost = texture réelle à faible opacité (préview fidèle)
-   - Textes BB : contours affinés, pouces blancs/bleu sur chaque bloc
-   - v23 conservé : drawFancyText relief 3D, 16 couleurs, 31 styles,
+   BLOCKPOP v24.1
+   - FIX : addThumb restaurée (freeze au premier clear)
+   - FIX : resolveTurn/bombExplode en try/finally → animating toujours
+     libéré, aucun freeze possible même en cas de crash
+   - v24 : score 56px, losange réduit, fond UNI, relief au bord,
+     ghost texture réelle, pouces blancs/bleu par bloc
+   - v23 conservé : drawFancyText, 16 couleurs, 31 styles,
      recolorisation universelle, FILL, EVIL/ASSASSIN, dpr≤2, zéro filter
    ================================================================ */
 
@@ -748,7 +748,7 @@ c.fillStyle='#7ee7ff';
 c.beginPath();c.moveTo(0,-r2);c.lineTo(r2*.85,-r2*.25);c.lineTo(0,r2);c.lineTo(-r2*.85,-r2*.25);c.closePath();c.fill();
 c.fillStyle='#fff';c.globalAlpha=.5+w*.4;
 c.beginPath();c.moveTo(0,-r2);c.lineTo(r2*.85,-r2*.25);c.lineTo(0,-r2*.1);c.closePath();c.fill();c.restore()}
-/* v24 : ghost = texture RÉELLE à faible opacité (remplace le carré plat) */
+/* v24 : ghost = texture RÉELLE à faible opacité */
 function drawGhostCell(c,x,y,s,ci){
 const tile=tileCache[STYLES[theme].id+'_'+ci]||tileCache['gel_'+ci];
 c.save();c.globalAlpha=.34;
@@ -777,7 +777,7 @@ if(st.duo16)return ci+(((dr+dc)&1)?8:0);
 if(st.pos)return st.pos[(dr+dc)%st.pos.length];
 return ci}
 
-/* ---------- EFFETS : textes BB à relief 3D, contours affinés ---------- */
+/* ---------- EFFETS : textes BB à relief 3D + pouces ---------- */
 const ACC={gel:'#5B8CFF',gel_bleu:'#4A7DE8',gel_vert:'#4CC22E',gel_azur:'#3FC8EE',
 gel_jaune:'#F5C11E',gel_menthe:'#57D9A3',gel_duo:'#F08A1D',gel_terne:'#8A93B8',
 gel_primaire:'#E85B4A',gel_pastel:'#F0A8D8',coussin:'#8C9EFF',bonbon:'#EE5BB0',
@@ -787,7 +787,11 @@ glace_violet:'#B48CFF',glace_beige:'#E8D5A8',ambre:'#FFB53D',pasteque:'#E8503A',
 miel:'#F5A623',rubis:'#E84A6F',diamant:'#8FE0FF',or:'#FFD23D',
 neon:'#3DF0C0',robotique:'#9AA8C0',galaxie:'#B48CFF'};
 function styleAcc(){return ACC[STYLES[theme].id]||'#5B8CFF'}
-/* v24 : contour affiné (fs*.16 au lieu de .24), extrusion douce conservée */
+/* v24.1 : addThumb restaurée (file d'attente plafonnée à 12) */
+function addThumb(x,y){
+if(thumbs.length>=12)thumbs.shift();
+thumbs.push({x:x,y:y,t0:performance.now(),life:900})}
+/* v24 : contour affiné (fs*.16), extrusion douce, dégradé creux */
 function drawFancyText(c,segs,cx,cy,size,alpha,scale){
 alpha=alpha==null?1:alpha;scale=scale||1;
 c.save();c.globalAlpha=alpha;
@@ -832,7 +836,7 @@ if(prio<bigPop.prio&&age<bigPop.life*.6)return}
 bigPop={segs:segs,sub:sub||null,prio:prio,t0:now,life:life||1000,size:size||cell*.85,
 x:boardRect?boardRect.left+gx+cell*N/2:window.innerWidth/2,
 y:boardRect?boardRect.top+gy+cell*2.2:window.innerHeight*.3}}
-/* v24 : pouce BLANC à contour BLEU, posé sur chaque bloc du bon placement */
+/* v24 : pouce BLANC à contour BLEU */
 function drawThumb(c,x,y,s,t,age){
 const kk=age/900;
 const pop=age<180?backOut(age/180):1;
@@ -840,12 +844,10 @@ const wig=Math.sin(t/90)*.06*(1-kk);
 const al=kk<.7?1:1-(kk-.7)/.3;
 c.save();c.globalAlpha=al;
 c.translate(x,y-14*kk);c.rotate(wig);c.scale(pop,pop);
-/* petit halo doux pour la lisibilité */
 const halo=c.createRadialGradient(0,0,s*.2,0,0,s*.75);
 halo.addColorStop(0,'rgba(255,255,255,.30)');
 halo.addColorStop(1,'rgba(255,255,255,0)');
 c.fillStyle=halo;c.beginPath();c.arc(0,0,s*.75,0,6.3);c.fill();
-/* le pouce : gant blanc, contour bleu */
 const g=c.createLinearGradient(0,-s*.5,0,s*.5);
 g.addColorStop(0,'#FFFFFF');g.addColorStop(1,'#DDE4F5');
 c.strokeStyle='#3D6DE8';c.lineWidth=s*.10;c.lineJoin='round';
@@ -1300,7 +1302,8 @@ const b=grid[r][c];if(b&&b.fall&&!b.fall.done)return true}return false}
 function waitSettled(){return new Promise(res=>{
 const check=()=>{if(!anyFalling())res();else requestAnimationFrame(check)};check()})}
 function gridEmpty(){for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(grid[r][c])return false;return true}
-async function resolveTurn(){const my=++turnId;animating=true;
+/* v24.1 : try/finally — animating TOUJOURS libéré, plus aucun freeze possible */
+async function resolveTurn(){const my=++turnId;animating=true;try{
 await sleep(60);if(my!==turnId)return;
 let chain=0;
 while(true){const fc=findFull(grid);
@@ -1320,9 +1323,9 @@ setBigPop(perfectSegs('PERFECT CLEAR'),'Grille vide — +'+bonus,3,1800,cell*1.0
 SFX.perfect();vib([30,50,30,50,30]);flash();
 checkBest();
 grantCollect()}
-animating=false;endTurn()}
+}finally{if(my===turnId){animating=false;endTurn()}}}
 async function bombExplode(r,c){
-const my=++turnId;animating=true;
+const my=++turnId;animating=true;try{
 await sleep(40);if(my!==turnId)return;
 for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
 const rr2=r+dr,cc2=c+dc;
@@ -1344,7 +1347,7 @@ if(my!==turnId)return;
 await sleep(340);if(my!==turnId)return;
 const moved=applyGravity();if(moved)await waitSettled();
 if(my!==turnId)return}
-animating=false;endTurn()}
+}finally{if(my===turnId){animating=false;endTurn()}}}
 function checkObjective(){if(!lvl)return false;
 const o=lvl.obj;
 if(o[0]==='lines')return advLines>=o[1];
