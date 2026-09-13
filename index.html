@@ -7,7 +7,7 @@
 <title>BLOCKPOP</title>
 <!-- v16 : grille sans lignes teintée par matière, relief simple, ombres carrées,
      pioche nue, losange combo 3+ pump, pièce calée au bord bas, contour lumineux lignes -->
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
   --panel:rgba(255,255,255,.10);
@@ -113,7 +113,7 @@ header{
   margin-bottom:0;
 }
 #score{
-  font-family:'Baloo 2','Fredoka',sans-serif;
+  font-family:'Nunito Sans','Fredoka',sans-serif;
   font-size:54px;
   font-weight:800;
   letter-spacing:1px;
@@ -133,9 +133,9 @@ header{
   gap:5px;
   color:var(--gold);
   font-size:22px;
-  font-weight:700;
+  font-weight:800;
   margin-top:4px;
-  font-family:'Baloo 2','Fredoka',sans-serif;
+  font-family:'Nunito Sans','Fredoka',sans-serif;
 }
 #bestWrap svg{
   width:24px;
@@ -909,20 +909,25 @@ const COLORS = [
   {l:'#FF8AD1', b:'#EE5BB0', d:'#C4338C'}
 ];
 const SHAPES = [
-  {m:[[1]], w:8},
-  {m:[[1,1]], w:9}, {m:[[1],[1]], w:9},
-  {m:[[1,1,1]], w:8}, {m:[[1],[1],[1]], w:8},
-  {m:[[1,1,1,1]], w:5}, {m:[[1],[1],[1],[1]], w:5},
-  {m:[[1,1,1,1,1]], w:2}, {m:[[1],[1],[1],[1],[1]], w:2},
-  {m:[[1,1],[1,1]], w:9},
-  {m:[[1,1,1],[1,1,1]], w:4}, {m:[[1,1],[1,1],[1,1]], w:4},
-  {m:[[1,0],[1,1]], w:7}, {m:[[0,1],[1,1]], w:7},
-  {m:[[1,1],[1,0]], w:7}, {m:[[1,1],[0,1]], w:7},
-  {m:[[1,0,0],[1,1,1]], w:4}, {m:[[0,0,1],[1,1,1]], w:4},
-  {m:[[1,1,1],[1,0,0]], w:4}, {m:[[1,1,1],[0,0,1]], w:4},
-  {m:[[1,1,1],[1,1,1],[1,1,1]], w:1}
+  {m:[[1]], w:3},
+  {m:[[1,1]], w:5}, {m:[[1],[1]], w:5},
+  {m:[[1,1,1]], w:7}, {m:[[1],[1],[1]], w:7},
+  {m:[[1,1,1,1]], w:6}, {m:[[1],[1],[1],[1]], w:6},
+  {m:[[1,1,1,1,1]], w:4}, {m:[[1],[1],[1],[1],[1]], w:4},
+  {m:[[1,1],[1,1]], w:8},
+  {m:[[1,1,1],[1,1,1]], w:5}, {m:[[1,1],[1,1],[1,1]], w:5},
+  {m:[[1,0],[1,1]], w:6}, {m:[[0,1],[1,1]], w:6},
+  {m:[[1,1],[1,0]], w:6}, {m:[[1,1],[0,1]], w:6},
+  {m:[[1,0,0],[1,1,1]], w:5}, {m:[[0,0,1],[1,1,1]], w:5},
+  {m:[[1,1,1],[1,0,0]], w:5}, {m:[[1,1,1],[0,0,1]], w:5},
+  {m:[[1,1,1],[0,1,0]], w:4},
+  {m:[[1,0],[1,0],[1,1]], w:4}, {m:[[0,1],[0,1],[1,1]], w:4},
+  {m:[[1,1],[1,0],[1,0]], w:4}, {m:[[1,1],[0,1],[0,1]], w:4},
+  {m:[[1,1,1],[1,1,1],[1,1,1]], w:2},
+  {m:[[1,1,1,1],[1,1,1,1]], w:2},
+  {m:[[1],[1],[1],[1],[1],[1]], w:1.5},
+  {m:[[1,1,1,1,1,1]], w:1.5}
 ];
-
 /* ---------- Bombe (image optionnelle) ---------- */
 const Assets = {
   imgs:{},
@@ -1376,7 +1381,15 @@ function flash(){
 }
 function diffLevel(){
   if(mode === 'adv') return clamp(.10 + advLevel*.04, 0, .9);
-  return clamp(score / TUNE.diffSpeed, 0, 1);
+  /* Piloté par le RECORD : plus ton record est haut, plus la base est dure.
+     p = ta progression vers le record dans CETTE partie. */
+  if(best <= 0) return 0;
+  const p = clamp(score/best, 0, 1.25);
+  if(p < .35) return .25;
+  if(p < .60) return .45;
+  if(p < .80) return .68;
+  if(p < 1.0) return .85;
+  return 1.0;
 }
 function canPlaceAt(m,r,c){
   if(r<0 || c<0 || r+m.length>N || c+m[0].length>N) return false;
@@ -1538,130 +1551,159 @@ const GIFT_PACKS=[
 ];
 
 /* ---------- genTray : le cerveau ---------- */
-function genTray(anim, forcePity){
-  const cols=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);
-  if(mode==='adv'&&lvl&&lvl.fixed){
-    const take=lvl.fixed.slice(advFixedIdx,advFixedIdx+3);
-    advFixedIdx+=take.length;
-    tray=take.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
-    renderTray(anim);
-    return;
-  }
-  if(mode==='adv'){
-    let set=null;
-    if(advLevel<TUNE.advPityEarly){
-      for(let t=0;t<30;t++){
-        const cand=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
-        if(cand.some(si=>canAnywhere(SHAPES[si].m))){set=cand;break}
+let noDesertRun = 0;
+/* Simule la séquence complète des 3 pièces (meilleure pose + gravité à chaque fois).
+   Renvoie true si les 3 peuvent être posées quelque part. */
+function simSeq(sis){
+  let cur = simGrid();
+  for(let idx=0;idx<sis.length;idx++){
+    const m = SHAPES[sis[idx]].m;
+    let bestSim = null, found = false;
+    for(let r=0;r<=N-m.length;r++){
+      for(let c=0;c<=N-m[0].length;c++){
+        const s2 = simPlace(cur,m,r,c);
+        if(!s2) continue;
+        found = true;
+        const simC = s2.map(row=>row.slice());
+        simClearChain(simC);
+        if(bestSim === null) bestSim = simC;
       }
-    }else set=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
-    if(!set)set=[0,1,1];
-    tray=set.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
+    }
+    if(!found) return false;
+    cur = bestSim;
+  }
+  return true;
+}
+function genTray(anim, forcePity){
+  const cols = [0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);
+  if(mode === 'adv' && lvl && lvl.fixed){
+    const take = lvl.fixed.slice(advFixedIdx, advFixedIdx+3);
+    advFixedIdx += take.length;
+    tray = take.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
+    renderTray(anim);
+    return;
+  }
+  if(mode === 'adv'){
+    let set = null;
+    if(advLevel < TUNE.advPityEarly){
+      for(let t=0;t<30;t++){
+        const cand = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
+        if(cand.some(si=>canAnywhere(SHAPES[si].m))){ set = cand; break; }
+      }
+    }else set = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
+    if(!set) set = [0,1,1];
+    tray = set.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
     renderTray(anim);
     return;
   }
 
-  /* ===== CLASSIQUE : piloté par le RECORD ===== */
-  const fill=grid.flat().filter(Boolean).length/(N*N);
-  const nearNow=nearLinesNow();
-  const rec=best;
-  const prog=rec>0?clamp(score/rec,0,1.2):0;
-  const kept=tray.filter(p=>p&&!p.bomb).map(p=>analyzePiece(p.si));
-  const keptCanClear=kept.some(a=>a.lines>0);
-  const keptHasNear=kept.some(a=>a.near>0);
+  /* ===== CLASSIQUE v4 : piloté par le RECORD ===== */
+  const fill = grid.flat().filter(Boolean).length/(N*N);
+  const nearNow = nearLinesNow();
+  const rec = best;
+  const prog = rec > 0 ? clamp(score/rec, 0, 1.2) : 0;
+  const kept = tray.filter(p=>p&&!p.bomb).map(p=>analyzePiece(p.si));
+  const keptCanClear = kept.some(a=>a.lines > 0);
 
-  /* ---- MODES ---- */
-  let mode2='NEUTRAL';
-  if(rec<=0)mode2='TUTORIAL';
-  else if(combo>=2&&!keptCanClear)mode2='SAVE_COMBO';
-  else if(prog>=.5&&prog<1.0&&noClearStreak>=2&&Math.random()<.55)mode2='PUNISH';
-  else if(fill<.18&&Math.random()<.55)mode2='GIFT';
-  else if(prog<.45&&Math.random()<.35)mode2='GIFT';
-  else if(fill<.25&&nearNow>=2&&Math.random()<.25)mode2='PERFECT';
+  /* ---- MODES v4 ---- */
+  let mode2 = 'NEUTRAL';
+  if(rec <= 0) mode2 = 'TUTORIAL';
+  else if(combo >= 2 && !keptCanClear && Math.random() < .7) mode2 = 'SAVE_COMBO';
+  /* DÉSERT : dès 60% du record, phases sans aucune ligne possible */
+  else if(prog >= .60 && fill > .35 && noClearStreak >= 1 && Math.random() < .45) mode2 = 'DESERT';
+  /* GROSSE PIÈCE qui ne rentre pas : forcer à libérer l'espace */
+  else if(prog >= .55 && Math.random() < .45) mode2 = 'BIG_FORCE';
+  else if(fill < .18 && Math.random() < .40) mode2 = 'GIFT';
+  else if(prog < .35 && Math.random() < .25) mode2 = 'GIFT';
+  else if(fill < .25 && nearNow >= 2 && Math.random() < .25) mode2 = 'PERFECT';
 
-    /* ---- candidats de base ---- */
-  let newSi=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
+  /* ---- candidats de base ---- */
+  let newSi = [randPieceWeighted(), randPieceWeighted(), randPieceWeighted()];
 
-  if(mode2==='TUTORIAL'){
-    /* grille vide ou presque : pièces simples qui s'imbriquent, clear facile */
-    let slot=Math.floor(Math.random()*3);
-    newSi=[10,9,3]; /* 3x2 + 2x2 + 1x3 : imbriquables en un rectangle */
-    if(fill>.15){newSi[slot]=randPieceWeighted()}
+  if(mode2 === 'TUTORIAL'){
+    newSi = [10, 9, 3]; /* 3x2 + 2x2 + 1x3 : pack imbriqué */
+    if(fill > .15) newSi[Math.floor(Math.random()*3)] = randPieceWeighted();
   }
-  else if(mode2==='GIFT'){
-    /* moment cadeau : pack imbriqué exact */
-    const pack=GIFT_PACKS[Math.floor(Math.random()*GIFT_PACKS.length)];
-    newSi=pack.slice();
-    /* un des trois peut rester aléatoire pour la variété */
-    newSi[Math.floor(Math.random()*3)]=randPieceWeighted();
+  else if(mode2 === 'GIFT'){
+    const pack = GIFT_PACKS[Math.floor(Math.random()*GIFT_PACKS.length)];
+    newSi = pack.slice();
+    newSi[Math.floor(Math.random()*3)] = randPieceWeighted();
   }
-  else if(mode2==='SAVE_COMBO'){
-    /* sauver le combo : double-ligne ou near-miss garanti */
-    let saver=null;
+  else if(mode2 === 'SAVE_COMBO'){
+    let saver = null;
     for(let t=0;t<40;t++){
-      const cand=randPieceWeighted();
-      const a=analyzePiece(cand);
-      if(a.lines>=2||a.near>0){saver=cand;break}
+      const cand = randPieceWeighted();
+      const a = analyzePiece(cand);
+      if(a.lines >= 2 || a.near > 0){ saver = cand; break; }
     }
-    if(saver!==null)newSi[Math.floor(Math.random()*3)]=saver;
+    if(saver !== null) newSi[Math.floor(Math.random()*3)] = saver;
   }
-  else if(mode2==='PUNISH'){
-    /* mort avant record : la pièce la plus toxique possible */
-    let worst=null,worstSc=-1;
-    for(let t=0;t<14;t++){
-      const cand=randPieceWeighted();
-      const a=analyzePiece(cand);
-      const sc=a.toxicity*10-a.lines*5-a.near;
-      if(sc>worstSc){worstSc=sc;worst=cand}
+  else if(mode2 === 'DESERT'){
+    /* pièces sèches : 0 ligne, 0 near-miss post-gravité */
+    const dry = [];
+    for(let t=0;t<20 && dry.length<2;t++){
+      const cand = randPieceWeighted();
+      const a = analyzePiece(cand);
+      if(a.lines === 0 && a.near === 0 && a.allClear === 0) dry.push(cand);
     }
-    if(worst!==null)newSi[Math.floor(Math.random()*3)]=worst;
+    if(dry.length >= 2){
+      newSi = [dry[0], dry[1], randPieceWeighted()].sort(()=>Math.random()-.5);
+    }
   }
-  else if(mode2==='PERFECT'){
-    /* sème un all-clear prédictible */
-    let best2=null,bestSc=-1;
-    for(let t=0;t<14;t++){
-      const cand=randPieceWeighted();
-      const a=analyzePiece(cand);
-      const sc=a.allClear*20+a.near*2-a.toxicity*5;
-      if(sc>bestSc){bestSc=sc;best2=cand}
+  else if(mode2 === 'BIG_FORCE'){
+    /* une grosse pièce qui NE RENTRE PAS : libère l'espace avec les autres */
+    const bigs = [24,25,20,10,11].filter(si=>!canAnywhere(SHAPES[si].m));
+    if(bigs.length){
+      newSi[Math.floor(Math.random()*3)] = bigs[Math.floor(Math.random()*bigs.length)];
+      let helper = null;
+      for(let t=0;t<30;t++){
+        const cand = randPieceWeighted();
+        if(analyzePiece(cand).lines > 0){ helper = cand; break; }
+      }
+      if(helper !== null) newSi[Math.floor(Math.random()*3)] = helper;
     }
-    if(best2!==null)newSi[Math.floor(Math.random()*3)]=best2;
+  }
+  else if(mode2 === 'PERFECT'){
+    let best2 = null, bestSc = -1;
+    for(let t=0;t<14;t++){
+      const cand = randPieceWeighted();
+      const a = analyzePiece(cand);
+      const sc = a.allClear*20 + a.near*2 - a.toxicity*5;
+      if(sc > bestSc){ bestSc = sc; best2 = cand; }
+    }
+    if(best2 !== null) newSi[Math.floor(Math.random()*3)] = best2;
   }
   else{
-    /* NEUTRAL : favorise l'encastrage (imbriquation) une fois sur trois */
-    if(Math.random()<.33){
-      let nest=null;
+    /* NEUTRAL : encastrage une fois sur trois */
+    if(Math.random() < .33){
       for(let t=0;t<14;t++){
-        const cand=randPieceWeighted();
-        if(analyzePiece(cand).nest){nest=cand;break}
+        const cand = randPieceWeighted();
+        if(analyzePiece(cand).nest){ newSi[Math.floor(Math.random()*3)] = cand; break; }
       }
-      if(nest!==null)newSi[Math.floor(Math.random()*3)]=nest;
     }
   }
 
-  /* ---- garde-fous ---- */
-  const anyPlacable=newSi.some(si=>canAnywhere(SHAPES[si].m));
-  if(!anyPlacable&&mode2!=='PUNISH'){
-    for(let t=0;t<40;t++){
-      const cand=randPieceWeighted();
-      if(canAnywhere(SHAPES[cand].m)){newSi[Math.floor(Math.random()*3)]=cand;break}
-    }
-  }
-  /* en TUTORIAL/GIFT : toujours au moins un clear possible */
-  if((mode2==='TUTORIAL'||mode2==='GIFT')&&score<3000){
-    let hasClear=false;
-    for(let i=0;i<3&&!hasClear;i++)hasClear=analyzePiece(newSi[i]).lines>0;
-    if(!hasClear){
+  /* ---- garde-fou : séquence des 3 pièces viable ----
+     Interdit en PUNISH/DESERT... mais jamais 2 fois de suite. */
+  if(!simSeq(newSi)){
+    if(mode2 !== 'PUNISH' && mode2 !== 'DESERT'){
       for(let t=0;t<40;t++){
-        const cand=randPieceWeighted();
-        if(analyzePiece(cand).lines>0){newSi[Math.floor(Math.random()*3)]=cand;break}
+        const test = newSi.slice();
+        test[Math.floor(Math.random()*3)] = randPieceWeighted();
+        if(simSeq(test)){ newSi = test; break; }
       }
-    }
-  }
+    }else if(noDesertRun >= 1){
+      for(let t=0;t<40;t++){
+        const test = newSi.slice();
+        test[Math.floor(Math.random()*3)] = randPieceWeighted();
+        if(simSeq(test)){ newSi = test; noDesertRun = 0; break; }
+      }
+    }else noDesertRun++;
+  }else noDesertRun = 0;
 
-  tray=newSi.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
-  if(mode==='classic'&&score>=TUNE.bombMinScore&&Math.random()<TUNE.bombChance){
-    tray[Math.floor(Math.random()*3)]={bomb:true,m:[[1]],si:-1,ci:2,dead:false};
+  tray = newSi.map((si,i)=>({si, m:SHAPES[si].m, ci:cols[i], dead:!canAnywhere(SHAPES[si].m)}));
+  if(mode === 'classic' && score >= TUNE.bombMinScore && Math.random() < TUNE.bombChance){
+    tray[Math.floor(Math.random()*3)] = {bomb:true, m:[[1]], si:-1, ci:2, dead:false};
   }
   renderTray(anim);
 }
@@ -1837,9 +1879,8 @@ function showBanner(cb,lines,chain,mult){
 }
 function doClear(rows, cols, chain){
   combo++;
-  noClearStreak = 0;
   grace = 3;
-  /* MODIF 8 : pump du losange à chaque combo ≥ 3 */
+  noClearStreak = 0;
   if(combo >= 3) diamondPump = performance.now();
   maxCombo = Math.max(maxCombo, combo);
   advComboMax = Math.max(advComboMax, combo);
@@ -1884,8 +1925,11 @@ function doClear(rows, cols, chain){
   }
   const lines = rows.length + cols.length;
   linesTotal += lines;
-  const mult = Math.min(3, 1+(combo-1)*.5);
-  const gain = Math.round((cleared.length*100 + (lines-1)*600 + (chain?400:0)) * mult);
+  /* Score Block Blast : chaque ligne vaut 10 pts/case (80),
+     les multi-lignes montent exponentiellement :
+     1 ligne=80 · 2=240 · 3=480 · 4=800... */
+  const linePts = lines * (lines+1) / 2 * 80;
+  const gain = Math.round(linePts * (1 + Math.min(combo-1,6)*.15) + (chain ? 150 : 0));
   score += gain;
   flyScores.push({
     x:gx+(sx/cleared.length)*cell+cell/2,
@@ -1895,7 +1939,7 @@ function doClear(rows, cols, chain){
   if(!playCustom('clear_'+STYLES[theme].id, .85)) SFX.clearByStyle(lines, theme);
   if(combo >= 2 || lines >= 2){
     if(!playCustom('combo_'+STYLES[theme].id, .8)) SFX.comboByStyle(combo, theme);
-    showBanner(combo, lines, chain, mult);
+    showBanner(combo, lines, chain, 1);
   }
   flash();
   shakeAmt = Math.min(16, 3 + lines*2.5 + Math.min(combo,4) + (chain?2:0));
@@ -2105,10 +2149,12 @@ function applyPlace(i,r,c){
   placedCount++;
   advPlaced++;
   if(!store.get('bp_tut')) store.set('bp_tut','1');
+  /* Score Block Blast : 10 pts par case posée */
   score += p.m.flat().length * 10;
   bumpScore();
   SFX.place();
   vib(12);
+  /* paillettes multicolores */
   p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
     if(!v) return;
     const px = gx+(c+dc)*cell+cell/2;
@@ -2885,7 +2931,7 @@ function drawScore3D(c,txt,x,y,sc,alpha){
   const size = Math.max(28, gainPx(txt)+10)*sc;
   c.save();
   c.globalAlpha = alpha;
-  c.font = '800 ' + size + 'px "Baloo 2", Fredoka, sans-serif';
+  c.font = '800 ' + size + 'px "Nunito Sans", Fredoka, sans-serif';
   c.textAlign = 'center';
   c.fillStyle = '#8a6a12';
   for(let o=3;o>=1;o--) c.fillText(txt, x+o*.8, y+o);
