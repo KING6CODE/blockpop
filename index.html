@@ -524,14 +524,10 @@ bestVal.textContent=best;
 /* ---------- Géométrie ---------- */
 function updateBoardRect(){boardRect=boardEl.getBoundingClientRect()}
 function resize(){
-const r=boardWrap.getBoundingClientRect();cw=r.width;
-/* Taille des cellules : largeur d'écran MOINS l'espace réservé
-   (header ~56px, pioche ~110px, marges ~60px = ~330px de réserve),
-   plafonnée à 60px. Plus aucune dépendance au layout = plus de boucle. */
-cell = clamp(Math.floor(Math.min((cw-24)/N, (window.innerHeight-330)/N)), 24, 60);
-chh = cell*N;
+const r=boardWrap.getBoundingClientRect();cw=r.width;chh=r.height;
+cell = clamp(Math.floor(Math.min((cw-24)/N, (chh-40)/N)), 24, 64);
 mini=clamp(Math.round(cell*.52),14,20);
-gx=Math.round((cw-cell*N)/2);gy=0;
+gx=Math.round((cw-cell*N)/2);gy=Math.round((chh-cell*N)/2);
 const dpr=window.devicePixelRatio||1;
 boardEl.width=cw*dpr;boardEl.height=chh*dpr;
 boardEl.style.width=cw+'px';boardEl.style.height=chh+'px';
@@ -1151,7 +1147,7 @@ if(combo<3)return;
 if(diamondPump===0)diamondPump=t;
 const pump=Math.max(0,1-(t-diamondPump)/220);
 const dx=boardRect.left+gx+cell*N/2;
-const dy = boardRect.top - 46;
+const dy = boardRect.top + gy - 46;
 const pulse=.5+.5*Math.sin(t/260);
 const size = cell*(1.05 + .08*pulse + .28*pump);
 fctx.save();
@@ -1175,7 +1171,7 @@ col:Math.random()<.5?'#FFF3B0':'#ffffff',t0:t,life:700,sh:1,g:0,rot:0,vr:0})}}
 /* ---------- Score dessiné sur le canvas FX ---------- */
 function drawScoreHUD(t){
 const dx=boardRect.left+gx+cell*N/2;
-const dy = boardRect.top - 46;
+const dy = boardRect.top + gy - 46;
 const pulse=1+.14*Math.max(0,1-(t-scorePulseT)/280);
 const size=Math.round(60*pulse);
 fctx.save();
@@ -1379,7 +1375,7 @@ bctx.globalAlpha=1;return true});
 /* SCORE VOLANT 3D VERS LE COMPTEUR (dessiné sur fxLayer, pas de clipping) */
 if(flyScores.length){
 const tx=boardRect.left+gx+cell*N/2;
-const ty=boardRect.top-46;
+const ty=boardRect.top+gy-44;
 flyScores=flyScores.filter(f=>{
 const age=t-f.t0;
 if(age>=f.life){bumpScore();return false}
