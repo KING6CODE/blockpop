@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#4a55a8"/>
 <title>BLOCKPOP</title>
-<!-- v24 : score remonté (54px), losange réduit (ne touche plus la grille),
-     fond UNI (plus de dégradé, change selon style), relief au bord du canvas
-     (carré extérieur arrondi comme avant, couleur = fond assombri),
-     ghost = texture réelle à faible opacité, contours de textes affinés,
-     pouces blancs/contour bleu sur CHAQUE bloc d'un bon placement -->
+<!-- v25 : all-clear proportionnel (cap 1500), grille pré-remplie animée en vagues,
+     GUIDE verrouillé avant 8 lignes, slot dead = texture grisée, score 55px,
+     gain du clear affiché en gros sur place, warning visuel avant l'EVIL -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{--panel:rgba(255,255,255,.10);--panel2:rgba(255,255,255,.17);--line:rgba(255,255,255,.15);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
@@ -46,7 +44,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 #botSpacer{flex:1}
 .slot{flex:1;height:120px;display:grid;place-items:center;touch-action:none;background:transparent;border:none;box-shadow:none}
 .slot canvas{cursor:grab;touch-action:none}
-.slot.dead canvas{opacity:.35;filter:grayscale(1) brightness(.75)}
+.slot.dead canvas{opacity:.9}
 .slot.spawn{animation:slotIn .4s cubic-bezier(.34,1.56,.64,1) backwards}
 @keyframes slotIn{from{opacity:0;transform:translateY(18px) scale(.6)}}
 #dragLayer{position:fixed;left:0;top:0;display:none;pointer-events:none;z-index:50}
@@ -278,17 +276,21 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 var k = 0; /* filet anti-crash boucle legacy */
 
 /* ================================================================
-   BLOCKPOP v24.1
-   - FIX : addThumb restaurée (freeze au premier clear)
-   - FIX : resolveTurn/bombExplode en try/finally → animating toujours
-     libéré, aucun freeze possible même en cas de crash
-   - v24 : score 56px, losange réduit, fond UNI, relief au bord,
-     ghost texture réelle, pouces blancs/bleu par bloc
-   - v23 conservé : drawFancyText, 16 couleurs, 31 styles,
-     recolorisation universelle, FILL, EVIL/ASSASSIN, dpr≤2, zéro filter
+   BLOCKPOP v25
+   - All-clear PROPORTIONNEL : bonus = min(1500, lignesDuClear×1.5)
+     (plus de forfait 5000×combo — façon BB)
+   - Grille pré-remplie (30-45 %, gravitationnelle, zéro ligne pleine)
+     + apparition animée en vagues ascendantes
+   - GUIDE verrouillé tant que linesTotal < 8 (anti all-clear précoce)
+   - Slot dead = VRAIE texture grisée (plus de filtre CSS)
+   - Score 55px ; gain du clear affiché EN GROS sur place (gainFx)
+   - Warning EVIL : assombrissement + 😈 pendant les pioches assassines
+   - v24.1 conservé : addThumb, try/finally anti-freeze, textes relief,
+     16 couleurs, 31 styles, FILL, dpr≤2, zéro ctx.filter
    ================================================================ */
 
-const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70};
+const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70,
+allClearCap:1500,guideLockLines:8,presetMin:.30,presetMax:.45};
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -584,7 +586,6 @@ function ensureTiles(idx){
 const st=STYLES[idx];if(!st)return;
 if(triedTiles[st.id])return;triedTiles[st.id]=true;
 tryLoadSfx('clear_'+st.id);tryLoadSfx('combo_'+st.id);
-/* pal + srcTex → texture source ; pal seule (gel) → ses propres fichiers */
 if(st.pal&&st.srcTex)loadTilesFile(st.srcTex);
 else loadTilesFile(st.id)}
 tryLoadSfx('land');
@@ -681,6 +682,7 @@ let theme=0,styleLevel=0,themeOrder=Array.from({length:STYLES.length},(_,i)=>i);
 let cell=40,mini=16,gx=0,gy=0,cw=0,chh=0;
 let drag=null,ghost=null,boardRect=null;
 let particles=[],floats=[],flyScores=[],clearFx=[],shakeAmt=0;
+let gainFx=[],clearBonusAcc=0,evilWarn=false;
 let lastT=performance.now(),toastTimer=null,lastLand=0,lastPrevPart=0;
 let lastDecoPart=0,diamondPump=0,scorePulseT=0;
 let noClearStreak=0;
@@ -688,6 +690,38 @@ let evilLeft=0,themeTrans=null;
 let bigPop=null,thumbs=[];
 bestVal.textContent=best;
 ensureTiles(0);ensureTiles(styleIdxById(coll.current));
+
+/* ---------- v25 : grille pré-remplie gravitationnelle ---------- */
+function spawnPreset(){
+const density=TUNE.presetMin+Math.random()*(TUNE.presetMax-TUNE.presetMin);
+const now=performance.now();
+grid=Array.from({length:N},()=>Array(N).fill(null));
+/* hauteurs par colonne (jamais pleine) */
+const hs=[];
+for(let c=0;c<N;c++){
+let h=Math.round(density*N)+(Math.floor(Math.random()*3)-1);
+h=clamp(h,0,N-1);
+hs.push(h)}
+for(let c=0;c<N;c++)for(let r=N-1;r>N-1-hs[c];r--){
+grid[r][c]={c:Math.floor(Math.random()*16),t:0,fall:null}}
+/* punch : aucune ligne complète, 1-2 trous réalistes */
+for(let r=0;r<N;r++){
+let cnt=0;for(let c=0;c<N;c++)if(grid[r][c])cnt++;
+if(cnt===N){
+const c0=Math.floor(Math.random()*N);
+grid[r][c0]=null}
+else if(cnt===N-1&&Math.random()<.35){
+const empt=[];for(let c=0;c<N;c++)if(!grid[r][c])empt.push(c);
+/* retirer un bloc voisin pour créer un trou sous la surface */
+const c1=empt[Math.floor(Math.random()*empt.length)];
+const cand=[];
+if(c1>0&&grid[r][c1-1])cand.push(c1-1);
+if(c1<N-1&&grid[r][c1+1])cand.push(c1+1);
+if(cand.length&&Math.random()<.5)grid[r][cand[0]]=null}}
+/* horodatage en vagues ascendantes (bas → haut) */
+for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+const b=grid[r][c];if(!b)continue;
+b.t=now+(N-1-r)*110+c*14}}
 
 /* ---------- Géométrie ---------- */
 function updateBoardRect(){boardRect=boardEl.getBoundingClientRect()}
@@ -710,7 +744,7 @@ fbctx.setTransform(dpr,0,0,dpr,0,0);
 updateBoardRect();renderTray(false)}
 window.addEventListener('resize',resize);
 
-/* ---------- Rendu d'un bloc : carré pleine cellule, contour fin ---------- */
+/* ---------- Rendu d'un bloc ---------- */
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
 alpha=alpha==null?1:alpha;scale=scale==null?1:scale;mono=!!mono;
 sx=sx==null?1:sx;sy=sy==null?1:sy;th=th==null?theme:th;
@@ -748,7 +782,6 @@ c.fillStyle='#7ee7ff';
 c.beginPath();c.moveTo(0,-r2);c.lineTo(r2*.85,-r2*.25);c.lineTo(0,r2);c.lineTo(-r2*.85,-r2*.25);c.closePath();c.fill();
 c.fillStyle='#fff';c.globalAlpha=.5+w*.4;
 c.beginPath();c.moveTo(0,-r2);c.lineTo(r2*.85,-r2*.25);c.lineTo(0,-r2*.1);c.closePath();c.fill();c.restore()}
-/* v24 : ghost = texture RÉELLE à faible opacité */
 function drawGhostCell(c,x,y,s,ci){
 const tile=tileCache[STYLES[theme].id+'_'+ci]||tileCache['gel_'+ci];
 c.save();c.globalAlpha=.34;
@@ -758,7 +791,6 @@ c.restore()}
 function drawEmpty(c,x,y,s){
 const gap=Math.max(1,s*.035),bx=x+gap,by=y+gap,bw=s-gap*2,r=bw*.02;
 c.save();c.fillStyle='rgba(255,255,255,.06)';rr(c,bx,by,bw,bw,r);c.fill();c.restore()}
-/* v24 : fond UNI — couleur du style mélangée à la base, fondu au changement */
 function colBodyTheme(){
 let bg=STYLES[theme].bg;
 if(themeTrans){
@@ -787,11 +819,9 @@ glace_violet:'#B48CFF',glace_beige:'#E8D5A8',ambre:'#FFB53D',pasteque:'#E8503A',
 miel:'#F5A623',rubis:'#E84A6F',diamant:'#8FE0FF',or:'#FFD23D',
 neon:'#3DF0C0',robotique:'#9AA8C0',galaxie:'#B48CFF'};
 function styleAcc(){return ACC[STYLES[theme].id]||'#5B8CFF'}
-/* v24.1 : addThumb restaurée (file d'attente plafonnée à 12) */
 function addThumb(x,y){
 if(thumbs.length>=12)thumbs.shift();
 thumbs.push({x:x,y:y,t0:performance.now(),life:900})}
-/* v24 : contour affiné (fs*.16), extrusion douce, dégradé creux */
 function drawFancyText(c,segs,cx,cy,size,alpha,scale){
 alpha=alpha==null?1:alpha;scale=scale||1;
 c.save();c.globalAlpha=alpha;
@@ -836,7 +866,6 @@ if(prio<bigPop.prio&&age<bigPop.life*.6)return}
 bigPop={segs:segs,sub:sub||null,prio:prio,t0:now,life:life||1000,size:size||cell*.85,
 x:boardRect?boardRect.left+gx+cell*N/2:window.innerWidth/2,
 y:boardRect?boardRect.top+gy+cell*2.2:window.innerHeight*.3}}
-/* v24 : pouce BLANC à contour BLEU */
 function drawThumb(c,x,y,s,t,age){
 const kk=age/900;
 const pop=age<180?backOut(age/180):1;
@@ -879,8 +908,7 @@ function canAnywhere(m){for(let r=0;r<=N-m.length;r++)for(let c=0;c<=N-m[0].leng
 if(canPlaceAt(m,r,c))return true;return false}
 
 /* ============================================================
-   MOTEUR DE PIOCHE — TUTORIAL / GIFT / SAVE_COMBO / PUNISH /
-   DESERT / BIG_FORCE / PERFECT / FILL / GUIDE / EVIL-ASSASSIN
+   MOTEUR DE PIOCHE
    ============================================================ */
 function simGrid(){return grid.map(row=>row.map(v=>v?1:0))}
 function simPlace(sim,m,r,c){
@@ -1057,9 +1085,12 @@ const keptCanClear=kept.some(a=>a.lines>0);
 
 let mode2='NEUTRAL';
 if(best<=0&&score<4000)mode2='TUTORIAL';
-else if(evilLeft>0){evilLeft--;mode2='EVIL';
+else if(evilLeft>0){evilLeft--;
+if(evilLeft===0)evilWarn=false;
+mode2='EVIL';
 if(evilLeft===2)toast('😈 Le jeu se déchaine…')}
-else if(fill>0&&fill<=.22&&pr<1.05)mode2='GUIDE';
+/* v25 : GUIDE verrouillé tant que linesTotal < guideLockLines */
+else if(fill>0&&fill<=.22&&pr<1.05&&linesTotal>=TUNE.guideLockLines)mode2='GUIDE';
 else if(holesNow>=2&&Math.random()<.75)mode2='FILL';
 else if(combo>=2&&!keptCanClear&&Math.random()<.65)mode2='SAVE_COMBO';
 else if(pr>=.85&&Math.random()<.55)mode2='PUNISH';
@@ -1169,11 +1200,11 @@ saveColl();
 const idx=styleIdxById(won);
 const st=STYLES[idx];
 switchStyleNow(idx);
-evilLeft=3;
+evilLeft=3;evilWarn=true;
 if(isNew){toast('🎁 Nouveau style : '+st.name+' !',4200);confetti();SFX.win()}
 else toast('Style : '+st.name+' ✓',3000)}
 
-/* ---------- Pioche visuelle ---------- */
+/* ---------- Pioche visuelle (dead = texture grisée) ---------- */
 function renderTray(anim){
 const dpr=window.devicePixelRatio||1,t=performance.now();
 tray.forEach((p,i)=>{const cv=slotCvs[i],c=cv.getContext('2d');
@@ -1189,7 +1220,11 @@ c.fill();
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(!v)return;
 if(p.bomb)drawBomb(c,ox+dc*mini,oy+dr*mini,mini,t);
-else drawBlock(c,ox+dc*mini,oy+dr*mini,mini,effColor(p.ci,dr,dc),1,1,p.dead)}))}
+else{
+drawBlock(c,ox+dc*mini,oy+dr*mini,mini,effColor(p.ci,dr,dc),1,1,false);
+/* v25 : pièce non posable = VRAIE texture grisée */
+if(p.dead){c.fillStyle='rgba(92,96,116,.60)';
+c.fillRect(ox+dc*mini,oy+dr*mini,mini,mini)}}}))}
 slotEls[i].classList.toggle('dead',!!(p&&p.dead&&!p.bomb));
 if(anim&&p){const el=slotEls[i];el.classList.remove('spawn');void el.offsetWidth;
 el.style.animationDelay=(i*70)+'ms';el.classList.add('spawn')}})}
@@ -1263,8 +1298,15 @@ vx:(Math.random()-.5)*.2,vy:-(.25+Math.random()*.3),sz:cell*.12,
 col:i%2?'#ff8c28':'#ffd23d',t0:t0,life:700+Math.random()*400,sh:1,g:-.02,rot:0,vr:.1})}
 const lines=rows.length+cols.length;linesTotal+=lines;advLines+=lines;
 const linePts=lines*(lines+1)/2*80;
+/* v25 : accumulation pour le bonus all-clear proportionnel */
+clearBonusAcc+=linePts;
 const gain=Math.round(linePts*(1+Math.min(combo-1,6)*.15)+(chain?150:0));
 score+=gain;
+/* v25 : gain affiché EN GROS sur place (façon BB) */
+gainFx.push({txt:'+'+gain,
+x:boardRect.left+gx+(sx/cleared.length)*cell+cell/2,
+y:boardRect.top+gy+(sy/cleared.length)*cell+cell/2-cell*.3,
+t0:t0,life:950});
 flyScores.push({x:gx+(sx/cleared.length)*cell+cell/2,y:gy+(sy/cleared.length)*cell+cell/2,txt:'+'+gain,t0:t0,life:1000});
 if(!playCustom('clear_'+STYLES[theme].id,.85))SFX.clearByStyle(lines,theme);
 if(combo>=2){
@@ -1272,6 +1314,11 @@ if(!playCustom('combo_'+STYLES[theme].id,.8))SFX.comboByStyle(combo,theme);
 showBanner(combo,lines,chain,1)}
 else if(lines>=2){
 setBigPop(praiseSegs(lines>=3?'Amazing!':'Great!',styleAcc()),null,1,900,cell*.8)}
+const tx0=boardRect.left+gx+(sx/cleared.length)*cell+cell/2;
+const ty0=boardRect.top+gy+(sy/cleared.length)*cell+cell/2;
+if(lines>=3){addThumb(tx0-cell*1.4,ty0-cell*.6);addThumb(tx0+cell*1.4,ty0-cell*.6)}
+else if(lines>=2)addThumb(tx0,ty0-cell*.8);
+else if(chain)addThumb(tx0+cell*1.5,ty0-cell);
 flash();shakeAmt=Math.min(16,3+lines*2.5+Math.min(combo,4)+(chain?2:0));
 vib(lines>1?[25,35,25]:[20,20,20]);
 if(chain&&!store.get('bp_chain')){store.set('bp_chain','1');
@@ -1302,8 +1349,9 @@ const b=grid[r][c];if(b&&b.fall&&!b.fall.done)return true}return false}
 function waitSettled(){return new Promise(res=>{
 const check=()=>{if(!anyFalling())res();else requestAnimationFrame(check)};check()})}
 function gridEmpty(){for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(grid[r][c])return false;return true}
-/* v24.1 : try/finally — animating TOUJOURS libéré, plus aucun freeze possible */
+/* v24.1 conservé : try/finally anti-freeze ; v25 : bonus all-clear proportionnel */
 async function resolveTurn(){const my=++turnId;animating=true;try{
+clearBonusAcc=0;
 await sleep(60);if(my!==turnId)return;
 let chain=0;
 while(true){const fc=findFull(grid);
@@ -1316,7 +1364,8 @@ const moved=applyGravity();if(moved)await waitSettled();
 if(my!==turnId)return;
 await sleep(100);if(my!==turnId)return}
 if(chain>0&&gridEmpty()){
-const bonus=5000*Math.max(combo,1);
+/* v25 : bonus proportionnel au clear qui a vidé la grille (cap 1500) */
+const bonus=Math.min(TUNE.allClearCap,Math.round(clearBonusAcc*1.5));
 score+=bonus;
 floats.push({x:cw/2,y:gy+cell*4,txt:'+'+bonus,t0:performance.now(),life:1400});
 setBigPop(perfectSegs('PERFECT CLEAR'),'Grille vide — +'+bonus,3,1800,cell*1.05);
@@ -1326,6 +1375,7 @@ grantCollect()}
 }finally{if(my===turnId){animating=false;endTurn()}}}
 async function bombExplode(r,c){
 const my=++turnId;animating=true;try{
+clearBonusAcc=0;
 await sleep(40);if(my!==turnId)return;
 for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
 const rr2=r+dr,cc2=c+dc;
@@ -1392,19 +1442,19 @@ tray[i]=null;renderTray(false);
 updateObjHUD();
 const fc=findFull(grid);
 const tot=fc.rows.length+fc.cols.length;
-/* v24 : pouce BLANC/bleu sur CHAQUE bloc d'un bon placement */
 if(tot>0){
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v)addThumb(boardRect.left+gx+(c+dc)*cell+cell/2,
 boardRect.top+gy+(r+dr)*cell+cell/2)}))}
 else if(combo<2&&nearLinesNow()>=3){
 setBigPop(praiseSegs('Good!',styleAcc()),null,1,750,cell*.7)}
-/* détection du COUP RATÉ → EVIL intelligent */
+/* détection du COUP RATÉ → EVIL + warning visuel */
 if(mode==='classic'&&tot===0&&evilLeft===0){
 const missed=tray.some(q=>q&&!q.bomb&&analyzePiece(q.si).lines>0);
 const nearRec=bestAtStart>0&&score>=bestAtStart*.7;
 if(missed&&(nearRec||pressure()>=.55)&&Math.random()<.65){
-evilLeft=3}}
+evilLeft=3;evilWarn=true;
+toast('😈 Le jeu prépare quelque chose…')}}
 if(fc.rows.length||fc.cols.length){noClearStreak=0;resolveTurn()}
 else{noClearStreak++;grace--;
 if(grace<=0){if(combo>=3){SFX.bad();toast('Combo perdu !')}combo=0;grace=3}
@@ -1436,7 +1486,7 @@ themeOrder=(d.themeOrder&&d.themeOrder.length===STYLES.length)?d.themeOrder:buil
 theme=(d.theme!=null&&d.theme<STYLES.length)?d.theme:themeOrder[styleLevel];
 ensureTiles(theme);
 reviveUsed=!!d.reviveUsed;gameStart=d.gameStart||performance.now();
-newRecordShown=false;evilLeft=0;
+newRecordShown=false;evilLeft=0;evilWarn=false;
 updateBg();renderTray(false);resize();state='playing';toast('Partie restaurée')}
 </script>
 <script>
@@ -1542,7 +1592,7 @@ dragLayer.style.display='none';slotCvs[sl].style.visibility=''}}}
 slotEls.forEach((el,i)=>el.addEventListener('pointerdown',e=>onDown(e,i)));
 dragLayer.addEventListener('contextmenu',e=>e.preventDefault());
 
-/* ---------- Losange doré : RÉDUIT, centré sur le score, ne touche plus la grille ---------- */
+/* ---------- Losange doré : réduit, centré sur le score ---------- */
 function drawDiamondDeco(t){
 if(combo<3)return;
 if(diamondPump===0)diamondPump=t;
@@ -1569,12 +1619,12 @@ particles.push({x:dx+(Math.random()-.5)*size,y:dy+size*.35,
 vx:(Math.random()-.5)*.08,vy:-(.10+Math.random()*.14),sz:cell*.07,
 col:Math.random()<.5?'#FFF3B0':'#ffffff',t0:t,life:700,sh:1,g:0,rot:0,vr:0})}}
 
-/* ---------- Score HUD (remonté : 56px au-dessus de la grille) ---------- */
+/* ---------- Score HUD (v25 : 55px) ---------- */
 function drawScoreHUD(t){
 const dx=boardRect.left+gx+cell*N/2;
-const dy=boardRect.top+gy-56;
-const pulse=1+.14*Math.max(0,1-(t-scorePulseT)/280);
-const size=Math.round(64*pulse);
+const dy=boardRect.top+gy-54;
+const pulse=1+.12*Math.max(0,1-(t-scorePulseT)/280);
+const size=Math.round(55*pulse);
 fctx.save();
 fctx.font='800 '+size+'px "Nunito Sans", sans-serif';
 fctx.textAlign='center';fctx.textBaseline='middle';
@@ -1631,7 +1681,7 @@ fbctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 drawDiamondDeco(t);
 drawScoreHUD(t);
-/* LE gros texte unique — segments BB, relief 3D, contours affinés */
+/* LE gros texte unique — segments BB, relief 3D */
 if(bigPop){const kk=(t-bigPop.t0)/bigPop.life;
 if(kk>=1)bigPop=null;
 else{
@@ -1647,6 +1697,14 @@ fctx.strokeStyle='rgba(15,12,28,.85)';
 fctx.strokeText(bigPop.sub,bigPop.x,bigPop.y+drift+bigPop.size*.75);
 fctx.fillStyle='#ffffff';
 fctx.fillText(bigPop.sub,bigPop.x,bigPop.y+drift+bigPop.size*.75);fctx.restore()}}}
+/* v25 : gain du clear EN GROS sur place (doré, façon BB) */
+gainFx=gainFx.filter(g=>{const kk=(t-g.t0)/g.life;
+if(kk>=1)return false;
+const pop=kk<.15?backOut(kk/.15):1;
+const yo=-cell*.45*kk;
+const al=kk<.6?1:1-(kk-.6)/.4;
+drawScore3D(fctx,g.txt,g.x,g.y+yo,1.35,al,'#FFC93D');
+return true});
 /* pouces vectoriels (blancs/bleu) */
 thumbs=thumbs.filter(th=>{const kk=(t-th.t0)/th.life;
 if(kk>=1)return false;
@@ -1656,8 +1714,7 @@ bctx.clearRect(0,0,cw,chh);
 bctx.save();
 if(shakeAmt>.4){bctx.translate((Math.random()-.5)*shakeAmt,(Math.random()-.5)*shakeAmt);shakeAmt*=.88}
 else shakeAmt=0;
-/* PLATEAU : relief au bord (carré-arrondi taille d'origine, fond assombri)
-   + fond de grille teinté matière + cellules vides */
+/* PLATEAU : relief au bord (fond assombri) + fond de grille + cellules */
 const lastClear=clearFx.length?clearFx[clearFx.length-1].t0:0;
 const glowK=(t-lastClear<450)?(1-(t-lastClear)/450):0;
 const glowA=glowK*.5;
@@ -1711,8 +1768,9 @@ else{
 particles.push({x:gx+sh.c*cell+cell*(.2+Math.random()*.6),y:gy+Math.random()*cell*N,
 vx:(Math.random()-.5)*.12,vy:-(.10+Math.random()*.16),sz:cell*.09,
 col:Math.random()<.5?'#ffffff':'#ffd23d',t0:t,life:650,sh:1,g:0,rot:0,vr:0})}}}}
-/* BLOCS + TRAÎNÉES */
+/* BLOCS + TRAÎNÉES (v25 : apparition en vagues — b.t futur = pas encore là) */
 for(let r=0;r<N;r++)for(let c=0;c<N;c++){const o=grid[r][c];if(!o)continue;
+if(o.t>t)continue;
 const age=t-o.t;let pop=1;
 if(age<220){const kk=clamp(age/220,0,1);pop=.4+.6*backOut(kk)}
 let oy=0,sx=1,sy=1;
@@ -1729,7 +1787,7 @@ if(o.fall.squash){const kk=(t-o.fall.squash)/130;
 if(kk<1){const s2=Math.sin(kk*Math.PI);sx=1+.16*s2;sy=1-.2*s2}}}
 drawBlock(bctx,gx+c*cell,gy+r*cell+oy,cell,o.c,1,pop,false,sx,sy);
 if(o.gem)drawGemIcon(bctx,gx+c*cell,gy+r*cell+oy,cell,t)}
-/* ombre + ghost du drag (ghost = texture réelle, cf. drawGhostCell) */
+/* ombre + ghost du drag (ghost = texture réelle) */
 if(drag&&ghost&&state==='playing'){
 bctx.fillStyle='rgba(10,12,30,.30)';
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
@@ -1809,6 +1867,15 @@ x=f.x+(tx-f.x)*e;y=(f.y-42)+(ty-(f.y-42))*e;sc=1-k2*.45}
 drawScore3D(fctx,f.txt,x,y,sc,1-(age/f.life)*.2,styleAcc());
 return true})}
 drawDanger(t);
+/* v25 : WARNING EVIL — assombrissement pulsé + 😈 au-dessus de la grille */
+if(evilWarn&&state==='playing'){
+bctx.fillStyle='rgba(8,8,24,'+(.10+.05*Math.sin(t/400))+')';
+rr(bctx,gx-3,gy-3,cell*N+6,cell*N+6,6);bctx.fill();
+fctx.save();
+fctx.font=Math.round(cell*.85)+'px sans-serif';
+fctx.textAlign='center';fctx.textBaseline='middle';
+fctx.fillText('😈',boardRect.left+gx+cell*N-cell*.45,boardRect.top+gy-cell*.55);
+fctx.restore()}
 bctx.restore();
 if(shownScore!==score){
 const d=score-shownScore;
@@ -1870,6 +1937,8 @@ ensureTiles(0);
 reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=-1;
 particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
+gainFx=[];clearBonusAcc=0;
+evilLeft=0;evilWarn=false;
 bigPop=null;thumbs=[];
 setHudMode();updateBg();updateObjHUD();
 resize();genTray(true);
@@ -1930,26 +1999,28 @@ if(grid[r][c]){spawnParticles(gx+c*cell+cell/2,gy+r*cell+cell/2,grid[r][c].c);
 grid[r][c]=null}}
 ovOver.classList.remove('show');
 turnId++;animating=false;state='playing';
-evilLeft=0;
+evilLeft=0;evilWarn=false;
 genTray(true,true);
 SFX.up();vib([15,30,15]);
 toast('Bas de grille dégagé — continue !');
 saveGame()}
-/* ---------- Flux classique ---------- */
+/* ---------- Flux classique (v25 : grille pré-remplie animée) ---------- */
 function newGame(){mode='classic';lvl=null;setHudMode();
 turnId++;animating=false;
 ovTitle.classList.remove('show');ovOver.classList.remove('show');ovPause.classList.remove('show');
-grid=Array.from({length:N},()=>Array(N).fill(null));
 score=0;shownScore=0;
 combo=0;grace=3;maxCombo=0;placedCount=0;linesTotal=0;stars=0;
 themeOrder=buildThemeOrder();
 styleLevel=0;theme=themeOrder[0];stylePts=0;styleRingT=0;
 ensureTiles(theme);
-evilLeft=0;themeTrans=null;
+evilLeft=0;evilWarn=false;themeTrans=null;
 reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=best;
 particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
+gainFx=[];clearBonusAcc=0;
 bigPop=null;thumbs=[];
+/* v25 : grille pré-remplie avec apparition en vagues */
+spawnPreset();
 updateBg();store.del('bp_save');
 resize();genTray(true);
 state='playing';
