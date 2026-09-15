@@ -5,14 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#4a55a8"/>
 <title>BLOCKPOP</title>
-<!-- v28 : pose = flash lumineux, ghost SANS ombre, relief = rectangle en dégradé
-     (haut plus sombre → bas plus clair, sans contour), anim de ligne "classic"
-     définie (tint couleur pièce + contour blanc + lumière intérieure non
-     clignotante + halo extérieur 1/2 bloc + couleur aléatoire), variantes par
-     style (shimmer/beat/shake/pulse), all-clear = lumières multicolores +
-     chevauchement le long de la ligne, particules = étincelles respirantes
-     lentes + MINI-BLOCS de texture qui montent puis tombent hors écran,
-     icône réglages seule (assets/blocks/gear.png) -->
+<!-- v29 : HARMONIE DES COULEURS — le fond = couleur du MILIEU du dégradé du
+     relief (effet incrusté), env/grid révisés pour CHAQUE style (les blocs
+     ressortent), palettes réalistes par style (tones) : glace 4 teintes froides,
+     ambre/miel/rubis/diamant/or/pierre/brique/galaxie MONOCHROMES, pastille 2,
+     robotique 4 (orange/bleu/blanc/vert caca d'oie), pastèque 3, rubis vert
+     (nouveau style, réutilise la texture rubis), relief en dégradé sans contour -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{--panel:rgba(255,255,255,.10);--panel2:rgba(255,255,255,.17);--line:rgba(255,255,255,.15);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
@@ -32,7 +30,6 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .hside.right{align-items:flex-end}
 #bestWrap{display:flex;align-items:center;gap:5px;color:var(--gold);font-size:22px;font-weight:800;margin-top:4px;font-family:'Nunito Sans','Fredoka',sans-serif}
 #bestWrap svg{width:24px;height:24px;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
-/* v28 : icône réglages SEULE (pas de bouton) */
 #btnPause{background:none;border:none;padding:4px;margin-top:2px;cursor:pointer;line-height:0}
 #btnPause svg{width:34px;height:34px}
 #btnPause img{width:36px;height:36px}
@@ -284,21 +281,15 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 var k = 0; /* filet anti-crash boucle legacy */
 
 /* ================================================================
-   BLOCKPOP v28
-   - Pose = flash lumineux léger (rendu partie 3)
-   - Anim de ligne CLASSIQUE (définie pour de bon) : tint couleur de la
-     pièce + fin contour blanc + lumière intérieure STEADY qui fond vers
-     le quart du bloc + halo extérieur 1/2 bloc — couleur de lumière
-     ALÉATOIRE à chaque pose (ghost.lh) ; variantes par style :
-     shimmer (balayage), beat (pulsation d'échelle), shake (ondulation),
-     pulse (respiration). All-clear prévu → lumières multicolores +
-     lumière aller-retour le long de la ligne (ghost.ac)
-   - Particules : étincelles LENTES (≤1/3 bloc), carrées, fondu+
-     grossissement puis fondu- rétrécissement, tailles variables
-   - Destruction : MINI-BLOCS de la texture (2x2 quartiers) projetés
-     dans n'importe quelle direction, montent puis tombent hors écran
-   - Chaque ligne : léger shake écran + vibration
-   - Icône réglages seule : assets/blocks/gear.png (fallback SVG)
+   BLOCKPOP v29 — HARMONIE DES COULEURS
+   - Fond = couleur du MILIEU du dégradé du relief → effet incrusté
+   - env/grid révisés pour chaque style (les blocs ressortent)
+   - tones par style : glace (rosée/beige/bleu clair/violet clair),
+     ambre·miel·rubis·diamant·or·pierre·brique·galaxie = MONOCHROME,
+     pastille 2 couleurs, robotique 4 (orange/bleu/blanc/vert caca d'oie),
+     pastèque 3, biscuit 2 — NOUVEAU : Rubis vert (texture rubis)
+   - toneTile : la texture est recolorisée vers des TEINTES FIXÉES
+     (indépendant de la couleur du fichier source)
    ================================================================ */
 
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70,
@@ -366,6 +357,8 @@ return true}
 
 /* ---------- Constantes ---------- */
 const N=8,STAR_GOALS=[20000,60000,140000];
+/* 16 couleurs : le gel garde la gamme complète, les autres styles en
+   sous-ensembles via tones */
 const COLORS=[
 {l:'#FF9D8A',b:'#E85B4A',d:'#B03326'},
 {l:'#FFB85C',b:'#F08A1D',d:'#C4680C'},
@@ -383,7 +376,6 @@ const COLORS=[
 {l:'#9A8AFF',b:'#5F4AE8',d:'#3D2CC0'},
 {l:'#E88AFF',b:'#C02EE8',d:'#901CB8'},
 {l:'#FF7A9A',b:'#E82E5F',d:'#B81C40'}];
-const HUE_T=COLORS.map(c2=>{const n=parseInt(c2.b.slice(1),16);return hslOf((n>>16)&255,(n>>8)&255,n&255)[0]});
 const SHAPES=[
 {m:[[1]],w:3},
 {m:[[1,1]],w:5},{m:[[1],[1]],w:5},
@@ -402,7 +394,7 @@ const SHAPES=[
 {m:[[1,1,1],[1,1,1],[1,1,1]],w:2},
 {m:[[1,1,1,1],[1,1,1,1]],w:2}];
 
-/* ---------- Bombe + pouce (image) ---------- */
+/* ---------- Bombe + pouce + gear ---------- */
 const Assets={imgs:{},
 load(id){try{const im=new Image();
 im.addEventListener('load',()=>{Assets.imgs[id]=im});
@@ -410,8 +402,7 @@ im.addEventListener('error',()=>{});
 im.src='assets/blocks/'+id+'.png'}catch(e){}},
 get(id){return this.imgs[id]||null}};
 Assets.load('bomb');
-Assets.load('thumb'); /* pouce : assets/blocks/thumb.png */
-/* v28 : icône réglages : assets/blocks/gear.png (remplace le SVG si présent) */
+Assets.load('thumb');
 (function(){try{const im=new Image();
 im.addEventListener('load',()=>{const b=$('btnPause');if(!b)return;
 b.innerHTML='';const ic=document.createElement('img');
@@ -466,7 +457,7 @@ c.save();c.translate(cx+csz*.30,cy+csz*.26);c.rotate(-.5);
 c.fillStyle='rgba(255,255,255,.40)';rr(c,-csz*.16,-csz*.055,csz*.32,csz*.11,csz*.055);c.fill();c.restore();
 c.restore()}
 
-/* ---------- Recettes ---------- */
+/* ---------- Recettes de teintes ---------- */
 const FILT={pastel:'pastel',terne:'terne',blanc:'blanc',menthe:'menthe',beige:'beige',violet:'violet'};
 const rec=(s,f)=>({s:s,f:f||''});
 const PAL={
@@ -480,11 +471,13 @@ DUO:[0,1,2,3,4,5,6,7].map(i=>rec(i%2?1:3)),
 TERNE:[rec(5,FILT.terne),rec(2,FILT.terne),rec(3,FILT.terne),rec(0,FILT.terne),
 rec(5,FILT.terne),rec(2,FILT.terne),rec(3,FILT.terne),rec(0,FILT.terne)],
 PRIMAIRE:[rec(2),rec(2,FILT.blanc),rec(5),rec(0),rec(2),rec(2,FILT.blanc),rec(5),rec(0)],
-PASTEL:[0,1,2,3,4,5,6,7].map(i=>rec(i,FILT.pastel)),
-GVIOLET:Array(8).fill(0).map(()=>rec(0,FILT.violet)),
-GBEIGE:Array(8).fill(0).map(()=>rec(0,FILT.beige))};
+PASTEL:[0,1,2,3,4,5,6,7].map(i=>rec(i,FILT.pastel))};
 
-/* ---------- Styles : grid + env + lfx (classic/shimmer/beat/shake/pulse) ---------- */
+/* ---------- Styles : grid + env + tones (TEINTES réalistes par style) ----------
+   tones : liste de TEINTES (hue en degrés) — la texture source est recolorisée
+   vers ces teintes exactes, indépendamment de sa couleur d'origine.
+   env  : couleur du MILIEU du dégradé du relief = couleur du FOND (incrusté)
+   grid : couleur du plateau (les blocs ressortent dessus)                */
 const STYLES=[
 {id:'gel',name:'Gel',bg:'#262b47',grid:'#31365a',env:'#4a55a8',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:0,pal:PAL.CLASSIC16,duo16:true,lfx:'classic'},
 {id:'gel_bleu',name:'Gel bleu',bg:'#232b52',grid:'#9aa8d8',env:'#3a4472',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.BLEU,lfx:'classic'},
@@ -496,28 +489,57 @@ const STYLES=[
 {id:'gel_terne',name:'Gel terne',bg:'#2c3040',grid:'#3a3f52',env:'#505670',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.TERNE,pos:[5,2,3,0],lfx:'classic'},
 {id:'gel_primaire',name:'Gel primaire',bg:'#313548',grid:'#3a3d52',env:'#5a5068',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.PRIMAIRE,pos:[2,1,5,0],lfx:'classic'},
 {id:'gel_pastel',name:'Gel pastel',bg:'#2e3350',grid:'#3e4266',env:'#5a6090',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.PASTEL,lfx:'classic'},
-{id:'coussin',name:'Coussin',bg:'#2a2e4e',grid:'#333860',env:'#4a55a8',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:2,lfx:'beat'},
-{id:'bonbon',name:'Bonbon',bg:'#3a2a50',grid:'#422f58',env:'#7a4a9a',pv:0,snd:{w:'square',m:1.10},burst:[1,'l'],tier:2,lfx:'shimmer'},
-{id:'pastille',name:'Pastille',bg:'#28304a',grid:'#2c3852',env:'#3a6a9a',pv:0,snd:{w:'sine',m:1.05},burst:[1,'l'],tier:2,lfx:'shimmer'},
-{id:'sculpted',name:'Sculpté',bg:'#2c3144',grid:'#31364a',env:'#4a5570',pv:1,snd:{w:'sine',m:.60},burst:[0,'d'],tier:2,lfx:'shake'},
-{id:'biscuit',name:'Biscuit',bg:'#3a3226',grid:'#42392a',env:'#8a7444',pv:0,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:2,lfx:'shake'},
-{id:'bois',name:'Bois',bg:'#362a1e',grid:'#3e3022',env:'#8a6a3a',pv:1,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:3,lfx:'shake'},
-{id:'laine',name:'Laine',bg:'#2b3a4a',grid:'#2e4256',env:'#4a7a9a',pv:2,snd:{w:'sine',m:.80},burst:[0,'b'],tier:3,lfx:'beat'},
-{id:'moelleux',name:'Moelleux',bg:'#31344f',grid:'#343a58',env:'#5a6aa8',pv:2,snd:{w:'sine',m:.75},burst:[0,'b'],tier:3,lfx:'beat'},
-{id:'pierre',name:'Pierre',bg:'#27303c',grid:'#2c343e',env:'#4a5a68',pv:1,snd:{w:'sine',m:.55},burst:[0,'d'],tier:3,lfx:'shake'},
-{id:'brique',name:'Brique',bg:'#3c2a26',grid:'#443028',env:'#9a5a42',pv:1,snd:{w:'square',m:.60},burst:[0,'d'],tier:3,lfx:'shake'},
-{id:'glace',name:'Glace',bg:'#1f3d52',grid:'#8fd0e8',env:'#2f6a8a',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,lfx:'classic'},
-{id:'glace_violet',name:'Glace violette',bg:'#2f2852',grid:'#423a68',env:'#6a4aa0',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,srcTex:'glace',pal:PAL.GVIOLET,lfx:'classic'},
-{id:'glace_beige',name:'Glace beige',bg:'#3a3628',grid:'#4a4430',env:'#8a7a4a',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,srcTex:'glace',pal:PAL.GBEIGE,lfx:'classic'},
-{id:'ambre',name:'Ambre',bg:'#3a2f1c',grid:'#4a3c20',env:'#a87820',pv:3,snd:{w:'sine',m:.72},burst:[1,'b'],tier:4,lfx:'classic'},
-{id:'pasteque',name:'Pastèque',bg:'#22392c',grid:'#2c4432',env:'#3f8a4a',pv:0,snd:{w:'triangle',m:1.10},burst:[1,'l'],tier:4,lfx:'shimmer'},
-{id:'miel',name:'Miel',bg:'#3c3320',grid:'#463a1e',env:'#a8821e',pv:3,snd:{w:'sine',m:.70},burst:[1,'b'],tier:4,lfx:'classic'},
-{id:'rubis',name:'Rubis',bg:'#42293e',grid:'#462a3e',env:'#a83a6a',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l'],tier:5,lfx:'classic'},
-{id:'diamant',name:'Diamant',bg:'#2c2850',grid:'#332e58',env:'#5a6ae0',pv:2,snd:{w:'sine',m:1.30},burst:[2,'l'],tier:5,lfx:'classic'},
-{id:'or',name:'Or',bg:'#3a3117',grid:'#443a1c',env:'#a8861e',pv:2,snd:{w:'triangle',m:1.45},burst:[2,'l'],tier:5,lfx:'classic'},
-{id:'neon',name:'Néon',bg:'#171a33',grid:'#1e2240',env:'#2a2a6a',pv:3,snd:{w:'sawtooth',m:1.25},burst:[1,'b'],tier:6,lfx:'pulse'},
-{id:'robotique',name:'Robotique',bg:'#20242e',grid:'#282c38',env:'#4a5468',pv:3,snd:{w:'sawtooth',m:1.00},burst:[1,'b'],tier:6,lfx:'pulse'},
-{id:'galaxie',name:'Galaxie',bg:'#1b1b38',grid:'#22224a',env:'#443a8a',pv:3,snd:{w:'sine',m:1.35},burst:[2,'l'],tier:6,lfx:'pulse'}];
+/* T2 — tones réalistes */
+{id:'coussin',name:'Coussin',bg:'#2a2e4e',grid:'#333860',env:'#4a55a8',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:2,lfx:'beat',
+tones:[16,32,120,208,268,328,0,36]},
+{id:'bonbon',name:'Bonbon',bg:'#3a2a50',grid:'#422f58',env:'#7a4a9a',pv:0,snd:{w:'square',m:1.10},burst:[1,'l'],tier:2,lfx:'shimmer',
+tones:[350,22,52,92,182,212,272,322]},
+{id:'pastille',name:'Pastille',bg:'#28304a',grid:'#2c3852',env:'#3a6a9a',pv:0,snd:{w:'sine',m:1.05},burst:[1,'l'],tier:2,lfx:'shimmer',
+tones:[188,328,188,328,188,328,188,328]},
+{id:'sculpted',name:'Sculpté',bg:'#2c3144',grid:'#31364a',env:'#4a5570',pv:1,snd:{w:'sine',m:.60},burst:[0,'d'],tier:2,lfx:'shake',
+tones:[350,22,52,92,182,212,272,322]},
+{id:'biscuit',name:'Biscuit',bg:'#3a3226',grid:'#42392a',env:'#8a7444',pv:0,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:2,lfx:'shake',
+tones:[38,50,30,58,44,12,64,26]},
+/* T3 */
+{id:'bois',name:'Bois',bg:'#362a1e',grid:'#3e3022',env:'#8a6a3a',pv:1,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:3,lfx:'shake',
+tones:[16,34,28,42,8,54,38,24]},
+{id:'laine',name:'Laine',bg:'#2b3a4a',grid:'#2e4256',env:'#4a7a9a',pv:2,snd:{w:'sine',m:.80},burst:[0,'b'],tier:3,lfx:'beat',
+tones:[350,22,52,92,182,212,272,322]},
+{id:'moelleux',name:'Moelleux',bg:'#31344f',grid:'#343a58',env:'#5a6aa8',pv:2,snd:{w:'sine',m:.75},burst:[0,'b'],tier:3,lfx:'beat',
+tones:[350,22,52,92,182,212,272,322]},
+{id:'pierre',name:'Pierre',bg:'#27303c',grid:'#2c343e',env:'#4a5a68',pv:1,snd:{w:'sine',m:.55},burst:[0,'d'],tier:3,lfx:'shake',
+tones:[212,212,212,212,212,212,212,212]},
+{id:'brique',name:'Brique',bg:'#3c2a26',grid:'#443028',env:'#9a5a42',pv:1,snd:{w:'square',m:.60},burst:[0,'d'],tier:3,lfx:'shake',
+tones:[12,12,12,12,12,12,12,12]},
+/* T4 — glace : SEULEMENT teintes froides douces (rosée/beige/bleu clair/violet clair) */
+{id:'glace',name:'Glace',bg:'#3d5566',grid:'#a8c8d8',env:'#6a94a8',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,lfx:'classic',
+tones:[190,44,262,205,190,44,262,205],soft:.16},
+{id:'glace_violet',name:'Glace violette',bg:'#3a3550',grid:'#8a9ac8',env:'#5a5a8a',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,srcTex:'glace',lfx:'classic',
+tones:[262,225,190,44,262,225,190,44],soft:.16},
+{id:'glace_beige',name:'Glace beige',bg:'#4a463a',grid:'#9a94a8',env:'#7a7460',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,srcTex:'glace',lfx:'classic',
+tones:[44,190,262,205,44,190,262,205],soft:.16},
+{id:'ambre',name:'Ambre',bg:'#3a2f1c',grid:'#4a3c20',env:'#a87820',pv:3,snd:{w:'sine',m:.72},burst:[1,'b'],tier:4,lfx:'classic',
+tones:[40,40,40,40,40,40,40,40]},
+{id:'pasteque',name:'Pastèque',bg:'#22392c',grid:'#2c4432',env:'#3f8a4a',pv:0,snd:{w:'triangle',m:1.10},burst:[1,'l'],tier:4,lfx:'shimmer',
+tones:[142,348,52,142,348,52,142,348]},
+{id:'miel',name:'Miel',bg:'#3c3320',grid:'#463a1e',env:'#a8821e',pv:3,snd:{w:'sine',m:.70},burst:[1,'b'],tier:4,lfx:'classic',
+tones:[44,44,44,44,44,44,44,44]},
+/* T5 */
+{id:'rubis',name:'Rubis',bg:'#42293e',grid:'#462a3e',env:'#a83a6a',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l'],tier:5,lfx:'classic',
+tones:[348,348,348,348,348,348,348,348]},
+{id:'rubis_vert',name:'Émeraude',bg:'#22392e',grid:'#2c4436',env:'#3f8a55',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l'],tier:5,srcTex:'rubis',lfx:'classic',
+tones:[142,142,142,142,142,142,142,142]},
+{id:'diamant',name:'Diamant',bg:'#2c2850',grid:'#332e58',env:'#5a6ae0',pv:2,snd:{w:'sine',m:1.30},burst:[2,'l'],tier:5,lfx:'classic',
+tones:[205,205,205,205,205,205,205,205]},
+{id:'or',name:'Or',bg:'#3a3117',grid:'#443a1c',env:'#a8861e',pv:2,snd:{w:'triangle',m:1.45},burst:[2,'l'],tier:5,lfx:'classic',
+tones:[46,46,46,46,46,46,46,46]},
+/* T6 */
+{id:'neon',name:'Néon',bg:'#171a33',grid:'#1e2240',env:'#2a2a6a',pv:3,snd:{w:'sawtooth',m:1.25},burst:[1,'b'],tier:6,lfx:'pulse',
+tones:[350,22,52,92,182,212,272,322]},
+{id:'robotique',name:'Robotique',bg:'#20242e',grid:'#282c38',env:'#4a5468',pv:3,snd:{w:'sawtooth',m:1.00},burst:[1,'b'],tier:6,lfx:'pulse',
+tones:[28,205,90,52,28,205,90,52]},
+{id:'galaxie',name:'Galaxie',bg:'#1b1b38',grid:'#22224a',env:'#443a8a',pv:3,snd:{w:'sine',m:1.35},burst:[2,'l'],tier:6,lfx:'pulse',
+tones:[258,258,258,258,258,258,258,258]}];
 const STYLE_TH=STYLES.map((_,i)=>i===0?0:Math.floor(3+Math.pow(i,1.45)));
 
 /* ---------- Recolorisation PAR PIXEL ---------- */
@@ -540,19 +562,23 @@ else if(key==='violet'){const h=hslOf(r,g,b);const o=rgbOf((h[0]+.3056)%1,h[1]*.
 px[i]=r>255?255:r;px[i+1]=g>255?255:g;px[i+2]=b>255?255:b}
 c.putImageData(d,0,0);
 return cv}
-function hueShiftTile(src,deg){
+/* v29 : recolorise vers une TEINTE exacte (hue cible en degrés),
+   en conservant saturation/luminosité relatifs, + adoucissement soft */
+function toneTile(src,hueDeg,soft){
 const cv=document.createElement('canvas');
 cv.width=src.width;cv.height=src.height;
 const c=cv.getContext('2d');c.drawImage(src,0,0);
 let d=null;
 try{d=c.getImageData(0,0,cv.width,cv.height)}catch(e){return cv}
-const px=d.data,sh=deg/360;
+const px=d.data,th=((hueDeg%360)+360)%360/360;
 for(let i=0;i<px.length;i+=4){
 if(px[i+3]===0)continue;
-const h=hslOf(px[i],px[i+1],px[i+2]);
-if(h[1]<.10)continue;
-const o=rgbOf(((h[0]+sh)%1+1)%1,h[1],h[2]);
-px[i]=o[0];px[i+1]=o[1];px[i+2]=o[2]}
+const r=px[i],g=px[i+1],b=px[i+2];
+const h=hslOf(r,g,b);
+if(h[1]<.12)continue; /* reflets blancs/gris préservés */
+let o=rgbOf(th,Math.max(h[1],.30),h[2]);
+if(soft){o=[o[0]+(255-o[0])*soft,o[1]+(255-o[1])*soft,o[2]+(255-o[2])*soft]}
+px[i]=Math.min(255,o[0]);px[i+1]=Math.min(255,o[1]);px[i+2]=Math.min(255,o[2])}
 c.putImageData(d,0,0);
 return cv}
 function avgHue(srcCv){
@@ -567,18 +593,16 @@ sx+=Math.cos(h[0]*6.283);sy+=Math.sin(h[0]*6.283);n++}
 if(!n)return 0;
 return (Math.atan2(sy,sx)/6.283+1)%1}
 
-/* ---------- Tuiles : chargement À LA DEMANDE + couleurs générées ---------- */
+/* ---------- Tuiles : chargement à la demande + TONES ---------- */
 const SUFFIXES=['red','orange','yellow','green','cyan','blue','purple','pink'];
 const tileCache={};
-function genMissing(stId,i,srcCv){
-const max=stId==='gel'?16:8;
-const ah=avgHue(srcCv);
-for(let j=0;j<max;j++){
-if(j===i)continue;
-if(tileCache[stId+'_'+j])continue;
-let deg=(HUE_T[j]-ah)*360;
-if(deg>180)deg-=360;if(deg<-180)deg+=360;
-tileCache[stId+'_'+j]=hueShiftTile(srcCv,deg)}}
+function genTones(st,srcCv){
+/* génère les 8 teintes du style depuis UNE texture source */
+for(let ci=0;ci<8;ci++){
+if(tileCache[st.id+'_'+ci])continue;
+const tone=st.tones?st.tones[ci]:null;
+if(tone!=null){
+tileCache[st.id+'_'+ci]=toneTile(srcCv,tone,st.soft||0)}}}
 function genPaletteTiles(st){
 const base=st.srcTex||'gel';
 for(let ci=0;ci<8;ci++){
@@ -595,7 +619,9 @@ const cv=document.createElement('canvas');
 cv.width=im.width;cv.height=im.height;
 cv.getContext('2d').drawImage(im,0,0);
 tileCache[key]=cv;
-genMissing(stId,SUFFIXES.indexOf(suf),cv);
+/* v29 : génère les teintes du style depuis chaque fichier chargé */
+const st=STYLES.find(s2=>s2.id===stId);
+if(st&&st.tones)genTones(st,cv);
 regenAllPalettes();renderTray(false);
 console.log('✔ chargé :',stId+'_'+suf)});
 im.addEventListener('error',()=>{});
@@ -711,7 +737,7 @@ let bigPop=null,thumbs=[];
 bestVal.textContent=best;
 ensureTiles(0);ensureTiles(styleIdxById(coll.current));
 
-/* ---------- Grille pré-remplie gravitationnelle (couleurs du style) ---------- */
+/* ---------- Grille pré-remplie gravitationnelle ---------- */
 function spawnPreset(){
 const ncol=STYLES[theme].duo16?16:8;
 const density=TUNE.presetMin+Math.random()*(TUNE.presetMax-TUNE.presetMin);
@@ -805,20 +831,21 @@ c.save();c.globalAlpha=.34;
 if(tile)c.drawImage(tile,0,0,tile.width,tile.height,x,y,s,s);
 else{c.fillStyle=COLORS[ci].b;c.fillRect(x,y,s,s)}
 c.restore()}
-/* v27 : cellules adaptées à la couleur de GRILLE du style */
 function drawEmpty(c,x,y,s){
 const gap=Math.max(1,s*.018),bx=x+gap,by=y+gap,bw=s-gap*2;
 c.save();
 c.fillStyle=mixHex(boardBG(),'#ffffff',.07);
 rr(c,bx,by,bw,bw,Math.max(1.5,bw*.045));c.fill();
 c.restore()}
-/* v27 : atmosphère (env) + grille (grid) fondus ensemble */
+/* v29 : lerp sur les id (from/to) pour fondus grid+env */
 function styleLerp(key){
 if(!themeTrans)return STYLES[theme][key];
 const kk=clamp((performance.now()-themeTrans.t0)/700,0,1);
 if(kk>=1){themeTrans=null;return STYLES[theme][key]}
 return mixHex(STYLES[themeTrans.from][key],STYLES[themeTrans.to][key],kk)}
-function colBodyTheme(){return styleLerp('env')}
+function colBodyTheme(){
+/* v29 : FOND = couleur du MILIEU du dégradé du relief → effet incrusté */
+return boardBG()}
 function boardBG(){return mixHex(styleLerp('grid'),'#000000',.12)}
 function updateBg(){glowEl.style.opacity=combo>=4?(.4+Math.min(combo,8)*.07):0}
 function flash(){flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go')}
@@ -836,7 +863,7 @@ gel_primaire:'#E85B4A',gel_pastel:'#F0A8D8',coussin:'#8C9EFF',bonbon:'#EE5BB0',
 pastille:'#3FC8EE',sculpted:'#9FB0C8',biscuit:'#D9A05B',bois:'#C98A4B',laine:'#7EC8E8',
 moelleux:'#9FB4F2',pierre:'#8C97A8',brique:'#C4574A',glace:'#7EE7FF',
 glace_violet:'#B48CFF',glace_beige:'#E8D5A8',ambre:'#FFB53D',pasteque:'#E8503A',
-miel:'#F5A623',rubis:'#E84A6F',diamant:'#8FE0FF',or:'#FFD23D',
+miel:'#F5A623',rubis:'#E84A6F',rubis_vert:'#4CC26F',diamant:'#8FE0FF',or:'#FFD23D',
 neon:'#3DF0C0',robotique:'#9AA8C0',galaxie:'#B48CFF'};
 function styleAcc(){return ACC[STYLES[theme].id]||'#5B8CFF'}
 function addThumb(x,y){
@@ -1228,7 +1255,7 @@ evilLeft=3;evilWarn=true;
 if(isNew){toast('🎁 Nouveau style : '+st.name+' !',4200);confetti();SFX.win()}
 else toast('Style : '+st.name+' ✓',3000)}
 
-/* ---------- Pioche visuelle (dead = texture grisée) ---------- */
+/* ---------- Pioche visuelle ---------- */
 function renderTray(anim){
 const dpr=window.devicePixelRatio||1,t=performance.now();
 tray.forEach((p,i)=>{const cv=slotCvs[i],c=cv.getContext('2d');
@@ -1275,7 +1302,6 @@ objPieces.textContent=lvl.maxPieces?('Pièces : '+Math.max(0,lvl.maxPieces-advPl
 function checkBest(){if(mode==='adv')return;
 if(score>best){best=score;store.set('bp_best',best);bestVal.textContent=best;
 if(!newRecordShown&&bestAtStart>0){newRecordShown=true;toast('Nouveau record !')}}}
-/* v28 : étincelles LENTES — déplacement ≤ 1/3 de bloc, respiration */
 function spawnParticles(x,y,ci){for(let k2=0;k2<3;k2++)particles.push({x,y,
 vx:(Math.random()-.5)*.030,vy:-(.008+Math.random()*.022),
 sz:cell*(.07+Math.random()*.09),
@@ -1313,7 +1339,6 @@ rows.forEach(r=>{for(let c=0;c<N;c++){const k2=r*N+c;if(!seen.has(k2)){seen.add(
 cols.forEach(c=>{for(let r=0;r<N;r++){const k2=r*N+c;if(!seen.has(k2)){seen.add(k2);cleared.push([r,c])}}});
 const t0=performance.now();let sx=0,sy=0;
 const stCur=STYLES[theme];
-/* v28 : sweeps — lumière qui traverse chaque ligne pendant la destruction */
 rows.forEach(r=>sweeps.push({t:'r',i:r,t0:t0}));
 cols.forEach(c=>sweeps.push({t:'c',i:c,t0:t0}));
 cleared.forEach((rc,idx)=>{const r=rc[0],c=rc[1],obj=grid[r][c];
@@ -1321,8 +1346,7 @@ clearFx.push({r,c,ci:obj.c,t0:t0+idx*16,st:theme});grid[r][c]=null;
 const px0=gx+c*cell+cell/2,py0=gy+r*cell+cell/2;
 spawnParticles(px0,py0,obj.c);
 styleBurst(px0,py0,obj.c);
-/* v28 : destruction = MINI-BLOCS de la texture (2x2 quartiers),
-   direction quelconque, montée légère puis chute hors écran */
+/* mini-blocs de texture qui volent (tous les styles) */
 const tile=tileCache[stCur.id+'_'+obj.c]||tileCache['gel_'+obj.c];
 if(tile){
 const q=tile.width/2;
@@ -1334,9 +1358,8 @@ rot:0,vr:(Math.random()-.5)*.10,
 img:tile,sx:qx?q:0,sy:qy?q:0,ss:q})}}
 if(obj.gem)collectGem(r,c);
 sx+=c;sy+=r});
-/* plafond de mini-blocs (perf) */
 let nb=0;
-particles=particles.filter(p=>{if(p.sh===3){nb++;return true}return true});
+particles.forEach(p=>{if(p.sh===3)nb++});
 if(nb>170){
 let toCut=nb-170;
 particles=particles.filter(p=>{if(p.sh===3&&toCut>0){toCut--;return false}return true})}
@@ -1360,7 +1383,6 @@ if(!playCustom('combo_'+stCur.id,.8))SFX.comboByStyle(combo,theme);
 showBanner(combo,lines,chain,1)}
 else if(lines>=2){
 setBigPop(praiseSegs(lines>=3?'Amazing!':'Great!',styleAcc()),null,1,900,cell*.8)}
-/* v28 : CHAQUE ligne = léger shake écran + vibration */
 shakeAmt=Math.max(shakeAmt,5);
 vib(14);
 flash();
@@ -1466,7 +1488,6 @@ state='ending';setTimeout(showGameOver,650)}else saveGame()}
 function applyPlace(i,r,c){
 const p=tray[i],now=performance.now();
 if(p.bomb){tray[i]=null;renderTray(false);bombExplode(r,c);return}
-/* analyse AVANT mutation (pouces emboîtage/trous) */
 const fitInfo=(p.si>=0)?analyzePiece(p.si):null;
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v)grid[r+dr][c+dc]={c:effColor(p.ci,dr,dc),t:now,fall:null}}));
@@ -1485,7 +1506,6 @@ tray[i]=null;renderTray(false);
 updateObjHUD();
 const fc=findFull(grid);
 const tot=fc.rows.length+fc.cols.length;
-/* v27/v28 : pouces UNIQUEMENT sur bons placements SANS ligne */
 if(tot===0&&fitInfo&&(fitInfo.fills>0||fitInfo.nest)){
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v)addThumb(boardRect.left+gx+(c+dc)*cell+cell/2,
@@ -1539,7 +1559,6 @@ updateBg();renderTray(false);resize();state='playing';toast('Partie restaurée')
 const OFFS=[[0,0],[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
 [0,2],[0,-2],[2,0],[-2,0],[1,2],[2,1],[-1,-2],[-2,-1],[1,-2],[-1,2],[2,-1],[-2,1],
 [2,2],[-2,-2],[2,-2],[-2,2]];
-/* v28 : couleurs de lumière possibles pour l'anim de ligne (tirage par pose) */
 const LIGHTCOLS=['#FFD23D','#7EE7FF','#FF8AD1','#96E85C','#C98FFF','#FFA53D','#7FA6FF','#FF7A9A'];
 function bestPlacement(px,py){
 if(!boardRect||!drag)return null;
@@ -1580,10 +1599,10 @@ else{hl2.push(...w.cells);
 w.rows.forEach(r=>hs2.push({t:'r',r:r}));
 w.cols.forEach(c=>hs2.push({t:'c',c:c}))}});
 ghost={r:pl.r,c:pl.c,hl,hl2,hs1,hs2};
-/* v28 : couleur de lumière aléatoire, fixée pour toute la pose */
+/* couleur de lumière aléatoire, fixée pour toute la pose */
 if(!drag.lh){
 drag.lh=LIGHTCOLS[Math.floor(Math.random()*LIGHTCOLS.length)];
-/* v28 : all-clear prévu ? simulation placement + vagues + gravité */
+/* all-clear prévu ? simulation pose + vagues + gravité */
 const g2=grid.map(row=>row.map(v=>v?1:0));
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v&&pl.r+dr<N&&pl.c+dc<N)g2[pl.r+dr][pl.c+dc]=1}));
@@ -1676,7 +1695,7 @@ fbctx.restore();
 if(t-lastDecoPart>320){lastDecoPart=t;
 particles.push({x:dx+(Math.random()-.5)*size,y:dy+size*.35,
 vx:(Math.random()-.5)*.026,vy:-(.010+Math.random()*.016),sz:cell*.08,
-col:Math.random()<.5?'#FFF3B0':'#ffffff',t0:t,life:600,sh:4,g:0,rot:0,vr:0})}}
+col:Math.random()<.5?'#FFF3B0':'#ffffff',t:t,life:600,sh:4,g:0,rot:0,vr:0})}}
 
 /* ---------- Score HUD (55px) ---------- */
 function drawScoreHUD(t){
@@ -1724,6 +1743,7 @@ bctx.fillRect(gx-cell,gy-cell,cell*N+cell*2,cell*N+cell*2)}
 /* ============================================================
    BOUCLE PRINCIPALE (blindée)
    ============================================================ */
+let _lastBg='';
 function frame(t){
 const dt=Math.min(50,t-lastT);lastT=t;const dts=dt/1000;
 const G=cell*95;let landed=false;
@@ -1768,12 +1788,16 @@ bctx.clearRect(0,0,cw,chh);
 bctx.save();
 if(shakeAmt>.4){bctx.translate((Math.random()-.5)*shakeAmt,(Math.random()-.5)*shakeAmt);shakeAmt*=.88}
 else shakeAmt=0;
-/* PLATEAU : relief = rectangle en DÉGRADÉ sans contour
-   (haut plus sombre que le fond env, bas un peu plus clair) */
-const envC=colBodyTheme();
+/* v29 : RELIEF INCRUSTÉ — dégradé sans contour :
+   haut plus sombre → MILIEU = couleur du fond → bas plus clair.
+   Le fond de page (bgFx) est synchronisé sur le milieu du dégradé. */
+const midC=boardBG();
+if(_lastBg!==midC){_lastBg=midC;
+bgFx.style.background=midC;bgFx.style.opacity=1}
 const gR=bctx.createLinearGradient(0,gy-10,0,gy+cell*N+10);
-gR.addColorStop(0,mixHex(envC,'#000000',.38));
-gR.addColorStop(1,mixHex(envC,'#000000',.12));
+gR.addColorStop(0,mixHex(midC,'#000000',.32));
+gR.addColorStop(.5,midC);
+gR.addColorStop(1,mixHex(midC,'#ffffff',.13));
 bctx.fillStyle=gR;
 rr(bctx,gx-10,gy-10,cell*N+20,cell*N+20,10);bctx.fill();
 const lastClear=clearFx.length?clearFx[clearFx.length-1].t0:0;
@@ -1837,7 +1861,7 @@ if(!o.fall&&age<300){
 const kk=1-age/300;
 bctx.fillStyle='rgba(255,255,255,'+(.32*kk)+')';
 rr(bctx,gx+c*cell+1,gy+r*cell+oy+1,cell-2,cell-2,cell*.06);bctx.fill()}}
-/* ombre du drag SUPPRIMÉE (v28) : ghost = texture seule */
+/* ghost = texture seule, SANS ombre */
 if(drag&&ghost&&state==='playing'){
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v)drawGhostCell(bctx,gx+(ghost.c+dc)*cell,gy+(ghost.r+dr)*cell,cell,effColor(drag.p.ci,dr,dc))}))}
@@ -1847,24 +1871,20 @@ if(v)drawGhostCell(bctx,gx+(ghost.c+dc)*cell,gy+(ghost.r+dr)*cell,cell,effColor(
 if(drag&&ghost&&ghost.hs1.length&&state==='playing'){
 const lfx=STYLES[theme].lfx||'classic';
 const lh=drag.lh||'#FFD23D';
-/* --- contour blanc fin autour de chaque ligne (commun) --- */
+/* fin contour blanc autour de chaque ligne (commun à tous les styles) */
 ghost.hs1.forEach(sh=>{
 bctx.strokeStyle='rgba(255,255,255,.85)';
 bctx.lineWidth=1.5;
 if(sh.t==='r')bctx.strokeRect(gx+.75,gy+sh.r*cell+.75,cell*N-1.5,cell-1.5);
 else bctx.strokeRect(gx+sh.c*cell+.75,gy+.75,cell-1.5,cell*N-1.5)});
-/* --- lumières intérieure + extérieure --- */
+/* lumière intérieure STEADY (bords → fondu vers le quart)
+   + halo extérieur 1/2 bloc — couleur aléatoire ou multicolore (all-clear) */
 ghost.hs1.forEach(sh=>{
-/* couleur : aléatoire (lh), ou MULTICOLORE si all-clear prévu */
 const per=(idx)=>drag.ac?COLORS[(idx*3+1)%COLORS.length].b:lh;
 if(sh.t==='r'){
 const y=gy+sh.r*cell;
 for(let c2=0;c2<N;c2++){
-const col=per(c2);
-const x0=gx+c2*cell;
-/* lumière intérieure STEADY : bords → fondu vers le quart milieu */
-const gT=bctx.createLinearGradient(0,y,0,y+cell*.375);
-gT.addColorStop(0,col+'');gT.addColorStop(0,'rgba(255,255,255,0)');
+const col=per(c2),x0=gx+c2*cell;
 const gA=bctx.createLinearGradient(0,y,0,y+cell*.375);
 gA.addColorStop(0,mixHex(col,'#ffffff',.5));
 gA.addColorStop(1,'rgba(255,255,255,0)');
@@ -1873,28 +1893,21 @@ const gB=bctx.createLinearGradient(0,y+cell,0,y+cell*.625);
 gB.addColorStop(0,mixHex(col,'#ffffff',.5));
 gB.addColorStop(1,'rgba(255,255,255,0)');
 bctx.fillStyle=gB;bctx.fillRect(x0,y+cell*.625,cell,cell*.375)}
-/* halo extérieur : 1/2 bloc vers l'extérieur, pulsation douce */
 const hp=.34+.14*Math.sin(t/240);
+bctx.globalAlpha=hp;
 const gU=bctx.createLinearGradient(0,y-cell*.5,0,y);
 gU.addColorStop(0,'rgba(255,255,255,0)');
-gU.addColorStop(1,mixHex(lh,'#ffffff',.2).replace(')',',')||lh);
-bctx.globalAlpha=hp;
-bctx.fillStyle=lh;bctx.globalAlpha=hp;
-bctx.save();
-const gU2=bctx.createLinearGradient(0,y-cell*.5,0,y);
-gU2.addColorStop(0,'rgba(255,255,255,0)');
-gU2.addColorStop(1,lh);
-bctx.fillStyle=gU2;bctx.fillRect(gx,y-cell*.5,cell*N,cell*.5);
-const gD2=bctx.createLinearGradient(0,y+cell+cell*.5,0,y+cell);
-gD2.addColorStop(0,'rgba(255,255,255,0)');
-gD2.addColorStop(1,lh);
-bctx.fillStyle=gD2;bctx.fillRect(gx,y+cell,cell*N,cell*.5);
-bctx.restore();bctx.globalAlpha=1}
+gU.addColorStop(1,lh);
+bctx.fillStyle=gU;bctx.fillRect(gx,y-cell*.5,cell*N,cell*.5);
+const gD=bctx.createLinearGradient(0,y+cell+cell*.5,0,y+cell);
+gD.addColorStop(0,'rgba(255,255,255,0)');
+gD.addColorStop(1,lh);
+bctx.fillStyle=gD;bctx.fillRect(gx,y+cell,cell*N,cell*.5);
+bctx.globalAlpha=1}
 else{
 const x=gx+sh.c*cell;
 for(let r2=0;r2<N;r2++){
-const col=per(r2);
-const y0=gy+r2*cell;
+const col=per(r2),y0=gy+r2*cell;
 const gA=bctx.createLinearGradient(x,0,x+cell*.375,0);
 gA.addColorStop(0,mixHex(col,'#ffffff',.5));
 gA.addColorStop(1,'rgba(255,255,255,0)');
@@ -1905,18 +1918,17 @@ gB.addColorStop(1,'rgba(255,255,255,0)');
 bctx.fillStyle=gB;bctx.fillRect(x+cell*.625,y0,cell*.375,cell)}
 const hp=.34+.14*Math.sin(t/240);
 bctx.globalAlpha=hp;
-const gL2=bctx.createLinearGradient(x-cell*.5,0,x,0);
-gL2.addColorStop(0,'rgba(255,255,255,0)');
-gL2.addColorStop(1,lh);
-bctx.fillStyle=gL2;bctx.fillRect(x-cell*.5,gy,cell*.5,cell*N);
+const gL=bctx.createLinearGradient(x-cell*.5,0,x,0);
+gL.addColorStop(0,'rgba(255,255,255,0)');
+gL.addColorStop(1,lh);
+bctx.fillStyle=gL;bctx.fillRect(x-cell*.5,gy,cell*.5,cell*N);
 const gR2=bctx.createLinearGradient(x+cell+cell*.5,0,x+cell,0);
 gR2.addColorStop(0,'rgba(255,255,255,0)');
 gR2.addColorStop(1,lh);
 bctx.fillStyle=gR2;bctx.fillRect(x+cell,gy,cell*.5,cell*N);
 bctx.globalAlpha=1}});
-/* --- variantes par style --- */
+/* variantes par style */
 if(lfx==='shimmer'){
-/* balayage lumineux le long de la ligne */
 ghost.hs1.forEach(sh=>{
 const pos=(t/700)%1;
 if(sh.t==='r'){
@@ -1936,14 +1948,12 @@ grad.addColorStop(1,'rgba(255,255,255,0)');
 bctx.fillStyle=grad;
 bctx.fillRect(gx+sh.c*cell,cy0,cell,cell*1.4)}})}
 else if(lfx==='pulse'){
-/* respiration d'ensemble */
 const pa=.10+.08*Math.sin(t/240);
 ghost.hs1.forEach(sh=>{
 bctx.fillStyle='rgba(255,255,255,'+pa+')';
 if(sh.t==='r')bctx.fillRect(gx,gy+sh.r*cell,cell*N,cell);
 else bctx.fillRect(gx+sh.c*cell,gy,cell,cell*N)})}
-/* --- v28 : ALL-CLEAR prévu → lumières multicolores +
-   lumière aller-retour le long de la ligne --- */
+/* ALL-CLEAR prévu → lumière aller-retour le long de la ligne */
 if(drag.ac){
 ghost.hs1.forEach(sh=>{
 const per=1100;
@@ -1964,7 +1974,7 @@ grad.addColorStop(.5,'rgba(255,255,255,.75)');
 grad.addColorStop(1,'rgba(255,255,255,0)');
 bctx.fillStyle=grad;
 bctx.fillRect(gx+sh.c*cell,py0,cell,cell*1.2)}})}}
-/* EXPLOSIONS PAR FAMILLE (les mats volent déjà en mini-blocs) */
+/* EXPLOSIONS PAR FAMILLE (les mini-blocs de texture volent déjà) */
 clearFx=clearFx.filter(fx=>{
 const age=t-fx.t0;if(age<0)return true;
 const x=gx+fx.c*cell,y=gy+fx.r*cell;
@@ -1988,12 +1998,11 @@ else if(id==='or'){bctx.save();bctx.globalAlpha=1-k;
 for(let i2=0;i2<3;i2++){bctx.fillStyle=i2%2?'#FFF3B0':'#FFD700';
 bctx.beginPath();bctx.arc(x+cell*(.2+i2*.3),y+cell*(.8-k*.9),cell*.06*(1-i2*.25),0,6.3);bctx.fill()}
 bctx.restore()}
-else if(id==='rubis'||id==='diamant'||id==='galaxie'){bctx.save();bctx.globalAlpha=1-k;
+else if(id==='rubis'||id==='rubis_vert'||id==='diamant'||id==='galaxie'){bctx.save();bctx.globalAlpha=1-k;
 bctx.strokeStyle='#ffffff';bctx.lineWidth=2;
 bctx.beginPath();bctx.moveTo(x+cell*(.2+k*.4),y+cell*.2);
 bctx.lineTo(x+cell*(.5-k*.3),y+cell*(.8-k*.2));bctx.stroke();bctx.restore()}
 else{
-/* pierre/bois/brique/sculpted/gel : fondu (les mini-blocs de texture volent) */
 drawBlock(bctx,x,y,cell,fx.ci,1-k,1-k*.85)}
 return true});
 /* PARTICULES : sh:3 = mini-blocs texture · sh:4 = étincelles · sh:2 = gemmes */
@@ -2003,12 +2012,12 @@ p.vy+=.0016*dt*(p.g==null?1:p.g);
 p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;
 bctx.save();
 if(p.sh===3&&p.img){
-/* v28 : quartier de TEXTURE qui monte puis tombe hors écran */
+/* mini-bloc de TEXTURE : monte puis tombe hors écran */
 bctx.globalAlpha=clamp(1.6-age/p.life,0,1);
 bctx.translate(p.x,p.y);bctx.rotate(p.rot);
 bctx.drawImage(p.img,p.sx,p.sy,p.ss,p.ss,-p.sz/2,-p.sz/2,p.sz,p.sz)}
 else if(p.sh===4){
-/* v28 : étincelle respirante — fondu+grossir puis fondu-rétrécir */
+/* étincelle respirante : fondu+grossir puis fondu-rétrécir */
 const kk=age/p.life;
 const breathe=Math.sin(kk*Math.PI);
 const s2=p.sz*(.55+.55*breathe);
@@ -2027,7 +2036,7 @@ bctx.beginPath();bctx.moveTo(0,-p.sz*.7);
 bctx.lineTo(p.sz*.6,p.sz*.5);bctx.lineTo(-p.sz*.6,p.sz*.5);bctx.closePath();bctx.fill()}
 else{rr(bctx,-p.sz/2,-p.sz/2,p.sz,p.sz,p.sz*.18);bctx.fill()}}
 bctx.restore();return true});
-/* v28 : SWEEPS — lumière qui traverse la ligne pendant sa destruction */
+/* SWEEPS — lumière qui traverse la ligne pendant sa destruction */
 sweeps=sweeps.filter(sw=>{
 const kk=(t-sw.t0)/380;
 if(kk>=1)return false;
