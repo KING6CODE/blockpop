@@ -271,6 +271,54 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 </div>
 
 <div id="toast"></div>
+<script>
+/* ================================================================
+   ADMOB — module natif (dormant sur le web, actif sur Android)
+   IDs de test Google en dev. Avant release : remplir les 3 champs
+   PROD ci-dessous + initializeForTesting:false
+   ================================================================ */
+const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const ADMOB_IDS = {
+  appId:     'ca-app-pub-3940256099942544~3347511713',   /* ← PROD ici */
+  interstit: 'ca-app-pub-3940256099942544/1033173712',   /* ← PROD ici */
+  rewarded:  'ca-app-pub-3940256099942544/5224354917'    /* ← PROD ici */
+};
+let admobReady=false, admobPlugin=null, lastRewardToken=null;
+
+async function admobInit(){
+  if(!IS_NATIVE||admobReady) return;
+  try{
+    const m = await import('/capacitor-modules/admob.js');
+    admobPlugin = m.Admob;
+    await admobPlugin.initialize({initializeForTesting:true});
+    admobReady=true;
+    console.log('✔ AdMob prêt');
+  }catch(e){ console.warn('AdMob indisponible (web ou plugin absent)', e); }
+}
+setTimeout(admobInit, 1000);
+
+/* Interstitiel au game over — callback appelé après fermeture/échec */
+async function showInterstitialAd(cb){
+  if(!IS_NATIVE||!admobReady){ if(cb)cb(); return; }
+  try{
+    await admobPlugin.prepareInterstitial({adId:{android:ADMOB_IDS.interstit}});
+    await admobPlugin.showInterstitial();
+  }catch(e){ console.warn('interstitial fail', e); }
+  finally{ if(cb)cb(); }
+}
+
+/* Rewarded pour le revive — cb(true) si récompense gagnée */
+async function showRewardedAd(cb){
+  if(!IS_NATIVE||!admobReady){ if(cb)cb(); return; }
+  try{
+    const m = await import('/capacitor-modules/admob.js');
+    m.Admob.addListener(m.RewardAdPluginEvents.Rewarded, (item)=>{ lastRewardToken=item; });
+    await m.Admob.prepareRewardVideoAd({adId:{android:ADMOB_IDS.rewarded}});
+    await m.Admob.showRewardVideoAd();
+    if(cb)cb(true);
+  }catch(e){ console.warn('rewarded fail', e); if(cb)cb(false); }
+}
+</script>
 <div id="fatalMsg"></div>
 <script>
 (function(){
@@ -2270,7 +2318,12 @@ function backToTitle(){state='title';mode='classic';lvl=null;turnId++;animating=
 setHudMode();ovLevels.classList.remove('show');
 refreshTitle();ovTitle.classList.add('show')}
 /* ---------- Revive ---------- */
-function fakeAd(){if(state!=='over')return;
+async function fakeAd(){if(state!=='over')return;
+if(IS_NATIVE&&admobReady){
+  showRewardedAd(ok=>{if(ok)doRevive();
+    else toast('Pub non terminée — pas de revive')});
+  return}
+/* Simulation navigateur */
 ovAd.classList.add('show');
 let n=3;$('adTxt').textContent='Publicité simulée… '+n;
 const iv=setInterval(()=>{n--;
@@ -2331,6 +2384,11 @@ const gap=bestAtStart-score;
 if(gap>0&&bestAtStart>0)statsTxt+='\n— À '+gap+' pts de battre ton record ! —';
  $('foStats').textContent=statsTxt;
  $('btnRevive').style.display=(!reviveUsed)?'block':'none';
+ $('foScore').textContent=score; /* rempli avant la pub */
+/* Interstitiel 1 fois sur 2 au game over classique */
+if(mode==='classic'&&Math.random()<.5){
+showInterstitialAd(()=>ovOver.classList.add('show'));
+return}
 ovOver.classList.add('show');
 let cur=0;
  $('foScore').textContent='0';
