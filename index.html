@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#4a55a8"/>
 <title>BLOCKPOP</title>
-<!-- v29 : HARMONIE DES COULEURS — le fond = couleur du MILIEU du dégradé du
-     relief (effet incrusté), env/grid révisés pour CHAQUE style (les blocs
-     ressortent), palettes réalistes par style (tones) : glace 4 teintes froides,
-     ambre/miel/rubis/diamant/or/pierre/brique/galaxie MONOCHROMES, pastille 2,
-     robotique 4 (orange/bleu/blanc/vert caca d'oie), pastèque 3, rubis vert
-     (nouveau style, réutilise la texture rubis), relief en dégradé sans contour -->
+<!-- v30 : couronne qui se REMPLIT à mesure qu'on approche du record,
+     gear/couronne/record agrandis, pioche spawn simultané en zoom rapide
+     + particules blanches, mini-blocs de destruction = couleur de la pièce
+     posée, tombent jusqu'au bas de l'écran, +1 par bloc posé qui volent
+     vers le score, sons de chute adoucis, pouces raréfiés, grille sans
+     écart bord/relief, glace rose (image 4) + variantes supprimées,
+     palettes réalistes (pastilles/biscuit/coussin/moelleux/robot/galaxie),
+     styles bruts (laine/ambre/miel/rubis/diamant/néon/or/émeraude) -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{--panel:rgba(255,255,255,.10);--panel2:rgba(255,255,255,.17);--line:rgba(255,255,255,.15);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
@@ -25,14 +27,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:80;bac
 @keyframes flashA{0%{opacity:1}100%{opacity:0}}
 #fxBack{position:fixed;inset:0;pointer-events:none;z-index:1}
 #app{position:relative;z-index:2;max-width:470px;height:100vh;height:100dvh;margin:0 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 14px calc(10px + env(safe-area-inset-bottom))}
-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:56px}
-.hside{width:96px;display:flex;flex-direction:column;align-items:center;gap:2px}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:60px}
+.hside{width:104px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .hside.right{align-items:flex-end}
-#bestWrap{display:flex;align-items:center;gap:5px;color:var(--gold);font-size:22px;font-weight:800;margin-top:4px;font-family:'Nunito Sans','Fredoka',sans-serif}
-#bestWrap svg{width:24px;height:24px;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
-#btnPause{background:none;border:none;padding:4px;margin-top:2px;cursor:pointer;line-height:0}
-#btnPause svg{width:34px;height:34px}
-#btnPause img{width:36px;height:36px}
+#bestWrap{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:24px;font-weight:800;margin-top:2px;font-family:'Nunito Sans','Fredoka',sans-serif}
+#bestWrap svg{width:30px;height:30px;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+#btnPause{background:none;border:none;padding:2px;margin-top:0;cursor:pointer;line-height:0}
+#btnPause svg{width:40px;height:40px}
+#btnPause img{width:44px;height:44px}
 #score{display:none}
 .score-wrap{text-align:center;line-height:1;flex:1;position:relative;z-index:110;min-height:12px}
 #objBar{display:none;align-items:center;gap:8px;padding:8px 10px 0}
@@ -48,10 +50,12 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .slot{flex:1;height:120px;display:grid;place-items:center;touch-action:none;background:transparent;border:none;box-shadow:none}
 .slot canvas{cursor:grab;touch-action:none}
 .slot.dead canvas{opacity:.9}
-.slot.spawn{animation:slotIn .4s cubic-bezier(.34,1.56,.64,1) backwards}
-@keyframes slotIn{from{opacity:0;transform:translateY(18px) scale(.6)}}
+.slot.spawn{animation:slotIn .26s cubic-bezier(.34,1.56,.64,1) backwards}
+@keyframes slotIn{from{opacity:0;transform:scale(.45)}}
 #dragLayer{position:fixed;left:0;top:0;display:none;pointer-events:none;z-index:50}
 #fxLayer{position:fixed;inset:0;pointer-events:none;z-index:60}
+.tp{position:fixed;width:4px;height:4px;border-radius:2px;background:#fff;box-shadow:0 0 4px #fff;z-index:65;pointer-events:none;animation:tpPop .38s ease-out forwards}
+@keyframes tpPop{from{opacity:.9;transform:scale(.5)}to{opacity:0;transform:scale(1.5) translateY(-9px)}}
 .overlay{position:fixed;inset:0;z-index:100;background:rgba(24,29,66,.74);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:grid;place-items:center;padding:18px;opacity:0;pointer-events:none;transition:opacity .3s}
 .overlay.show{opacity:1;pointer-events:auto}
 .panel{width:min(100%,352px);max-height:calc(100dvh - 36px);overflow:auto;background:#2b3157;border:1px solid rgba(255,255,255,.10);border-radius:26px;padding:26px 22px;text-align:center;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 20px 50px rgba(0,0,0,.35)}
@@ -75,7 +79,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .tbest b{color:var(--gold);font-weight:600}
 .fo-title{font-size:22px;font-weight:600;margin-bottom:6px}
 .fo-score{font-size:56px;font-weight:700;line-height:1.1;font-family:'Nunito Sans',sans-serif}
-.fo-crown{display:block;width:44px;height:44px;margin:0 auto 2px;fill:var(--gold);filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.fo-crown{display:block;width:50px;height:50px;margin:0 auto 2px;fill:var(--gold);filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
 .fo-badge{display:none;margin:8px auto 2px;width:max-content;background:var(--gold);color:#141420;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:99px;animation:bump .5s ease infinite}
 .fo-badge.on{display:block}
 .fo-best{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--gold);font-weight:600;font-size:15px;margin-top:8px}
@@ -110,7 +114,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
   <header>
     <div class="hside">
       <div id="bestWrap">
-        <svg viewBox="0 0 24 24"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+        <svg viewBox="0 0 24 24"><defs><clipPath id="crownClip"><rect id="crownFill" x="0" y="0" width="0" height="24"/></clipPath></defs><path fill="rgba(255,255,255,.22)" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/><path fill="currentColor" clip-path="url(#crownClip)" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
         <span id="bestVal">0</span>
       </div>
     </div>
@@ -281,15 +285,16 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 var k = 0; /* filet anti-crash boucle legacy */
 
 /* ================================================================
-   BLOCKPOP v29 — HARMONIE DES COULEURS
-   - Fond = couleur du MILIEU du dégradé du relief → effet incrusté
-   - env/grid révisés pour chaque style (les blocs ressortent)
-   - tones par style : glace (rosée/beige/bleu clair/violet clair),
-     ambre·miel·rubis·diamant·or·pierre·brique·galaxie = MONOCHROME,
-     pastille 2 couleurs, robotique 4 (orange/bleu/blanc/vert caca d'oie),
-     pastèque 3, biscuit 2 — NOUVEAU : Rubis vert (texture rubis)
-   - toneTile : la texture est recolorisée vers des TEINTES FIXÉES
-     (indépendant de la couleur du fichier source)
+   BLOCKPOP v30
+   - Couronne du record qui se REMPLIT progressivement (clip-path)
+   - Styles révisés d'après les captures BB :
+     pastilles = rouge/beige + fond bleu nuit, biscuit = 4 couleurs +
+     fond marron, coussin adouci, moelleux = orange-beige + autre fond,
+     glace = ROSE (sans variantes), robotique = orange/bleu/blanc/vert,
+     galaxie = purple + teinte avant, laine/ambre/miel/rubis/émeraude/
+     diamant/néon/or = texture BRUTE (0 teinte)
+   - Sons de chute : UN seul son par rafale, volume selon le nombre
+   - Pouces : rares (uniquement vraie aide, proba réduite)
    ================================================================ */
 
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70,
@@ -332,7 +337,8 @@ s.connect(f).connect(g).connect(this.ctx.destination);s.start()}catch(e){}},
 pick(){this.tone(340,.07,'triangle',.12,480)},
 place(){this.noise(.05,.2);this.tone(150,.1,'sine',.3,90)},
 bad(){this.tone(120,.15,'sawtooth',.06,80)},
-land(){if(!playCustom('land',.6))this.tone(110,.08,'sine',.2,65)},
+/* v30 : chute adoucie — volume selon le nombre de blocs tombés en rafale */
+land(n){if(!playCustom('land',.5))this.tone(110,.08,'sine',.10+Math.min(n,8)*.018,65)},
 smash(){this.noise(.09,.3);this.tone(200,.14,'square',.14,55)},
 boom(){this.noise(.25,.45);this.tone(80,.35,'sine',.4,40);this.tone(400,.2,'sawtooth',.1,60)},
 up(){this.tone(220,.18,'triangle',.12,440)},
@@ -357,8 +363,6 @@ return true}
 
 /* ---------- Constantes ---------- */
 const N=8,STAR_GOALS=[20000,60000,140000];
-/* 16 couleurs : le gel garde la gamme complète, les autres styles en
-   sous-ensembles via tones */
 const COLORS=[
 {l:'#FF9D8A',b:'#E85B4A',d:'#B03326'},
 {l:'#FFB85C',b:'#F08A1D',d:'#C4680C'},
@@ -457,7 +461,7 @@ c.save();c.translate(cx+csz*.30,cy+csz*.26);c.rotate(-.5);
 c.fillStyle='rgba(255,255,255,.40)';rr(c,-csz*.16,-csz*.055,csz*.32,csz*.11,csz*.055);c.fill();c.restore();
 c.restore()}
 
-/* ---------- Recettes de teintes ---------- */
+/* ---------- Recettes ---------- */
 const FILT={pastel:'pastel',terne:'terne',blanc:'blanc',menthe:'menthe',beige:'beige',violet:'violet'};
 const rec=(s,f)=>({s:s,f:f||''});
 const PAL={
@@ -473,11 +477,9 @@ rec(5,FILT.terne),rec(2,FILT.terne),rec(3,FILT.terne),rec(0,FILT.terne)],
 PRIMAIRE:[rec(2),rec(2,FILT.blanc),rec(5),rec(0),rec(2),rec(2,FILT.blanc),rec(5),rec(0)],
 PASTEL:[0,1,2,3,4,5,6,7].map(i=>rec(i,FILT.pastel))};
 
-/* ---------- Styles : grid + env + tones (TEINTES réalistes par style) ----------
-   tones : liste de TEINTES (hue en degrés) — la texture source est recolorisée
-   vers ces teintes exactes, indépendamment de sa couleur d'origine.
-   env  : couleur du MILIEU du dégradé du relief = couleur du FOND (incrusté)
-   grid : couleur du plateau (les blocs ressortent dessus)                */
+/* ---------- Styles v30 — env + grid + tones d'après tes captures BB ----------
+   tones : teintes exactes (°). null → texture BRUTE (aucune recolorisation)
+   env/grid : atmosphère + plateau (fond page = grid → effet incrusté)   */
 const STYLES=[
 {id:'gel',name:'Gel',bg:'#262b47',grid:'#31365a',env:'#4a55a8',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:0,pal:PAL.CLASSIC16,duo16:true,lfx:'classic'},
 {id:'gel_bleu',name:'Gel bleu',bg:'#232b52',grid:'#9aa8d8',env:'#3a4472',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.BLEU,lfx:'classic'},
@@ -489,55 +491,52 @@ const STYLES=[
 {id:'gel_terne',name:'Gel terne',bg:'#2c3040',grid:'#3a3f52',env:'#505670',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.TERNE,pos:[5,2,3,0],lfx:'classic'},
 {id:'gel_primaire',name:'Gel primaire',bg:'#313548',grid:'#3a3d52',env:'#5a5068',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.PRIMAIRE,pos:[2,1,5,0],lfx:'classic'},
 {id:'gel_pastel',name:'Gel pastel',bg:'#2e3350',grid:'#3e4266',env:'#5a6090',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.PASTEL,lfx:'classic'},
-/* T2 — tones réalistes */
-{id:'coussin',name:'Coussin',bg:'#2a2e4e',grid:'#333860',env:'#4a55a8',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:2,lfx:'beat',
-tones:[16,32,120,208,268,328,0,36]},
-{id:'bonbon',name:'Bonbon',bg:'#3a2a50',grid:'#422f58',env:'#7a4a9a',pv:0,snd:{w:'square',m:1.10},burst:[1,'l'],tier:2,lfx:'shimmer',
-tones:[350,22,52,92,182,212,272,322]},
-{id:'pastille',name:'Pastille',bg:'#28304a',grid:'#2c3852',env:'#3a6a9a',pv:0,snd:{w:'sine',m:1.05},burst:[1,'l'],tier:2,lfx:'shimmer',
-tones:[188,328,188,328,188,328,188,328]},
+/* Coussin : teintes douces non flashy (sable, terracotta, sauge, brume) */
+{id:'coussin',name:'Coussin',bg:'#3a3640',grid:'#4a4550',env:'#6a6270',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:2,lfx:'beat',
+tones:[36,14,96,205,36,14,96,205]},
+/* Bonbon : 3 teintes orange + texture de base (0 = telle quelle) */
+{id:'bonbon',name:'Bonbon',bg:'#3a2c22',grid:'#42342a',env:'#8a5a34',pv:0,snd:{w:'square',m:1.10},burst:[1,'l'],tier:2,lfx:'shimmer',
+tones:[null,26,14,null,26,14,null,26]},
+/* Pastilles : rouge/beige (image 2) + fond bleu nuit */
+{id:'pastille',name:'Pastille',bg:'#2c3350',grid:'#36406080',env:'#4a55a8',pv:0,snd:{w:'sine',m:1.05},burst:[1,'l'],tier:2,lfx:'shimmer',
+tones:[354,40,354,40,354,40,354,40]},
+/* Biscuit : jaune/bleu/rouge/vert (image 3) + fond marron */
+{id:'biscuit',name:'Biscuit',bg:'#3c2f1e',grid:'#4a3a24',env:'#9a7440',pv:0,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:2,lfx:'shake',
+tones:[44,198,2,346,44,198,2,346]},
 {id:'sculpted',name:'Sculpté',bg:'#2c3144',grid:'#31364a',env:'#4a5570',pv:1,snd:{w:'sine',m:.60},burst:[0,'d'],tier:2,lfx:'shake',
 tones:[350,22,52,92,182,212,272,322]},
-{id:'biscuit',name:'Biscuit',bg:'#3a3226',grid:'#42392a',env:'#8a7444',pv:0,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:2,lfx:'shake',
-tones:[38,50,30,58,44,12,64,26]},
-/* T3 */
+/* Bois : teintes bois */
 {id:'bois',name:'Bois',bg:'#362a1e',grid:'#3e3022',env:'#8a6a3a',pv:1,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:3,lfx:'shake',
 tones:[16,34,28,42,8,54,38,24]},
-{id:'laine',name:'Laine',bg:'#2b3a4a',grid:'#2e4256',env:'#4a7a9a',pv:2,snd:{w:'sine',m:.80},burst:[0,'b'],tier:3,lfx:'beat',
-tones:[350,22,52,92,182,212,272,322]},
-{id:'moelleux',name:'Moelleux',bg:'#31344f',grid:'#343a58',env:'#5a6aa8',pv:2,snd:{w:'sine',m:.75},burst:[0,'b'],tier:3,lfx:'beat',
-tones:[350,22,52,92,182,212,272,322]},
+/* Laine : texture BRUTE */
+{id:'laine',name:'Laine',bg:'#2b3a4a',grid:'#2e4256',env:'#4a7a9a',pv:2,snd:{w:'sine',m:.80},burst:[0,'b'],tier:3,lfx:'beat',tones:null},
+/* Moelleux : orange-beige uniquement + fond différent */
+{id:'moelleux',name:'Moelleux',bg:'#4a3a2c',grid:'#54422f',env:'#b08a4a',pv:2,snd:{w:'sine',m:.75},burst:[0,'b'],tier:3,lfx:'beat',
+tones:[34,34,34,34,34,34,34,34],soft:.10},
 {id:'pierre',name:'Pierre',bg:'#27303c',grid:'#2c343e',env:'#4a5a68',pv:1,snd:{w:'sine',m:.55},burst:[0,'d'],tier:3,lfx:'shake',
 tones:[212,212,212,212,212,212,212,212]},
 {id:'brique',name:'Brique',bg:'#3c2a26',grid:'#443028',env:'#9a5a42',pv:1,snd:{w:'square',m:.60},burst:[0,'d'],tier:3,lfx:'shake',
 tones:[12,12,12,12,12,12,12,12]},
-/* T4 — glace : SEULEMENT teintes froides douces (rosée/beige/bleu clair/violet clair) */
-{id:'glace',name:'Glace',bg:'#3d5566',grid:'#a8c8d8',env:'#6a94a8',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,lfx:'classic',
-tones:[190,44,262,205,190,44,262,205],soft:.16},
-{id:'glace_violet',name:'Glace violette',bg:'#3a3550',grid:'#8a9ac8',env:'#5a5a8a',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,srcTex:'glace',lfx:'classic',
-tones:[262,225,190,44,262,225,190,44],soft:.16},
-{id:'glace_beige',name:'Glace beige',bg:'#4a463a',grid:'#9a94a8',env:'#7a7460',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,srcTex:'glace',lfx:'classic',
-tones:[44,190,262,205,44,190,262,205],soft:.16},
-{id:'ambre',name:'Ambre',bg:'#3a2f1c',grid:'#4a3c20',env:'#a87820',pv:3,snd:{w:'sine',m:.72},burst:[1,'b'],tier:4,lfx:'classic',
-tones:[40,40,40,40,40,40,40,40]},
+/* GLACE ROSE (image 4) : grille rose + env rose — plus de variantes */
+{id:'glace',name:'Glace',bg:'#5a3a48',grid:'#c890b0',env:'#b47898',pv:2,snd:{w:'sine',m:1.20},burst:[2,'l'],tier:4,lfx:'classic',
+tones:[330,338,346,320,330,338,346,320],soft:.22},
+{id:'ambre',name:'Ambre',bg:'#3a2f1c',grid:'#4a3c20',env:'#a87820',pv:3,snd:{w:'sine',m:.72},burst:[1,'b'],tier:4,lfx:'classic',tones:null},
 {id:'pasteque',name:'Pastèque',bg:'#22392c',grid:'#2c4432',env:'#3f8a4a',pv:0,snd:{w:'triangle',m:1.10},burst:[1,'l'],tier:4,lfx:'shimmer',
 tones:[142,348,52,142,348,52,142,348]},
-{id:'miel',name:'Miel',bg:'#3c3320',grid:'#463a1e',env:'#a8821e',pv:3,snd:{w:'sine',m:.70},burst:[1,'b'],tier:4,lfx:'classic',
-tones:[44,44,44,44,44,44,44,44]},
+/* Miel : texture BRUTE */
+{id:'miel',name:'Miel',bg:'#3c3320',grid:'#463a1e',env:'#a8821e',pv:3,snd:{w:'sine',m:.70},burst:[1,'b'],tier:4,lfx:'classic',tones:null},
 /* T5 */
-{id:'rubis',name:'Rubis',bg:'#42293e',grid:'#462a3e',env:'#a83a6a',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l'],tier:5,lfx:'classic',
-tones:[348,348,348,348,348,348,348,348]},
-{id:'rubis_vert',name:'Émeraude',bg:'#22392e',grid:'#2c4436',env:'#3f8a55',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l'],tier:5,srcTex:'rubis',lfx:'classic',
-tones:[142,142,142,142,142,142,142,142]},
-{id:'diamant',name:'Diamant',bg:'#2c2850',grid:'#332e58',env:'#5a6ae0',pv:2,snd:{w:'sine',m:1.30},burst:[2,'l'],tier:5,lfx:'classic',
-tones:[205,205,205,205,205,205,205,205]},
-{id:'or',name:'Or',bg:'#3a3117',grid:'#443a1c',env:'#a8861e',pv:2,snd:{w:'triangle',m:1.45},burst:[2,'l'],tier:5,lfx:'classic',
-tones:[46,46,46,46,46,46,46,46]},
+{id:'rubis',name:'Rubis',bg:'#42293e',grid:'#462a3e',env:'#a83a6a',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l'],tier:5,lfx:'classic',tones:null},
+/* Émeraude : texture BRUTE du fichier rubis vert */
+{id:'rubis_vert',name:'Émeraude',bg:'#22392e',grid:'#2c4436',env:'#3f8a55',pv:1,snd:{w:'sine',m:1.60},burst:[2,'l'],tier:5,srcTex:'rubis_vert',lfx:'classic',tones:null},
+{id:'diamant',name:'Diamant',bg:'#2c2850',grid:'#332e58',env:'#5a6ae0',pv:2,snd:{w:'sine',m:1.30},burst:[2,'l'],tier:5,lfx:'classic',tones:null},
+{id:'or',name:'Or',bg:'#3a3117',grid:'#443a1c',env:'#a8861e',pv:2,snd:{w:'triangle',m:1.45},burst:[2,'l'],tier:5,lfx:'classic',tones:null},
 /* T6 */
-{id:'neon',name:'Néon',bg:'#171a33',grid:'#1e2240',env:'#2a2a6a',pv:3,snd:{w:'sawtooth',m:1.25},burst:[1,'b'],tier:6,lfx:'pulse',
-tones:[350,22,52,92,182,212,272,322]},
-{id:'robotique',name:'Robotique',bg:'#20242e',grid:'#282c38',env:'#4a5468',pv:3,snd:{w:'sawtooth',m:1.00},burst:[1,'b'],tier:6,lfx:'pulse',
-tones:[28,205,90,52,28,205,90,52]},
+{id:'neon',name:'Néon',bg:'#171a33',grid:'#1e2240',env:'#2a2a6a',pv:3,snd:{w:'sawtooth',m:1.25},burst:[1,'b'],tier:6,lfx:'pulse',tones:null},
+/* Robotique (image 5) : orange/bleu/blanc/vert + fond sombre */
+{id:'robotique',name:'Robotique',bg:'#1c2028',grid:'#242a36',env:'#3a4454',pv:3,snd:{w:'sawtooth',m:1.00},burst:[1,'b'],tier:6,lfx:'pulse',
+tones:[26,205,90,0,26,205,90,0]},
+/* Galaxie : texture de base + la teinte violette d'avant */
 {id:'galaxie',name:'Galaxie',bg:'#1b1b38',grid:'#22224a',env:'#443a8a',pv:3,snd:{w:'sine',m:1.35},burst:[2,'l'],tier:6,lfx:'pulse',
 tones:[258,258,258,258,258,258,258,258]}];
 const STYLE_TH=STYLES.map((_,i)=>i===0?0:Math.floor(3+Math.pow(i,1.45)));
@@ -562,8 +561,7 @@ else if(key==='violet'){const h=hslOf(r,g,b);const o=rgbOf((h[0]+.3056)%1,h[1]*.
 px[i]=r>255?255:r;px[i+1]=g>255?255:g;px[i+2]=b>255?255:b}
 c.putImageData(d,0,0);
 return cv}
-/* v29 : recolorise vers une TEINTE exacte (hue cible en degrés),
-   en conservant saturation/luminosité relatifs, + adoucissement soft */
+/* recolorise vers une TEINTE exacte + adoucissement optionnel */
 function toneTile(src,hueDeg,soft){
 const cv=document.createElement('canvas');
 cv.width=src.width;cv.height=src.height;
@@ -575,7 +573,7 @@ for(let i=0;i<px.length;i+=4){
 if(px[i+3]===0)continue;
 const r=px[i],g=px[i+1],b=px[i+2];
 const h=hslOf(r,g,b);
-if(h[1]<.12)continue; /* reflets blancs/gris préservés */
+if(h[1]<.12)continue;
 let o=rgbOf(th,Math.max(h[1],.30),h[2]);
 if(soft){o=[o[0]+(255-o[0])*soft,o[1]+(255-o[1])*soft,o[2]+(255-o[2])*soft]}
 px[i]=Math.min(255,o[0]);px[i+1]=Math.min(255,o[1]);px[i+2]=Math.min(255,o[2])}
@@ -593,16 +591,21 @@ sx+=Math.cos(h[0]*6.283);sy+=Math.sin(h[0]*6.283);n++}
 if(!n)return 0;
 return (Math.atan2(sy,sx)/6.283+1)%1}
 
-/* ---------- Tuiles : chargement à la demande + TONES ---------- */
+/* ---------- Tuiles : chargement à la demande + tones ---------- */
 const SUFFIXES=['red','orange','yellow','green','cyan','blue','purple','pink'];
 const tileCache={};
 function genTones(st,srcCv){
-/* génère les 8 teintes du style depuis UNE texture source */
 for(let ci=0;ci<8;ci++){
 if(tileCache[st.id+'_'+ci])continue;
 const tone=st.tones?st.tones[ci]:null;
-if(tone!=null){
-tileCache[st.id+'_'+ci]=toneTile(srcCv,tone,st.soft||0)}}}
+if(tone===null){
+/* texture brute : copie la source telle quelle si pas encore chargée */
+if(!tileCache[st.id+'_'+ci]){
+const cv=document.createElement('canvas');
+cv.width=srcCv.width;cv.height=srcCv.height;
+cv.getContext('2d').drawImage(srcCv,0,0);
+tileCache[st.id+'_'+ci]=cv}}
+else tileCache[st.id+'_'+ci]=toneTile(srcCv,tone,st.soft||0)}}
 function genPaletteTiles(st){
 const base=st.srcTex||'gel';
 for(let ci=0;ci<8;ci++){
@@ -619,7 +622,6 @@ const cv=document.createElement('canvas');
 cv.width=im.width;cv.height=im.height;
 cv.getContext('2d').drawImage(im,0,0);
 tileCache[key]=cv;
-/* v29 : génère les teintes du style depuis chaque fichier chargé */
 const st=STYLES.find(s2=>s2.id===stId);
 if(st&&st.tones)genTones(st,cv);
 regenAllPalettes();renderTray(false);
@@ -727,14 +729,23 @@ let theme=0,styleLevel=0,themeOrder=Array.from({length:STYLES.length},(_,i)=>i);
 let cell=40,mini=16,gx=0,gy=0,cw=0,chh=0;
 let drag=null,ghost=null,boardRect=null;
 let particles=[],floats=[],flyScores=[],clearFx=[],shakeAmt=0;
+let plusOnes=[];
 let gainFx=[],clearBonusAcc=0,evilWarn=false;
 let sweeps=[];
-let lastT=performance.now(),toastTimer=null,lastLand=0,lastPrevPart=0;
+let lastT=performance.now(),toastTimer=null,lastLand=0,lastLandCount=0,lastPrevPart=0;
 let lastDecoPart=0,diamondPump=0,scorePulseT=0;
 let noClearStreak=0;
 let evilLeft=0,themeTrans=null;
 let bigPop=null,thumbs=[];
 bestVal.textContent=best;
+/* v30 : couronne progressive */
+function updateCrown(){
+const fill=$('crownFill');
+if(!fill)return;
+let pr=0;
+if(best>0&&bestAtStart>0)pr=clamp(score/best,0,1);
+else if(best>0)pr=clamp(score/best,0,1);
+fill.setAttribute('width',(pr*24).toFixed(2))}
 ensureTiles(0);ensureTiles(styleIdxById(coll.current));
 
 /* ---------- Grille pré-remplie gravitationnelle ---------- */
@@ -843,9 +854,7 @@ if(!themeTrans)return STYLES[theme][key];
 const kk=clamp((performance.now()-themeTrans.t0)/700,0,1);
 if(kk>=1){themeTrans=null;return STYLES[theme][key]}
 return mixHex(STYLES[themeTrans.from][key],STYLES[themeTrans.to][key],kk)}
-function colBodyTheme(){
-/* v29 : FOND = couleur du MILIEU du dégradé du relief → effet incrusté */
-return boardBG()}
+function colBodyTheme(){return boardBG()}
 function boardBG(){return mixHex(styleLerp('grid'),'#000000',.12)}
 function updateBg(){glowEl.style.opacity=combo>=4?(.4+Math.min(combo,8)*.07):0}
 function flash(){flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go')}
@@ -859,15 +868,17 @@ return ci}
 /* ---------- EFFETS : textes BB relief 3D + pouces ---------- */
 const ACC={gel:'#5B8CFF',gel_bleu:'#4A7DE8',gel_vert:'#4CC22E',gel_azur:'#3FC8EE',
 gel_jaune:'#F5C11E',gel_menthe:'#57D9A3',gel_duo:'#F08A1D',gel_terne:'#8A93B8',
-gel_primaire:'#E85B4A',gel_pastel:'#F0A8D8',coussin:'#8C9EFF',bonbon:'#EE5BB0',
-pastille:'#3FC8EE',sculpted:'#9FB0C8',biscuit:'#D9A05B',bois:'#C98A4B',laine:'#7EC8E8',
-moelleux:'#9FB4F2',pierre:'#8C97A8',brique:'#C4574A',glace:'#7EE7FF',
-glace_violet:'#B48CFF',glace_beige:'#E8D5A8',ambre:'#FFB53D',pasteque:'#E8503A',
-miel:'#F5A623',rubis:'#E84A6F',rubis_vert:'#4CC26F',diamant:'#8FE0FF',or:'#FFD23D',
+gel_primaire:'#E85B4A',gel_pastel:'#F0A8D8',coussin:'#C8A88A',bonbon:'#EE9B5B',
+pastille:'#E88080',sculpted:'#9FB0C8',biscuit:'#D9A05B',bois:'#C98A4B',laine:'#7EC8E8',
+moelleux:'#E8B878',pierre:'#8C97A8',brique:'#C4574A',glace:'#F0B8D8',
+ambre:'#FFB53D',pasteque:'#E8503A',miel:'#F5A623',rubis:'#E84A6F',
+rubis_vert:'#4CC26F',diamant:'#8FE0FF',or:'#FFD23D',
 neon:'#3DF0C0',robotique:'#9AA8C0',galaxie:'#B48CFF'};
 function styleAcc(){return ACC[STYLES[theme].id]||'#5B8CFF'}
+/* v30 : pouces RARES */
 function addThumb(x,y){
 if(thumbs.length>=12)thumbs.shift();
+if(Math.random()>.55)return; /* 45 % de chance seulement */
 thumbs.push({x:x,y:y,t0:performance.now(),life:900})}
 function drawFancyText(c,segs,cx,cy,size,alpha,scale){
 alpha=alpha==null?1:alpha;scale=scale||1;
@@ -1255,7 +1266,7 @@ evilLeft=3;evilWarn=true;
 if(isNew){toast('🎁 Nouveau style : '+st.name+' !',4200);confetti();SFX.win()}
 else toast('Style : '+st.name+' ✓',3000)}
 
-/* ---------- Pioche visuelle ---------- */
+/* ---------- Pioche visuelle (dead = texture grisée) ---------- */
 function renderTray(anim){
 const dpr=window.devicePixelRatio||1,t=performance.now();
 tray.forEach((p,i)=>{const cv=slotCvs[i],c=cv.getContext('2d');
@@ -1277,7 +1288,15 @@ if(p.dead){c.fillStyle='rgba(92,96,116,.60)';
 c.fillRect(ox+dc*mini,oy+dr*mini,mini,mini)}}}))}
 slotEls[i].classList.toggle('dead',!!(p&&p.dead&&!p.bomb));
 if(anim&&p){const el=slotEls[i];el.classList.remove('spawn');void el.offsetWidth;
-el.style.animationDelay=(i*70)+'ms';el.classList.add('spawn')}})}
+/* v30 : apparition SIMULTANÉE (pas de délai par slot) */
+el.style.animationDelay='0ms';el.classList.add('spawn');
+/* v30 : particules blanches autour de la pièce */
+const rect=el.getBoundingClientRect();
+for(let k2=0;k2<5;k2++){
+const tp=document.createElement('i');tp.className='tp';
+tp.style.left=(rect.left+Math.random()*rect.width)+'px';
+tp.style.top=(rect.top+Math.random()*rect.height)+'px';
+document.body.appendChild(tp);setTimeout(()=>tp.remove(),420)}}})}
 
 /* ---------- Lignes / HUD ---------- */
 function findFull(g){const rows=[],cols=[];
@@ -1301,7 +1320,8 @@ objTxt.textContent=txt;objFill.style.width=clamp(pct*100,0,100)+'%';
 objPieces.textContent=lvl.maxPieces?('Pièces : '+Math.max(0,lvl.maxPieces-advPlaced)):''}
 function checkBest(){if(mode==='adv')return;
 if(score>best){best=score;store.set('bp_best',best);bestVal.textContent=best;
-if(!newRecordShown&&bestAtStart>0){newRecordShown=true;toast('Nouveau record !')}}}
+if(!newRecordShown&&bestAtStart>0){newRecordShown=true;toast('Nouveau record !')}}
+updateCrown()}
 function spawnParticles(x,y,ci){for(let k2=0;k2<3;k2++)particles.push({x,y,
 vx:(Math.random()-.5)*.030,vy:-(.008+Math.random()*.022),
 sz:cell*(.07+Math.random()*.09),
@@ -1312,6 +1332,13 @@ for(let i=0;i<4;i++)particles.push({x,y,
 vx:(Math.random()-.5)*.036,vy:-(.010+Math.random()*.026),
 sz:cell*(.07+Math.random()*.10),
 col:col[ck],t0:performance.now(),life:560+Math.random()*260,sh:4,g:0,rot:(Math.random()-.5)*.6,vr:(Math.random()-.5)*.0005})}
+/* v30 : +1 par bloc posé → volent vers le score, mini-flash à l'arrivée */
+function spawnPlusOnes(p,r,c){
+p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
+if(!v)return;
+plusOnes.push({x:boardRect.left+gx+(c+dc)*cell+cell/2,
+y:boardRect.top+gy+(r+dr)*cell+cell/2,
+t0:performance.now(),life:620})}))}
 function collectGem(r,c){
 advGems++;score+=200;
 const px=gx+c*cell+cell/2,py=gy+r*cell+cell/2;
@@ -1346,15 +1373,14 @@ clearFx.push({r,c,ci:obj.c,t0:t0+idx*16,st:theme});grid[r][c]=null;
 const px0=gx+c*cell+cell/2,py0=gy+r*cell+cell/2;
 spawnParticles(px0,py0,obj.c);
 styleBurst(px0,py0,obj.c);
-/* mini-blocs de texture qui volent (tous les styles) */
 const tile=tileCache[stCur.id+'_'+obj.c]||tileCache['gel_'+obj.c];
 if(tile){
 const q=tile.width/2;
 for(let qx=0;qx<2;qx++)for(let qy=0;qy<2;qy++){
 particles.push({x:px0,y:py0,
-vx:(Math.random()-.5)*.55,vy:-(.06+Math.random()*.20),
-sz:cell*.5,col:'#000',t0:t0,life:2600+Math.random()*700,sh:3,g:1.35,
-rot:0,vr:(Math.random()-.5)*.10,
+vx:(Math.random()-.5)*.50,vy:-(.55+Math.random()*.45),
+sz:cell*.55,col:'#000',t0:t0,life:3000,sh:3,g:1.5,
+rot:0,vr:(Math.random()-.5)*.08,
 img:tile,sx:qx?q:0,sy:qy?q:0,ss:q})}}
 if(obj.gem)collectGem(r,c);
 sx+=c;sy+=r});
@@ -1495,17 +1521,13 @@ placedCount++;advPlaced++;
 if(!store.get('bp_tut'))store.set('bp_tut','1');
 score+=p.m.flat().length*10;bumpScore();
 SFX.place();vib(12);
-p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
-if(!v)return;
-const px=gx+(c+dc)*cell+cell/2,py=gy+(r+dr)*cell+cell/2;
-for(let k2=0;k2<2;k2++)particles.push({x:px,y:py,
-vx:(Math.random()-.5)*.03,vy:-(.008+Math.random()*.02),sz:cell*(.08+Math.random()*.07),
-col:COLORS[Math.floor(Math.random()*8)].b,t0:now,life:480+Math.random()*200,
-sh:4,g:0,rot:0,vr:0})}));
+/* v30 : +1 sur chaque bloc posé → vers le score */
+spawnPlusOnes(p,r,c);
 tray[i]=null;renderTray(false);
 updateObjHUD();
 const fc=findFull(grid);
 const tot=fc.rows.length+fc.cols.length;
+/* v30 : pouces RARES — seulement vraie aide sans ligne */
 if(tot===0&&fitInfo&&(fitInfo.fills>0||fitInfo.nest)){
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v)addThumb(boardRect.left+gx+(c+dc)*cell+cell/2,
@@ -1599,10 +1621,8 @@ else{hl2.push(...w.cells);
 w.rows.forEach(r=>hs2.push({t:'r',r:r}));
 w.cols.forEach(c=>hs2.push({t:'c',c:c}))}});
 ghost={r:pl.r,c:pl.c,hl,hl2,hs1,hs2};
-/* couleur de lumière aléatoire, fixée pour toute la pose */
 if(!drag.lh){
 drag.lh=LIGHTCOLS[Math.floor(Math.random()*LIGHTCOLS.length)];
-/* all-clear prévu ? simulation pose + vagues + gravité */
 const g2=grid.map(row=>row.map(v=>v?1:0));
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v&&pl.r+dr<N&&pl.c+dc<N)g2[pl.r+dr][pl.c+dc]=1}));
@@ -1746,14 +1766,15 @@ bctx.fillRect(gx-cell,gy-cell,cell*N+cell*2,cell*N+cell*2)}
 let _lastBg='';
 function frame(t){
 const dt=Math.min(50,t-lastT);lastT=t;const dts=dt/1000;
-const G=cell*95;let landed=false;
+const G=cell*95;let landed=0;
 for(let r=0;r<N;r++)for(let c=0;c<N;c++){const b=grid[r][c];
 if(b&&b.fall&&!b.fall.done){const f=b.fall;
 f.vy+=G*dts;f.oy+=f.vy*dts;
 if(f.oy>=0){f.oy=0;
-if(f.vy>cell*2.5&&f.bounces<2){f.vy=-f.vy*.32;f.bounces++;f.squash=performance.now();landed=true}
-else{f.done=true;if(!f.squash)f.squash=performance.now();f.vy=0;landed=true}}}}
-if(landed&&t-lastLand>70){if(!playCustom('land',.6))SFX.land();lastLand=t}
+if(f.vy>cell*2.5&&f.bounces<2){f.vy=-f.vy*.32;f.bounces++;f.squash=performance.now();landed++}
+else{f.done=true;if(!f.squash)f.squash=performance.now();f.vy=0;landed++}}}}
+/* v30 : sons de chute GROUPÉS — 1 son par rafale, volume selon le nombre */
+if(landed>0&&t-lastLand>120){SFX.land(landed);lastLand=t}
 fbctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 fctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 drawDiamondDeco(t);
@@ -1788,9 +1809,8 @@ bctx.clearRect(0,0,cw,chh);
 bctx.save();
 if(shakeAmt>.4){bctx.translate((Math.random()-.5)*shakeAmt,(Math.random()-.5)*shakeAmt);shakeAmt*=.88}
 else shakeAmt=0;
-/* v29 : RELIEF INCRUSTÉ — dégradé sans contour :
-   haut plus sombre → MILIEU = couleur du fond → bas plus clair.
-   Le fond de page (bgFx) est synchronisé sur le milieu du dégradé. */
+/* v29/v30 : relief dégradé + fond intérieur RESSERRÉ
+   (écart bord = écart entre cellules → blocs vraiment incrustés) */
 const midC=boardBG();
 if(_lastBg!==midC){_lastBg=midC;
 bgFx.style.background=midC;bgFx.style.opacity=1}
@@ -1806,7 +1826,8 @@ const glowA=glowK*.5;
 if(glowA>0){
 bctx.strokeStyle='rgba(255,220,120,'+glowA+')';bctx.lineWidth=4;
 rr(bctx,gx-9,gy-9,cell*N+18,cell*N+18,10);bctx.stroke()}
-rr(bctx,gx-3,gy-3,cell*N+6,cell*N+6,6);
+/* intérieur : 2px seulement (≈ écart de cellule) */
+rr(bctx,gx-2,gy-2,cell*N+4,cell*N+4,4);
 bctx.fillStyle=boardBG();bctx.fill();
 for(let r=0;r<N;r++)for(let c=0;c<N;c++)drawEmpty(bctx,gx+c*cell,gy+r*cell,cell);
 if(t-styleRingT<600&&styleRingT>0){const kk=(t-styleRingT)/600;
@@ -1842,7 +1863,6 @@ rr(bctx,gx+c*cell+3,gy+r*cell+ty+3,cell-6,cell-6,cell*.10);bctx.fill()}
 bctx.globalAlpha=1}
 if(o.fall.squash){const kk=(t-o.fall.squash)/130;
 if(kk<1){const s2=Math.sin(kk*Math.PI);sx=1+.16*s2;sy=1-.2*s2}}}
-/* v28 : effets de ligne AU BLOC — tint pour TOUS les styles */
 let bOx=0,bOy=0,bCi=o.c,bSc=1;
 if(hs1Set&&hs1Set.has(r*N+c)&&drag){
 const lfx=STYLES[theme].lfx||'classic';
@@ -1856,7 +1876,7 @@ else if(lfx==='pulse'){
 bSc=1+.04*Math.sin(t/240)}}
 drawBlock(bctx,gx+c*cell+bOx,gy+r*cell+oy+bOy,cell,bCi,1,pop*bSc,false,sx*bSc,sy*bSc);
 if(o.gem)drawGemIcon(bctx,gx+c*cell,gy+r*cell+oy,cell,t);
-/* v28 : flash lumineux à la pose */
+/* flash lumineux à la pose */
 if(!o.fall&&age<300){
 const kk=1-age/300;
 bctx.fillStyle='rgba(255,255,255,'+(.32*kk)+')';
@@ -1866,19 +1886,16 @@ if(drag&&ghost&&state==='playing'){
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v)drawGhostCell(bctx,gx+(ghost.c+dc)*cell,gy+(ghost.r+dr)*cell,cell,effColor(drag.p.ci,dr,dc))}))}
 /* ============================================================
-   v28 : ANIMATIONS DE LIGNE (AU-DESSUS des blocs)
+   ANIMATIONS DE LIGNE (AU-DESSUS des blocs)
    ============================================================ */
 if(drag&&ghost&&ghost.hs1.length&&state==='playing'){
 const lfx=STYLES[theme].lfx||'classic';
 const lh=drag.lh||'#FFD23D';
-/* fin contour blanc autour de chaque ligne (commun à tous les styles) */
 ghost.hs1.forEach(sh=>{
 bctx.strokeStyle='rgba(255,255,255,.85)';
 bctx.lineWidth=1.5;
 if(sh.t==='r')bctx.strokeRect(gx+.75,gy+sh.r*cell+.75,cell*N-1.5,cell-1.5);
 else bctx.strokeRect(gx+sh.c*cell+.75,gy+.75,cell-1.5,cell*N-1.5)});
-/* lumière intérieure STEADY (bords → fondu vers le quart)
-   + halo extérieur 1/2 bloc — couleur aléatoire ou multicolore (all-clear) */
 ghost.hs1.forEach(sh=>{
 const per=(idx)=>drag.ac?COLORS[(idx*3+1)%COLORS.length].b:lh;
 if(sh.t==='r'){
@@ -1927,7 +1944,6 @@ gR2.addColorStop(0,'rgba(255,255,255,0)');
 gR2.addColorStop(1,lh);
 bctx.fillStyle=gR2;bctx.fillRect(x+cell,gy,cell*.5,cell*N);
 bctx.globalAlpha=1}});
-/* variantes par style */
 if(lfx==='shimmer'){
 ghost.hs1.forEach(sh=>{
 const pos=(t/700)%1;
@@ -1953,7 +1969,6 @@ ghost.hs1.forEach(sh=>{
 bctx.fillStyle='rgba(255,255,255,'+pa+')';
 if(sh.t==='r')bctx.fillRect(gx,gy+sh.r*cell,cell*N,cell);
 else bctx.fillRect(gx+sh.c*cell,gy,cell,cell*N)})}
-/* ALL-CLEAR prévu → lumière aller-retour le long de la ligne */
 if(drag.ac){
 ghost.hs1.forEach(sh=>{
 const per=1100;
@@ -1974,7 +1989,7 @@ grad.addColorStop(.5,'rgba(255,255,255,.75)');
 grad.addColorStop(1,'rgba(255,255,255,0)');
 bctx.fillStyle=grad;
 bctx.fillRect(gx+sh.c*cell,py0,cell,cell*1.2)}})}}
-/* EXPLOSIONS PAR FAMILLE (les mini-blocs de texture volent déjà) */
+/* EXPLOSIONS PAR FAMILLE (les mats volent déjà en mini-blocs) */
 clearFx=clearFx.filter(fx=>{
 const age=t-fx.t0;if(age<0)return true;
 const x=gx+fx.c*cell,y=gy+fx.r*cell;
@@ -2005,19 +2020,15 @@ bctx.lineTo(x+cell*(.5-k*.3),y+cell*(.8-k*.2));bctx.stroke();bctx.restore()}
 else{
 drawBlock(bctx,x,y,cell,fx.ci,1-k,1-k*.85)}
 return true});
-/* PARTICULES : sh:3 = mini-blocs texture · sh:4 = étincelles · sh:2 = gemmes */
-particles=particles.filter(p=>{const age=t-p.t0;
+/* PARTICULES : sh:3 traité à part (plein écran) · sh:4 étincelles · sh:2 gemmes */
+particles=particles.filter(p=>{
+if(p.sh===3)return true; /* mini-blocs : dessinés sur fctx plus bas */
+const age=t-p.t0;
 if(age>p.life)return false;
 p.vy+=.0016*dt*(p.g==null?1:p.g);
 p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;
 bctx.save();
-if(p.sh===3&&p.img){
-/* mini-bloc de TEXTURE : monte puis tombe hors écran */
-bctx.globalAlpha=clamp(1.6-age/p.life,0,1);
-bctx.translate(p.x,p.y);bctx.rotate(p.rot);
-bctx.drawImage(p.img,p.sx,p.sy,p.ss,p.ss,-p.sz/2,-p.sz/2,p.sz,p.sz)}
-else if(p.sh===4){
-/* étincelle respirante : fondu+grossir puis fondu-rétrécir */
+if(p.sh===4){
 const kk=age/p.life;
 const breathe=Math.sin(kk*Math.PI);
 const s2=p.sz*(.55+.55*breathe);
@@ -2036,7 +2047,7 @@ bctx.beginPath();bctx.moveTo(0,-p.sz*.7);
 bctx.lineTo(p.sz*.6,p.sz*.5);bctx.lineTo(-p.sz*.6,p.sz*.5);bctx.closePath();bctx.fill()}
 else{rr(bctx,-p.sz/2,-p.sz/2,p.sz,p.sz,p.sz*.18);bctx.fill()}}
 bctx.restore();return true});
-/* SWEEPS — lumière qui traverse la ligne pendant sa destruction */
+/* SWEEPS */
 sweeps=sweeps.filter(sw=>{
 const kk=(t-sw.t0)/380;
 if(kk>=1)return false;
@@ -2068,7 +2079,7 @@ bctx.lineWidth=4;bctx.strokeStyle='rgba(15,16,22,.9)';
 bctx.strokeText(f.txt,f.x,f.y+yo);
 bctx.fillStyle='#ffd23d';bctx.fillText(f.txt,f.x,f.y+yo);
 bctx.globalAlpha=1;return true});
-/* SCORE VOLANT 3D (couleur du style) */
+/* SCORE VOLANT 3D */
 if(flyScores.length){
 const tx=boardRect.left+gx+cell*N/2;
 const ty=boardRect.top+gy-54;
@@ -2084,7 +2095,6 @@ x=f.x+(tx-f.x)*e;y=(f.y-42)+(ty-(f.y-42))*e;sc=1-k2*.45}
 drawScore3D(fctx,f.txt,x,y,sc,1-(age/f.life)*.2,styleAcc());
 return true})}
 drawDanger(t);
-/* WARNING EVIL */
 if(evilWarn&&state==='playing'){
 bctx.fillStyle='rgba(8,8,24,'+(.10+.05*Math.sin(t/400))+')';
 rr(bctx,gx-3,gy-3,cell*N+6,cell*N+6,6);bctx.fill();
@@ -2094,10 +2104,68 @@ fctx.textAlign='center';fctx.textBaseline='middle';
 fctx.fillText('😈',boardRect.left+gx+cell*N-cell*.45,boardRect.top+gy-cell*.55);
 fctx.restore()}
 bctx.restore();
+/* compteur HUD + couronne progressive */
 if(shownScore!==score){
 const d=score-shownScore;
 shownScore+=Math.sign(d)*Math.ceil(Math.abs(d)*.2);
-if(Math.abs(score-shownScore)<1)shownScore=score}
+if(Math.abs(score-shownScore)<1)shownScore=score;
+updateCrown()}
+/* ============================================================
+   v30 : +1 blancs/liseré orange → volent vers le score,
+   disparaissent en mini-lumière à l'arrivée (sur fxLayer plein écran)
+   ============================================================ */
+const scX=boardRect.left+gx+cell*N/2;
+const scY=boardRect.top+gy-54;
+plusOnes=plusOnes.filter(po=>{
+const kk=(t-po.t0)/po.life;
+if(kk>=1)return false;
+const e=kk*kk*(3-2*kk);
+const x=po.x+(scX-po.x)*e;
+const y=po.y+(scY-po.y)*e;
+fctx.save();
+if(kk<.8){
+const al=kk<.12?kk/.12:1;
+fctx.globalAlpha=al;
+fctx.font='700 '+Math.round(cell*.34)+'px Fredoka, sans-serif';
+fctx.textAlign='center';fctx.textBaseline='middle';
+fctx.shadowColor='#FFA53D';fctx.shadowBlur=7;
+fctx.lineWidth=2.5;fctx.strokeStyle='#FFA53D';
+fctx.strokeText('+1',x,y);
+fctx.shadowBlur=0;
+fctx.fillStyle='#ffffff';
+fctx.fillText('+1',x,y)}
+else{
+/* mini lumière d'arrivée */
+const fk=(kk-.8)/.2;
+fctx.globalAlpha=1-fk;
+const rr2=cell*.16*(1+fk*1.6);
+fctx.shadowColor='#FFC93D';fctx.shadowBlur=10;
+fctx.fillStyle='#FFF3B0';
+fctx.beginPath();fctx.arc(x,y,rr2,0,6.3);fctx.fill()}
+fctx.restore();return true});
+/* ============================================================
+   v30 : MINI-BLOCS de destruction — taille pleine, couleur du bloc,
+   montent au-dessus de la grille puis tombent JUSQU'AU BAS DE L'ÉCRAN
+   (dessinés sur fxLayer plein écran, convertis en coordonnées écran)
+   ============================================================ */
+const offX=boardRect?boardRect.left:0;
+const offY=boardRect?boardRect.top:0;
+particles=particles.filter(p=>{
+if(p.sh!==3){
+/* physique déjà faite dans le filtre bctx */
+return true}
+const age=t-p.t0;
+p.vy+=.0016*dt*p.g;
+p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;
+/* tombe jusqu'au bas de l'ÉCRAN */
+if(p.y>offY+window.innerHeight+80)return false;
+if(age>p.life*2)return false;
+fctx.save();
+fctx.globalAlpha=clamp(1.4-age/p.life,0,1);
+fctx.translate(offX+p.x,offY+p.y);fctx.rotate(p.rot);
+/* taille PLEINE (le quartier de texture est étiré au format bloc) */
+fctx.drawImage(p.img,p.sx,p.sy,p.ss,p.ss,-cell*.46,-cell*.46,cell*.92,cell*.92);
+fctx.restore();return true});
 requestAnimationFrame(function(t2){try{frame(t2)}catch(e){console.error(e);requestAnimationFrame(frame)}})}
 function gainPx(txt){return(txt.replace('+','').length>4||parseInt(txt.replace('+',''))>=10000)?26:20}
 /* ---------- UI ---------- */
@@ -2154,7 +2222,7 @@ ensureTiles(0);
 reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=-1;
 particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
-gainFx=[];clearBonusAcc=0;sweeps=[];
+plusOnes=[];gainFx=[];clearBonusAcc=0;sweeps=[];
 evilLeft=0;evilWarn=false;
 bigPop=null;thumbs=[];
 setHudMode();updateBg();updateObjHUD();
@@ -2234,11 +2302,12 @@ evilLeft=0;evilWarn=false;themeTrans=null;
 reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=best;
 particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
-gainFx=[];clearBonusAcc=0;sweeps=[];
+plusOnes=[];gainFx=[];clearBonusAcc=0;sweeps=[];
 bigPop=null;thumbs=[];
 spawnPreset();
 updateBg();store.del('bp_save');
 resize();genTray(true);
+updateCrown();
 state='playing';
 if(!store.get('bp_tut'))toast('Glisse une pièce sur la grille')}
 /* ---------- Écran de fin façon BB ---------- */
@@ -2263,7 +2332,6 @@ if(gap>0&&bestAtStart>0)statsTxt+='\n— À '+gap+' pts de battre ton record ! �
  $('foStats').textContent=statsTxt;
  $('btnRevive').style.display=(!reviveUsed)?'block':'none';
 ovOver.classList.add('show');
-/* compteur animé du score final */
 let cur=0;
  $('foScore').textContent='0';
 const tick=()=>{
