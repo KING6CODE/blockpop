@@ -646,20 +646,6 @@ const r=st.pal[ci];if(!r)continue;
 const src=tileCache[base+'_'+r.s];if(!src)continue;
 tileCache[st.id+'_'+ci]=r.f?pxFilter(src,r.f):src}}
 function regenAllPalettes(){STYLES.forEach(st=>{if(st.pal)genPaletteTiles(st)})}
-function loadTilesFile(stId){
-SUFFIXES.forEach(suf=>{
-try{const im=new Image();
-im.addEventListener('load',()=>{
-const key=stId+'_'+SUFFIXES.indexOf(suf);
-const cv=document.createElement('canvas');
-cv.width=im.width;cv.height=im.height;
-cv.getContext('2d').drawImage(im,0,0);
-tileCache[key]=cv;
-const st=STYLES.find(s2=>s2.id===stId);
-if(st&&st.tones)genTones(st,cv);
-regenAllPalettes();renderTray(false)});
-im.addEventListener('error',()=>{});
-im.src='assets/blocks/'+stId+'_'+suf+'.png'}catch(e){}})}
 const triedTiles={};
 function ensureTiles(idx){
 const st=STYLES[idx];if(!st)return;
@@ -675,7 +661,7 @@ const src=tileCache[(st.srcTex||'gel')+'_'+(ci%8)];
 if(src){const cv=document.createElement('canvas');
 cv.width=src.width;cv.height=src.height;
 cv.getContext('2d').drawImage(src,0,0);
-tileCache[st.id+'_'+ci]=cv}}}}}
+tileCache[st.id+'_'+ci]=cv}}}}
 function loadTilesFile(stId){
 SUFFIXES.forEach(suf=>{
 try{const im=new Image();
