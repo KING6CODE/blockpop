@@ -661,24 +661,21 @@ if(t0!=null&&!st._t0){
 st._t0=true;
 tileCache[st.id+'_0']=toneTile(base,t0,st.soft||0)}
 for(let ci=1;ci<8;ci++){
-if(tileCache[st.id+'_'+ci])continue;
 const tone=st.tones?st.tones[ci]:null;
 if(tone==null)tileCache[st.id+'_'+ci]=copyTile(tileCache[st.id+'_0']);
-else tileCache[st.id+'_'+ci]=toneTile(base,tone,st.soft||0)}}
+else tileCache[st.id+'_'+ci]=toneTile(tileCache[st.id+'_0'],tone,st.soft||0)}}
 function loadStyleTiles(st){
 try{const im0=new Image();
 im0.addEventListener('load',()=>{
-if(!tileCache[st.id+'_0'])tileCache[st.id+'_0']=copyTile(im0);
+tileCache[st.id+'_0']=copyTile(im0);
+st._t0=false;
 regenStyleColors(st);renderTray(false)});
-im0.src='assets/blocks/'+st.texFile+'.png'}catch(e){}
-for(let suf=0;suf<8;suf++){
-try{const im=new Image();
-im.addEventListener('load',()=>{
-if(suf===0&&!tileCache[st.id+'_0'])tileCache[st.id+'_0']=copyTile(im);
-if(!tileCache[st.id+'_'+suf])tileCache[st.id+'_'+suf]=copyTile(im);
-regenStyleColors(st);renderTray(false)});
-im.addEventListener('error',()=>{});
-im.src='assets/blocks/'+st.texFile+'_'+SUFFIXES[suf]+'.png'}catch(e){}}}
+im0.addEventListener('error',()=>{
+for(let ci=0;ci<8;ci++){
+if(!tileCache[st.id+'_'+ci]){
+const src=tileCache['gel_'+(ci%8)];
+if(src)tileCache[st.id+'_'+ci]=copyTile(src)}}});
+im0.src='assets/blocks/'+st.texFile+'.png'}catch(e){}}
 function ensureTiles(idx){
 const st=STYLES[idx];if(!st)return;
 tryLoadSfx('clear_'+st.id);tryLoadSfx('combo_'+st.id);
@@ -697,11 +694,7 @@ tileCache['gel_'+extra]=toneTile(tileCache['gel_'+sufIdx],shift,0)}}
 regenGelVariants();renderTray(false)});
 im.src='assets/blocks/gel_'+suf+'.png'}catch(e){}});
 return}
-loadStyleTiles(st);
-for(let ci=0;ci<8;ci++){
-if(!tileCache[st.id+'_'+ci]){
-const src=tileCache['gel_'+(ci%8)];
-if(src)tileCache[st.id+'_'+ci]=copyTile(src)}}}
+loadStyleTiles(st)}
 function regenGelVariants(){
 STYLES.forEach(st=>{
 if(!st.gel||!st.pal)return;
