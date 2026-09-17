@@ -647,44 +647,67 @@ const src=tileCache[base+'_'+r.s];if(!src)continue;
 tileCache[st.id+'_'+ci]=r.f?pxFilter(src,r.f):src}}
 function regenAllPalettes(){STYLES.forEach(st=>{if(st.pal)genPaletteTiles(st)})}
 const triedTiles={};
-function ensureTiles(idx){
-const st=STYLES[idx];if(!st)return;
-if(triedTiles[st.id])return;triedTiles[st.id]=true;
-tryLoadSfx('clear_'+st.id);tryLoadSfx('combo_'+st.id);
-if(st.pal&&st.srcTex)loadTilesFile(st.srcTex);
-else loadTilesFile(st.id);
-/* v31.1 : garantit une tuile pour CHAQUE couleur — 0 bloc sans texture */
-const maxC=st.duo16?16:8;
-for(let ci=0;ci<maxC;ci++){
-if(!tileCache[st.id+'_'+ci]){
-const src=tileCache[(st.srcTex||'gel')+'_'+(ci%8)];
-if(src){const cv=document.createElement('canvas');
+function copyTile(src){
+const cv=document.createElement('canvas');
 cv.width=src.width;cv.height=src.height;
 cv.getContext('2d').drawImage(src,0,0);
-tileCache[st.id+'_'+ci]=cv}}}}
-function loadTilesFile(stId){
-SUFFIXES.forEach(suf=>{
+return cv}
+function regenStyleColors(st){
+if(st.gel)return;
+const base=tileCache[st.id+'_0'];
+if(!base)return;
+for(let ci=1;ci<8;ci++){
+if(tileCache[st.id+'_'+ci])continue;
+const tone=st.tones?st.tones[ci]:null;
+if(tone==null)tileCache[st.id+'_'+ci]=copyTile(base);
+else tileCache[st.id+'_'+ci]=toneTile(base,tone,st.soft||0)}}
+function loadStyleTiles(st){
+try{const im0=new Image();
+im0.addEventListener('load',()=>{
+if(!tileCache[st.id+'_0'])tileCache[st.id+'_0']=copyTile(im0);
+regenStyleColors(st);renderTray(false)});
+im0.src='assets/blocks/'+st.texFile+'.png'}catch(e){}
+for(let suf=0;suf<8;suf++){
 try{const im=new Image();
 im.addEventListener('load',()=>{
-const key=stId+'_'+SUFFIXES.indexOf(suf);
-const cv=document.createElement('canvas');
-cv.width=im.width;cv.height=im.height;
-cv.getContext('2d').drawImage(im,0,0);
-tileCache[key]=cv;
-const st=STYLES.find(s2=>s2.id===stId);
-if(st&&st.tones)genTones(st,cv);
-if(st&&!st.tones){
-/* v31.1 : style BRUT — génère les couleurs manquantes par copie */
-const maxC=st.duo16?16:8;
-for(let ci=0;ci<maxC;ci++){
-if(!tileCache[st.id+'_'+ci]){
-const cv=document.createElement('canvas');
-cv.width=im.width;cv.height=im.height;
-cv.getContext('2d').drawImage(im,0,0);
-tileCache[st.id+'_'+ci]=cv}}}
-regenAllPalettes();renderTray(false)});
+if(suf===0&&!tileCache[st.id+'_0'])tileCache[st.id+'_0']=copyTile(im);
+if(!tileCache[st.id+'_'+suf])tileCache[st.id+'_'+suf]=copyTile(im);
+regenStyleColors(st);renderTray(false)});
 im.addEventListener('error',()=>{});
-im.src='assets/blocks/'+stId+'_'+suf+'.png'}catch(e){}})}
+im.src='assets/blocks/'+st.texFile+'_'+SUFFIXES[suf]+'.png'}catch(e){}}}
+function ensureTiles(idx){
+const st=STYLES[idx];if(!st)return;
+tryLoadSfx('clear_'+st.id);tryLoadSfx('combo_'+st.id);
+tryLoadSfx('land');
+if(triedTiles[st.id])return;triedTiles[st.id]=true;
+if(st.gel){
+const sufNames=['red','orange','yellow','green','cyan','blue','purple','pink'];
+sufNames.forEach((suf,sufIdx)=>{
+try{const im=new Image();
+im.addEventListener('load',()=>{
+tileCache['gel_'+sufIdx]=copyTile(im);
+for(let extra=8;extra<16;extra++){
+if(!tileCache['gel_'+extra]){
+const shift=((extra-8)%4)*90+45;
+tileCache['gel_'+extra]=toneTile(tileCache['gel_'+sufIdx],shift,0)}}
+regenGelVariants();renderTray(false)});
+im.src='assets/blocks/gel_'+suf+'.png'}catch(e){}});
+return}
+loadStyleTiles(st);
+for(let ci=0;ci<8;ci++){
+if(!tileCache[st.id+'_'+ci]){
+const src=tileCache['gel_'+(ci%8)];
+if(src)tileCache[st.id+'_'+ci]=copyTile(src)}}}
+function regenGelVariants(){
+STYLES.forEach(st=>{
+if(!st.gel||!st.pal)return;
+if(st.id==='gel')return;
+for(let ci=0;ci<8;ci++){
+const r=st.pal[ci];if(!r)continue;
+const src=tileCache['gel_'+r.s];if(!src)continue;
+tileCache[st.id+'_'+ci]=r.f?pxFilter(src,r.f):src}})}
+function getTile(stId,ci){
+return tileCache[stId+'_'+ci]||tileCache['gel_'+(ci%8)]||null}
 
 /* ---------- Niveaux aventure (EN) ---------- */
 const LEVELS=[
