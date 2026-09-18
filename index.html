@@ -9,7 +9,7 @@
      pause redesign (panneau bleu, toggles icônes, boutons 3D verts),
      game over bleu relief, boutons 3D, bouton Home fiabilisé,
      21 animations de destruction par famille, full English -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet"/>
 <style>
 :root{--panel:rgba(255,255,255,.10);--panel2:rgba(255,255,255,.17);--line:rgba(255,255,255,.15);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -1050,42 +1050,61 @@ if(thumbs.length>=12)thumbs.shift();
 thumbs.push({x:boardRect.left+gx+(c+dc)*cell+cell/2,
 y:boardRect.top+gy+(r+dr)*cell+cell/2,
 t0:performance.now(),life:900})}))}
+const TXPAL={
+white:{fill:[[0,'#FFFFFF'],[.72,'#F4F8FE'],[1,'#C6DBF6']],stroke:'#3D6DE8',sk:1.35,relief:'#6E9CD4',cast:'#16297E',glow:'rgba(70,120,255,.95)',glowCore:'rgba(110,160,255,.80)'},
+gold:{fill:[[0,'#FFF6B0'],[.45,'#FFD23D'],[1,'#F5A818']],stroke:'#3D6DE8',sk:1.35,relief:'#F59B1E',cast:'#16297E',glow:'rgba(255,150,25,.95)',glowCore:'rgba(255,190,70,.80)'},
+magenta:{fill:[[0,'#FF8AEA'],[.45,'#E14EE0'],[1,'#A82CE8']],stroke:'#FFFEF8',sk:.80,relief:'#B22BD8',cast:'#5A1478',glow:'rgba(150,60,255,.95)',glowCore:'rgba(190,100,255,.80)'},
+perfect:{fill:[[0,'#FFFFFF'],[.60,'#FFF3C8'],[1,'#FFD88A']],stroke:'#FF8A1D',sk:1.00,relief:'#E88818',cast:'#7A3A08',glow:'rgba(255,140,25,.95)',glowCore:'rgba(255,180,60,.80)'}};
+const TXSKEW=10.8,TXDPR=Math.min(window.devicePixelRatio||1,2);
 function drawFancyText(c,segs,cx,cy,size,alpha,scale){
 alpha=alpha==null?1:alpha;scale=scale||1;
 c.save();c.globalAlpha=alpha;
 c.translate(cx,cy);c.scale(scale,scale);
-c.textAlign='left';c.textBaseline='middle';c.lineJoin='round';
+c.textBaseline='middle';c.lineJoin='round';c.miterLimit=2;
 let total=0;
-segs.forEach(sg=>{c.font='700 '+Math.round(size*sg.sc)+'px Fredoka, sans-serif';
+segs.forEach(sg=>{const fs=Math.round(size*sg.sc);
+c.font='400 '+fs+'px "Lilita One", Fredoka, sans-serif';
 total+=c.measureText(sg.txt).width});
+const gap=size*.10;total+=gap*(segs.length-1);
 let x=-total/2;
 segs.forEach(sg=>{
-const fs=Math.round(size*sg.sc);
-c.font='700 '+fs+'px Fredoka, sans-serif';
-const bord=sg.bord||'#3D6DE8';
-const bordD=mixHex(bord,'#000000',.5);
-const dep=Math.max(2,fs*.07);
-c.fillStyle=bordD;
-for(let o=dep;o>=1;o--)c.fillText(sg.txt,x+o*.5,o*.8);
-c.lineWidth=fs*.16;
-c.strokeStyle=bord;
-c.strokeText(sg.txt,x,0);
+const fs=Math.round(size*sg.sc),P=TXPAL[sg.pal]||TXPAL.white;
+c.save();
+c.translate(x,0);
+c.transform(1,0,-Math.tan(TXSKEW*Math.PI/180),1,0,0);
+c.font='400 '+fs+'px "Lilita One", Fredoka, sans-serif';
+c.textAlign='left';
+/* 1) GLOW — vraie lumière colorée, 4 passes */
+c.save();
+c.shadowColor=P.glow;c.shadowBlur=fs*1.3*TXDPR;c.shadowOffsetY=fs*.065*TXDPR;
+c.globalAlpha=alpha*.65;
+c.fillStyle=P.glowCore;
+c.fillText(sg.txt,0,0);c.fillText(sg.txt,0,0);c.fillText(sg.txt,0,0);c.fillText(sg.txt,0,0);
+c.restore();
+/* 2) CONTOUR porté par la position du relief */
+const ry=fs*.062,cy2=fs*.108;
+if(P.stroke){c.lineWidth=Math.max(2,fs*.13*P.sk);
+c.strokeStyle=P.stroke;c.strokeText(sg.txt,0,ry)}
+/* 3) CAST — ombre fondue (blur) mais dense (3 passes) */
+c.save();
+c.shadowColor=P.cast;c.shadowBlur=fs*.55*TXDPR;c.shadowOffsetY=fs*.005*TXDPR;
+c.fillStyle=P.cast;
+c.fillText(sg.txt,0,cy2);c.fillText(sg.txt,0,cy2);c.fillText(sg.txt,0,cy2);
+c.restore();
+/* 4) RELIEF */
+c.fillStyle=P.relief;c.fillText(sg.txt,0,ry);
+/* 5) REMPLISSAGE dégradé */
 const g=c.createLinearGradient(0,-fs*.55,0,fs*.45);
-g.addColorStop(0,mixHex(sg.col,'#ffffff',.45));
-g.addColorStop(.42,sg.col);
-g.addColorStop(.78,mixHex(sg.col,'#000000',.22));
-g.addColorStop(1,mixHex(sg.col,'#000000',.42));
-c.fillStyle=g;
-c.fillText(sg.txt,x,0);
-x+=c.measureText(sg.txt).width});
+P.fill.forEach(s2=>g.addColorStop(s2[0],s2[1]));
+c.fillStyle=g;c.fillText(sg.txt,0,0);
+c.restore();
+x+=c.measureText(sg.txt).width+gap});
 c.restore()}
 function comboSegs(cb){return[
-{txt:'COMBO ',col:'#FFFFFF',bord:'#3D6DE8',sc:1},
-{txt:'×'+cb,col:'#FFD23D',bord:'#3D6DE8',sc:1.3}]}
-function praiseSegs(word,col){return[
-{txt:word,col:col,bord:mixHex(col,'#000000',.48),sc:1}]}
-function perfectSegs(word){return[
-{txt:word,col:'#FFFFFF',bord:'#FF8A1D',sc:1}]}
+{txt:'COMBO ',pal:'white',sc:1},
+{txt:'×'+cb,pal:'gold',sc:1.3}]}
+function praiseSegs(word){return[{txt:word,pal:'magenta',sc:1}]}
+function perfectSegs(word){return[{txt:word,pal:'perfect',sc:1}]}
 function setBigPop(segs,sub,prio,life,size){
 const now=performance.now();
 if(bigPop){
@@ -2613,21 +2632,29 @@ fctx.fillText(shownScore,dx,dy);
 fctx.shadowBlur=0;fctx.shadowOffsetY=0;
 fctx.restore()}
 function drawScore3D(c,txt,x,y,sc,alpha,col){
-col=col||'#ffc93d';
+col=col||'#FFC93D';
 const size=Math.max(28,gainPx(txt)+10)*sc;
 c.save();
 c.globalAlpha=alpha;
-c.font='800 '+size+'px "Nunito Sans", Fredoka, sans-serif';
+c.translate(x,y);
+c.transform(1,0,-Math.tan(TXSKEW*Math.PI/180),1,0,0);
+c.font='400 '+size+'px "Lilita One", Fredoka, sans-serif';
 c.textAlign='center';
-c.fillStyle=mixHex(col,'#000000',.55);
-for(let o=3;o>=1;o--)c.fillText(txt,x+o*.8,y+o);
-const g=c.createLinearGradient(0,y-size*.72,0,y+size*.12);
-g.addColorStop(0,'#ffffff');g.addColorStop(.5,col);g.addColorStop(1,mixHex(col,'#000000',.3));
+/* glow lumineux */
+c.save();
+c.shadowColor=col;c.shadowBlur=size*1.3*TXDPR;c.shadowOffsetY=size*.065*TXDPR;
+c.globalAlpha=alpha*.65;
+c.fillStyle=mixHex(col,'#ffffff',.35);
+c.fillText(txt,0,0);c.fillText(txt,0,0);c.fillText(txt,0,0);c.fillText(txt,0,0);
+c.restore();
+/* remplissage dégradé or */
+const g=c.createLinearGradient(0,-size*.55,0,size*.45);
+g.addColorStop(0,mixHex(col,'#ffffff',.55));
+g.addColorStop(.40,mixHex(col,'#ffffff',.15));
+g.addColorStop(.75,col);
+g.addColorStop(1,mixHex(col,'#000000',.22));
 c.fillStyle=g;
-c.fillText(txt,x,y);
-c.strokeStyle='rgba(205,210,230,.55)';
-c.lineWidth=Math.max(1,size*.055);
-c.strokeText(txt,x,y);
+c.fillText(txt,0,0);
 c.restore()}
 function drawDanger(t){
 const fill=grid.flat().filter(Boolean).length/(N*N);
@@ -3345,6 +3372,9 @@ const tile=getTile(STYLES[idx].id,grid[r][c].c);
 spawnDestroy(STYLES[idx].destroy||'pop',px0,py0,tile,grid[r][c].c);
 grid[r][c]=null}
 toast('Preview: '+STYLES[idx].name+' ('+STYLES[idx].destroy+')')});
+if(document.fonts&&document.fonts.load){
+document.fonts.load('400 40px "Lilita One"');
+document.fonts.load('700 20px "Fredoka"')}
 window.__bpBooted=true;
 </script>
 </body>
