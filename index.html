@@ -788,6 +788,7 @@ let lastDecoPart=0,diamondPump=0,scorePulseT=0;
 let noClearStreak=0;
 let evilLeft=0,themeTrans=null;
 let popQueue=[],popCur=null,thumbs=[],plusOnesScore=0;
+let emptyCol='#31365a',gRCache=null,gRKey='';
 bestVal.textContent=best;
 ensureTiles(0);ensureTiles(styleIdxById(coll.current));
 /* ================================================================
@@ -995,7 +996,7 @@ c.restore()}
 function drawEmpty(c,x,y,s){
 const gap=Math.max(1,s*.018),bx=x+gap,by=y+gap,bw=s-gap*2;
 c.save();
-c.fillStyle=mixHex(boardBG(),'#ffffff',.035);
+c.fillStyle=emptyCol;
 rr(c,bx,by,bw,bw,Math.max(1.5,bw*.045));c.fill();
 c.restore()}
 function styleLerp(key){
@@ -1268,7 +1269,9 @@ let r=Math.random()*total;
 for(let i=0;i<SHAPES.length;i++){r-=ws[i];if(r<=0)return i}
 return 0}
 function randPiece(){return randPieceWeighted()}
-const GIFT_PACKS=[[3,3,9],[4,4,9],[10,3,3],[11,4,4],[5,6,9],[10,10,9]];
+/* v35 : packs harmonie — 10x10x10=3x6 · 11x11x11=6x3 · 26x26x26=4x6 */
+const GIFT_PACKS=[[3,3,9],[4,4,9],[10,3,3],[11,4,4],[5,6,9],[10,10,9],
+[10,10,10],[11,11,11],[26,26,26]];
 function simSeq(sis){
 let cur=simGrid();
 for(let idx=0;idx<sis.length;idx++){
@@ -1283,7 +1286,7 @@ if(!found)return false;cur=bestSim}
 return true}
 function findClearTrio(){
 const cells=grid.flat().filter(Boolean).length;
-if(cells<=0||cells>16)return null;
+if(cells<=0||cells>18)return null;
 const pool=[1,2,3,4,12,13,14,15,9,20,21,22,23,24,5,6,7,8,0];
 let ops=0;const BUDGET=20000;
 function rec(cur,chosen){
@@ -1304,25 +1307,30 @@ if(res)return res;
 }}}
 return null}
 return rec(simGrid(),[])}
+/* v35 : combleur v2 — dès 1 trou, bonus « tout comblé d'un coup », murs, compacité */
 function bestHoleFiller(){
 const sim=simGrid(),holesBefore=countHoles(sim);
-if(holesBefore<2)return null;
+if(holesBefore<1)return null;
 const holeCells=[];
 for(let c=0;c<N;c++){let seen=false;
 for(let r=0;r<N;r++){if(sim[r][c])seen=true;
 else if(seen)holeCells.push([r,c])}}
-let bestSi=null,bestCov=0;
-for(let t=0;t<26;t++){
+if(!holeCells.length)return null;
+let bestSi=null,bestSc=-1;
+for(let t=0;t<40;t++){
 const cand=randPieceWeighted(),m=SHAPES[cand].m,h=m.length,w=m[0].length;
-let cov=0;
 for(let r=0;r<=N-h;r++){
 for(let c=0;c<=N-w;c++){
 const s2=simPlace(sim,m,r,c);if(!s2)continue;
-let cc=0;
-holeCells.forEach(hc=>{if(s2[hc[0]][hc[1]])cc++});
-if(cc>cov)cov=cc}}
-if(cov>bestCov){bestCov=cov;bestSi=cand}}
-return bestCov>=2?bestSi:null}
+let cov=0;
+holeCells.forEach(hc=>{if(s2[hc[0]][hc[1]])cov++});
+if(cov<1)continue;
+let sc=cov*10+(cov===holeCells.length?30:0);
+if(r===0||r+h===N)sc+=3;
+if(c===0||c+w===N)sc+=3;
+if(h*w<=cov+2)sc+=6;
+if(sc>bestSc){bestSc=sc;bestSi=cand}}}}
+return bestSc>0?bestSi:null}
 function assassinTrio(){
 const cands=[];
 for(let si=0;si<SHAPES.length;si++){
@@ -1456,6 +1464,16 @@ for(let t=0;t<40;t++){const test=newSi.slice();
 test[Math.floor(Math.random()*3)]=randPieceWeighted();
 if(simSeq(test)){newSi=test;break}}}}
 
+/* v35 : dès qu'un trou existe, 1-2 pièces de la pioche le combrent
+   quel que soit le mode (TUTORIAL/EVIL/PUNISH… tout le monde remplit) */
+if(mode==='classic'&&holesNow>=1){
+const maxFill=holesNow>=2?2:1;
+let placed=0;
+const slots=[0,1,2].sort(()=>Math.random()-.5);
+for(const idx of slots){
+if(placed>=maxFill)break;
+const f=bestHoleFiller();
+if(f!==null){newSi[idx]=f;placed++}}}
 tray=newSi.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
 if(mode==='classic'&&score>=TUNE.bombMinScore&&Math.random()<TUNE.bombChance){
 tray[Math.floor(Math.random()*3)]={bomb:true,m:[[1]],si:-1,ci:2,dead:false}}
@@ -1602,6 +1620,19 @@ const linePts=lines*(lines+1)/2*80;
 clearBonusAcc+=linePts;
 const gain=Math.round(linePts*(1+Math.min(combo-1,6)*.15)+(chain?150:0));
 score+=gain;
+/* v35 : palier franchi PAR CE clear (auto-détection, aucun reset requis) */
+if(Math.floor(score/5000)>Math.floor((score-gain)/5000)){
+const ms=Math.floor(score/5000);
+queuePop([{txt:(ms*5000).toLocaleString('en-US')+'!',pal:'gold',sc:1}],cell*.72,700);
+for(let i=0;i<10;i++)particles.push({
+x:gx+Math.random()*cell*N,y:gy+cell*N*.5,
+vx:(Math.random()-.5)*.04,vy:-(.03+Math.random()*.04),sz:cell*.12,
+col:i%2?'#FFD23D':'#FFF3B0',t0:performance.now(),life:700,sh:8,g:0,rot:0,vr:.0004})}
+/* v35 : record battu EN JEU — réutilise newRecordShown (déjà reset partout) */
+if(mode==='classic'&&bestAtStart>0&&!newRecordShown&&score>bestAtStart){
+newRecordShown=true;
+queuePop([{txt:'NEW BEST!',pal:'gold',sc:1}],cell*.95,700);
+confetti();SFX.win();flash()}
 gainFx.push({txt:'+'+gain,
 x:boardRect.left+gx+(sx/cleared.length)*cell+cell/2,
 y:boardRect.top+gy+(sy/cleared.length)*cell+cell/2-cell*.3,
@@ -2054,11 +2085,14 @@ else shakeAmt=0;
 const envC=styleLerp('env');
 if(_lastBg!==envC){_lastBg=envC;
 bgFx.style.background=envC;bgFx.style.opacity=1}
-const gR=bctx.createLinearGradient(0,gy-4,0,gy+cell*N+4);
-gR.addColorStop(0,mixHex(envC,'#000000',.14));
-gR.addColorStop(.90,envC);
-gR.addColorStop(1,mixHex(envC,'#ffffff',.12));
-bctx.fillStyle=gR;
+emptyCol=mixHex(boardBG(),'#ffffff',.035);
+const gRK=envC+'|'+cell;
+if(gRKey!==gRK){gRKey=gRK;
+gRCache=bctx.createLinearGradient(0,gy-4,0,gy+cell*N+4);
+gRCache.addColorStop(0,mixHex(envC,'#000000',.14));
+gRCache.addColorStop(.90,envC);
+gRCache.addColorStop(1,mixHex(envC,'#ffffff',.12))}
+bctx.fillStyle=gRCache;
 rr(bctx,gx-4,gy-4,cell*N+8,cell*N+8,7);bctx.fill();
 const lastClear=clearFx.length?clearFx[clearFx.length-1].t0:0;
 const glowK=(t-lastClear<450)?(1-(t-lastClear)/450):0;
@@ -2680,7 +2714,7 @@ let got=0;
 for(let ci=0;ci<8;ci++)if(tileCache['gel_'+ci])got++;
 const el=performance.now()-start;
 setLoading(clamp((got/8)*.85+Math.min(el/2500,1)*.15,0,1));
-if(got>=8||el>4000){
+if(got>=8||el>2200){
 clearInterval(iv);setLoading(1);
 setTimeout(()=>{
 ovLoad.classList.remove('show');
