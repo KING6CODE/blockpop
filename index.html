@@ -553,7 +553,7 @@ const STYLES=[
 {id:'gel_primaire',name:'Primary Gel',bg:'#313548',grid:'#3a3d52',env:'#5a5068',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.PRIMAIRE,pos:[2,1,5,0],lfx:'classic',destroy:'pop',light:'#E85B4A',gel:true},
 {id:'gel_pastel',name:'Pastel Gel',bg:'#2e3350',grid:'#3e4266',env:'#5a6090',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:1,pal:PAL.PASTEL,lfx:'classic',destroy:'pop',light:'#F0A8D8',gel:true},
 {id:'coussin',name:'Cushion',bg:'#3a3640',grid:'#4a4550',env:'#6a6270',pv:0,snd:{w:'triangle',m:1.00},burst:[0,'l'],tier:2,lfx:'beat',destroy:'soft',light:'#C8A88A',texFile:'coussin_sand',
-tones:[36,14,96,205,36,14,96,205]},
+tones:[36,4,122,192,46,226,272,320],hs:true},
 {id:'bonbon',name:'Candy',bg:'#3a2c22',grid:'#42342a',env:'#8a5a34',pv:0,snd:{w:'square',m:1.10},burst:[1,'l'],tier:2,lfx:'shimmer',destroy:'candy',light:'#FFA53D',texFile:'bonbon_pink',
 tones:[null,26,14,null,26,14,null,26]},
 {id:'pastille',name:'Pastille',bg:'#2c3350',grid:'#364060',env:'#4a55a8',pv:0,snd:{w:'sine',m:1.05},burst:[1,'l'],tier:2,lfx:'shimmer',destroy:'round',light:'#FF8A8A',texFile:'pastille_cyan',
@@ -561,7 +561,7 @@ tones:[354,40,354,40,354,40,354,40]},
 {id:'sculpted',name:'Carved',bg:'#2c3144',grid:'#31364a',env:'#4a5570',pv:1,snd:{w:'sine',m:.60},burst:[0,'d'],tier:2,lfx:'shake',destroy:'crack',light:'#9FB0C8',texFile:'sculpted_gray',
 tones:[350,22,52,92,182,212,272,322]},
 {id:'biscuit',name:'Biscuit',bg:'#3c2f1e',grid:'#4a3a24',env:'#9a7440',pv:0,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:2,lfx:'shake',destroy:'crumb',light:'#D9A05B',texFile:'biscuit_yellow',
-tones:[44,198,2,346,44,198,2,346]},
+tones:[40,2,122,196,46,226,274,320],hs:true},
 {id:'bois',name:'Wood',bg:'#362a1e',grid:'#3e3022',env:'#8a6a3a',pv:1,snd:{w:'triangle',m:.90},burst:[0,'d'],tier:3,lfx:'shake',destroy:'wood',light:'#C98A4B',texFile:'bois_orange',
 tones:[16,34,28,42,8,54,38,24]},
 {id:'laine',name:'Wool',bg:'#2b3a4a',grid:'#2e4256',env:'#4a7a9a',pv:2,snd:{w:'sine',m:.80},burst:[0,'b'],tier:3,lfx:'beat',destroy:'wool',light:'#7EC8E8',texFile:'laine_blue',tones:null},
@@ -583,7 +583,7 @@ tones:[142,348,52,142,348,52,142,348]},
 {id:'or',name:'Gold',bg:'#3a3117',grid:'#443a1c',env:'#a8861e',pv:2,snd:{w:'triangle',m:1.45},burst:[2,'l'],tier:5,lfx:'classic',destroy:'gold',light:'#FFD23D',texFile:'or_yellow',tones:null},
 {id:'neon',name:'Neon',bg:'#171a33',grid:'#1e2240',env:'#2a2a6a',pv:3,snd:{w:'sawtooth',m:1.25},burst:[1,'b'],tier:6,lfx:'pulse',destroy:'energy',light:'#3DF0C0',texFile:'neon_green',tones:null},
 {id:'robotique',name:'Robot',bg:'#1c2028',grid:'#242a36',env:'#3a4454',pv:3,snd:{w:'sawtooth',m:1.00},burst:[1,'b'],tier:6,lfx:'pulse',destroy:'mecha',light:'#9AA8C0',texFile:'robotique_blue',
-tones:[26,205,90,0,26,205,90,0]},
+tones:[226,4,192,26,122,272,46,320],hs:true},
 {id:'galaxie',name:'Galaxy',bg:'#1b1b38',grid:'#22224a',env:'#443a8a',pv:3,snd:{w:'sine',m:1.35},burst:[2,'l'],tier:6,lfx:'pulse',destroy:'galaxy',light:'#B48CFF',texFile:'galaxie_purple',
 tones:[258,290,258,290,258,290,258,290]}];
 const STYLE_TH=STYLES.map((_,i)=>i===0?0:Math.floor(3+Math.pow(i,1.45)));
@@ -608,7 +608,7 @@ else if(key==='violet'){const h=hslOf(r,g,b);const o=rgbOf((h[0]+.3056)%1,h[1]*.
 px[i]=r>255?255:r;px[i+1]=g>255?255:g;px[i+2]=b>255?255:b}
 c.putImageData(d,0,0);
 return cv}
-function toneTile(src,hueDeg,soft){
+function toneTile(src,hueDeg,soft,hs){
 const cv=document.createElement('canvas');
 cv.width=src.width;cv.height=src.height;
 const c=cv.getContext('2d');c.drawImage(src,0,0);
@@ -619,7 +619,10 @@ for(let i=0;i<px.length;i+=4){
 if(px[i+3]===0)continue;
 const h=hslOf(px[i],px[i+1],px[i+2]);
 if(h[1]<.12)continue;
-let o=rgbOf(th,Math.max(h[1],.30),h[2]);
+/* harmonisation Block Blast : saturation bornée 42-70 %, luminosité compressée */
+let s=Math.max(h[1],.30),l=h[2];
+if(hs){s=clamp(h[1],.42,.70);l=clamp(.52+(h[2]-.52)*.62,.36,.68)}
+let o=rgbOf(th,s,l);
 if(soft){o=[o[0]+(255-o[0])*soft,o[1]+(255-o[1])*soft,o[2]+(255-o[2])*soft]}
 px[i]=Math.min(255,o[0]);px[i+1]=Math.min(255,o[1]);px[i+2]=Math.min(255,o[2])}
 c.putImageData(d,0,0);
@@ -663,7 +666,7 @@ tileCache[st.id+'_0']=toneTile(base,t0,st.soft||0)}
 for(let ci=1;ci<8;ci++){
 const tone=st.tones?st.tones[ci]:null;
 if(tone==null)tileCache[st.id+'_'+ci]=copyTile(tileCache[st.id+'_0']);
-else tileCache[st.id+'_'+ci]=toneTile(tileCache[st.id+'_0'],tone,st.soft||0)}}
+else tileCache[st.id+'_'+ci]=toneTile(tileCache[st.id+'_0'],tone,st.soft||0,st.hs)}}
 function loadStyleTiles(st){
 try{const im0=new Image();
 im0.addEventListener('load',()=>{
