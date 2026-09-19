@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BlockPop</string>
+    <string name="title_activity_main">BlockPop</string>
+    <string name="package_name">com.king6code.blockpop</string>
+    <string name="custom_url_scheme">com.king6code.blockpop</string>
+</resources>
