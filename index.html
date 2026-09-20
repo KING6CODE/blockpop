@@ -26,11 +26,11 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:80;bac
 header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:60px}
 .hside{width:104px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .hside.right{align-items:flex-end}
-#bestWrap{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:24px;font-weight:800;margin-top:2px;font-family:'Nunito Sans','Fredoka',sans-serif;text-shadow:0 3.6px 8px rgba(90,64,8,.60),0 1.2px 0 rgba(169,126,18,.80)}
-#bestWrap svg{width:30px;height:30px;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+#bestWrap{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:27px;font-weight:800;margin-top:2px;font-family:'Nunito Sans','Fredoka',sans-serif;text-shadow:0 3.6px 8px rgba(90,64,8,.60),0 1.2px 0 rgba(169,126,18,.80)}
+#bestWrap svg{width:36px;height:36px;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
 #btnPause{background:none;border:none;padding:2px;margin-top:0;cursor:pointer;line-height:0}
-#btnPause svg{width:40px;height:40px}
-#btnPause img{width:44px;height:44px}
+#btnPause svg{width:44px;height:44px}
+#btnPause img{width:48px;height:48px}
 #score{display:none}
 .score-wrap{text-align:center;line-height:1;flex:1;position:relative;z-index:110;min-height:12px}
 #objBar{display:none;align-items:center;gap:8px;padding:8px 10px 0}
@@ -419,7 +419,7 @@ try{const p=a.cloneNode();p.volume=vol==null?.8:vol;p.play()}catch(e){}
 return true}
 /* voix custom : voice_great / voice_amazing / voice_legendary / voice_incredible /
    voice_unreal / voice_perfect / voice_newbest (.mp3 dans assets/sfx/) */
-['voice_great','voice_amazing','voice_legendary','voice_incredible','voice_unreal','voice_perfect','voice_newbest'].forEach(n=>tryLoadSfx(n));
+['voice_great','voice_amazing','voice_legendary','voice_incredible','voice_unreal','voice_perfect','voice_newbest','combo9'].forEach(n=>tryLoadSfx(n));
 
 /* ---------- Musique de fond (pad relaxant, Web Audio)
    OU fichier custom : assets/music/bg.mp3 joué en boucle ---------- */
@@ -1063,7 +1063,7 @@ frag(x,y,R(-.3,.3),R(-.3,.1),cell*.14,base,460,1)}}
 function updateBoardRect(){boardRect=boardEl.getBoundingClientRect()}
 function resize(){
 const r=boardWrap.getBoundingClientRect();cw=r.width;
-cell=clamp(Math.floor(Math.min((cw-24)/N,(window.innerHeight-300)/N)),24,60);
+cell=clamp(Math.floor(Math.min((cw-12)/N,(window.innerHeight-250)/N)),24,66);
 mini=clamp(Math.round(cell*.52),14,20);
 gx=Math.round((cw-cell*N)/2);gy=4;
 chh=cell*N+8;
@@ -1507,8 +1507,8 @@ if(best<=0&&score<4000)mode2='TUTORIAL';
 else if(evilLeft>0){evilLeft--;
 if(evilLeft===0)evilWarn=false;
 mode2='EVIL'}
-else if(fill>0&&fill<=.28&&pr<1.05&&linesTotal>=TUNE.guideLockLines)mode2='GUIDE';
-else if(combo>=2&&!keptCanClear&&Math.random()<.65)mode2='SAVE_COMBO';
+else if(combo>=2&&Math.random()<.85)mode2='CHAIN';
+else if(fill>0&&fill<=.34&&pr<1.05&&linesTotal>=TUNE.guideLockLines)mode2='GUIDE';
 else if(holesNow>=1&&Math.random()<.90)mode2='FILL';
 else if(pr>=.85&&Math.random()<.55)mode2='PUNISH';
 else if(pr>=.75&&fill>.30&&Math.random()<.40)mode2='DESERT';
@@ -1539,6 +1539,17 @@ for(let t=0;t<18;t++){const cand=randPieceWeighted();const a=analyzePiece(cand);
 const sc=a.toxicity*10-a.lines*8-a.near*2;
 if(sc>worstSc){worstSc=sc;worst=cand}}
 if(worst!==null)newSi=[worst,randPieceWeighted(),randPieceWeighted()]}}
+/* v38 : CHAIN — 1 pièce qui clear garantie (recherche 60) + all-clear si plateau léger */
+else if(mode2==='CHAIN'){
+let seq=null;
+if(fill<=.20)seq=findClearTrio();
+if(seq&&seq.length){
+while(seq.length<3)seq.push(0);
+newSi=seq.slice(0,3)}
+else{
+const clearer=(function(){for(let t=0;t<60;t++){const c2=randPieceWeighted();
+if(analyzePiece(c2).lines>=1)return c2}return null})();
+if(clearer!==null){newSi=[clearer,randPieceWeighted(),randPieceWeighted()]}}}
 else if(mode2==='FILL'){
 const f1=bestHoleFiller();
 if(f1!==null)newSi=[f1,randPieceWeighted(),randPieceWeighted()];
@@ -1586,7 +1597,7 @@ for(let t=0;t<14;t++){const cand=randPieceWeighted();
 if(analyzePiece(cand).nest){newSi[Math.floor(Math.random()*3)]=cand;break}}}}
 
 if(!simSeq(newSi)){
-const mercy=mode2==='EVIL'?0:(pr>1?.35:(pr>.9?.6:1));
+const mercy=mode2==='EVIL'?0:(pr>1?.50:(pr>.9?.75:1));
 if(Math.random()<mercy){
 for(let t=0;t<40;t++){const test=newSi.slice();
 test[Math.floor(Math.random()*3)]=randPieceWeighted();
@@ -1594,7 +1605,7 @@ if(simSeq(test)){newSi=test;break}}}}
 
 /* v37 : comblement QUASI TOTAL — jusqu'à 3 pièces comblent, tous modes.
    Pas de trou : 1 pièce « créatrice » d'un futur trou facile à combler. */
-if(mode==='classic'){
+if(mode==='classic'&&mode2!=='CHAIN'){
 if(holesNow>=1){
 let placed=0;
 const slots=[0,1,2].sort(()=>Math.random()-.5);
@@ -1805,9 +1816,13 @@ checkBest();updateObjHUD()}
 SFX.clearByStyle=function(n,th){
 const s2=STYLES[th].snd,notes=[523,659,784,1047];
 for(let i=0;i<Math.min(1+n,4);i++)this.tone(semi(notes[i],(s2.m-1)*12),.14,s2.w,.18,null,i*.055)};
+/* v38 : combo 1→9 = +1 demi-ton par palier (base 392 Hz) · combo 9+ = combo9.mp3 */
 SFX.comboByStyle=function(c,th){
-const s2=STYLES[th].snd,f=semi(330*Math.pow(1.15,Math.min(c,7)),(s2.m-1)*12);
-this.tone(f,.16,s2.w,.08,f*1.4);this.tone(f*1.5,.2,'triangle',.1,null,.06)};
+if(c>=9&&playCustom('combo9',.9))return;
+const s2=STYLES[th].snd;
+const f=semi(392,Math.min(c,9)-1);
+this.tone(f,.15,s2.w,.10,f*1.5);
+this.tone(f*1.5,.18,'triangle',.07,null,.05)};
 
 /* ---------- Gravité / chaînes ---------- */
 function applyGravity(){let moved=0;
@@ -2136,16 +2151,16 @@ col:Math.random()<.5?'#FFF3B0':'#ffffff',t0:t,life:600,sh:4,g:0,rot:0,vr:0})}}
 /* ---------- Score HUD — v37 : réduit (56px), relief 2px ---------- */
 function drawScoreHUD(t){
 const dx=boardRect.left+gx+cell*N/2;
-const dy=boardRect.top+gy-40;
-const pulse=1+.10*Math.max(0,1-(t-scorePulseT)/280);
-const size=Math.round(56*pulse);
+const dy=boardRect.top+gy-34;
+const pulse=1+.08*Math.max(0,1-(t-scorePulseT)/280);
+const size=Math.round(48*pulse);
 fctx.save();
 fctx.font='800 '+size+'px "Nunito Sans", sans-serif';
 fctx.textAlign='center';fctx.textBaseline='middle';
 fctx.fillStyle='rgba(210,220,240,.70)';
 fctx.fillText(shownScore,dx,dy+2);
 fctx.shadowColor='rgba(30,34,80,.75)';
-fctx.shadowBlur=7;fctx.shadowOffsetY=size*.13;
+fctx.shadowBlur=6;fctx.shadowOffsetY=size*.13;
 fctx.fillStyle='#ffffff';
 fctx.fillText(shownScore,dx,dy);
 fctx.shadowBlur=0;fctx.shadowOffsetY=0;
@@ -2281,7 +2296,6 @@ else bctx.fillRect(gx+sh.c*cell,gy,cell,cell*N)})}}
 for(let r=0;r<N;r++)for(let c=0;c<N;c++){const o=grid[r][c];if(!o)continue;
 if(o.t>t)continue;
 const age=t-o.t;let pop=1;
-if(age<220){const kk=clamp(age/220,0,1);pop=.72+.28*(1-(1-kk)*(1-kk))}
 let oy=0,sx=1,sy=1;
 if(o.fall){oy=o.fall.oy;
 if(o.fall.vy>cell*3&&!o.fall.done){
@@ -2521,7 +2535,7 @@ bctx.globalAlpha=1;return true});
 /* SCORE VOLANT 3D */
 if(flyScores.length){
 const tx=boardRect.left+gx+cell*N/2;
-const ty=boardRect.top+gy-40;
+const ty=boardRect.top+gy-34;
 flyScores=flyScores.filter(f=>{
 const age=t-f.t0;
 if(age>=f.life){bumpScore();return false}
@@ -2542,7 +2556,7 @@ if(Math.abs(score-shownScore)<1)shownScore=score;
 updateCrown()}
 /* +1 blancs → vers le score */
 const scX=boardRect.left+gx+cell*N/2;
-const scY=boardRect.top+gy-40;
+const scY=boardRect.top+gy-34;
 plusOnes=plusOnes.filter(po=>{
 if(t<po.t0)return true;
 const kk=(t-po.t0)/po.life;
