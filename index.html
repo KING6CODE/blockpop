@@ -2795,7 +2795,7 @@ ovOver.classList.toggle('rec',rec);
  $('foBadge').classList.toggle('on',rec);
 if(rec)confetti();
 const dur=Math.max(1,Math.round((performance.now()-gameStart)/1000));
-const mm=Math.floor(dur/60),ss=('0'+(dur%60)).slice(-2));
+const mm=Math.floor(dur/60),ss=('0'+(dur%60)).slice(-2);
 const ppm=placedCount>0?(placedCount/(dur/60)).toFixed(1):'0';
 let statsTxt=placedCount+' blocks · '+linesTotal+' lines · combo ×'+Math.max(maxCombo,1)+'\n'+mm+':'+ss+' · '+ppm+' blocks/min';
 const gap=bestAtStart-score;
