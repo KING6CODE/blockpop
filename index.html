@@ -1395,16 +1395,13 @@ function checkUnlocks(){
 STYLES.forEach((s,i)=>{if(!G.unlocked[i]&&G.best>=STYLE_TH[i]){G.unlocked[i]=true;
 toast('Nouveau style : '+s.name+' !');SFX.star()}})}
 function setStyle(i){G.style=clamp(i,0,STYLES.length-1);store.set('bp_style',String(G.style));
-buildBoardBG();renderTray(true);refreshDeco()}
-/* ================= DÉCOR LOSANGE (fxBack) ================= */
-let decoRot=0;
-function refreshDeco(){}
+buildBoardBG();renderTray(true)}
+/* ================= DÉCOR (fxBack) ================= */
 function drawDeco(t){
 fbc.clearRect(0,0,fxW,fxH);
-if(!G.playing&&G.mode!=='none'){}
 const st=STYLES[G.style],x=fxW/2,y=decoY,s=9;
-decoRot=t*.0004;
-fbc.save();fbc.translate(x,y);fbc.rotate(decoRot);
+const rot=t*.0004;
+fbc.save();fbc.translate(x,y);fbc.rotate(rot);
 fbc.fillStyle=styleLight(st);fbc.globalAlpha=.9;
 const shp=decoShape(G.style);
 fbc.beginPath();
@@ -1450,17 +1447,6 @@ function squash(x,y){squashMap[x+','+y]={t0:performance.now()}}
 function shapeCells(sh){const m=SHAPES[sh].m,out=[];for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++)if(m[y][x])out.push({dx:x,dy:y});return out}
 function canPlace(sh,px,py){return shapeCells(sh).every(cl=>{const x=px+cl.dx,y=py+cl.dy;return x>=0&&x<N&&y>=0&&y<N&&!G.grid[y][x]})}
 function anyPlacement(sh){for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(canPlace(sh,x,y))return true;return false}
-function clearsSomewhere(sh){
-for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-if(!canPlace(sh,x,y))continue;
-shapeCells(sh).forEach(cl=>{G.grid[py_(py)+cl.dy]&&(G.grid[py_(y)+cl.dy][x+cl.dx]={ci:0})});
-let full=false;
-for(let yy=0;yy<N;yy++){if(G.grid[yy].every(cc=>cc)){full=true;break}}
-if(!full)for(let xx=0;xx<N;xx++){let ok2=true;for(let yy=0;yy<N;yy++)if(!G.grid[yy][xx]){ok2=false;break}if(ok2){full=true;break}}
-shapeCells(sh).forEach(cl=>{G.grid[y+cl.dy][x+cl.dx]=null});
-if(full)return true}
-return false;
-function py_(v){return v}}
 function countHoles(){let h2=0;for(let x=0;x<N;x++){let seen=false;
 for(let y=0;y<N;y++){if(G.grid[y][x])seen=true;else if(seen)h2++}}return h2}
 function weightedPick(list){
@@ -1489,8 +1475,8 @@ return'GUIDE'}
 function pickOne(mode){
 const pool=basePool();
 if(mode==='TUTORIAL')pool.forEach(it=>{if(SHAPES[it.i].m.length*SHAPES[it.i].m[0].length>4)it.w*=2.2;else it.w*=.3});
-else if(mode==='CHAIN'){const good=pool.filter(it=>clearsSomewhere===undefined?false:0);/*noop*/
-const list=pool.filter(it=>{const sh=it.i;return simClear(sh)});
+else if(mode==='CHAIN'){
+const list=pool.filter(it=>simClear(it.i));
 if(list.length)return weightedPick(list)}
 else if(mode==='DESERT'||mode==='PUNISH'||mode==='EVIL')pool.forEach(it=>{const m=SHAPES[it.i].m;const area=m.length*m[0].length;
 if(area<=2)it.w*=2.4;else if(area>=6)it.w*=.4});
@@ -1531,7 +1517,7 @@ if(gem>=0&&!cells[gem].bomb)cells[gem].gem=1;
 trayPieces[i]={sh,ci,cells}}
 G.holes=countHoles();
 renderTray(true);
-document.querySelectorAll('.slot').forEach((sl,i)=>{sl.classList.remove('spawn');void sl.offsetWidth;sl.classList.add('spawn')})}
+document.querySelectorAll('.slot').forEach(sl=>{sl.classList.remove('spawn');void sl.offsetWidth;sl.classList.add('spawn')})}
 /* ================= TRAY ================= */
 function pieceExtent(p){let mx=0,my=0;p.cells.forEach(cl=>{mx=Math.max(mx,cl.dx+1);my=Math.max(my,cl.dy+1)});return{w:mx,h:my}}
 function renderTray(force){
@@ -1561,10 +1547,6 @@ for(let k2=0;k2<10;k2++){const a=k2/10*6.283-Math.PI/2,r2=k2%2?base*.12:base*.28
 c.closePath();c.fill()}c.translate(-base/2,-base/2)}
 c.restore()})})}
 /* ================= DRAG & DROP ================= */
-function slotCanvasIdx(cv){
-const slots=document.querySelectorAll('.slot canvas');
-for(let i=0;i<slots.length;i++)if(slots[i]===cv)return i;
-return -1}
 function bindDrag(){
 document.querySelectorAll('.slot canvas').forEach((cv,i)=>{
 cv.addEventListener('pointerdown',e=>{
@@ -1605,7 +1587,6 @@ else{SFX.bad()}}
 function placePiece(idx,px,py,d){
 const p=trayPieces[idx];if(!p)return;
 const now=performance.now();
-const st=STYLES[G.style];
 let bombCell=null;
 p.cells.forEach(cl=>{
 const x=px+cl.dx,y=py+cl.dy;
@@ -1616,6 +1597,7 @@ if(cl.bomb)bombCell={x,y}});
 trayPieces[idx]=null;
 SFX.place();vib(10);
 renderTray(true);
+if(!trayPieces[0]&&!trayPieces[1]&&!trayPieces[2])refillTray();
 if(bombCell){explodeAt(bombCell.x,bombCell.y);return}
 const lines=findLines();
 if(lines.length)doClear(lines);
@@ -1669,7 +1651,7 @@ lcAfter(110,()=>applyScore(pts,cx,cy));
 comboFx(cx,cy);
 const amp=P.shake||2+Math.min(2,lines.length);
 G.shakeT=performance.now()+70;G.shakeA=amp;
-if(gems&&G.mode==='adv')checkWin();
+if(G.mode==='adv')checkWin();
 SFX.land(4)}
 function capCenter(l){
 const cen=(l.cells.length-1)/2,c0=l.cells[0];
@@ -1697,7 +1679,7 @@ if(!c)continue;
 if(write!==y){
 G.grid[write][x]=c;G.grid[y][x]=null;
 const ordBelow=deepestOrdBelow(lines,x,y,write);
-falls.push({x,y0px:BY+gy+y*cell,y1:write,ycur:BY+gy+y*cell,ci:c.ci,gem:c.gem?1:0,
+falls.push({x,y1:write,ycur:BY+gy+y*cell,ci:c.ci,gem:c.gem?1:0,
 delay:P.grav+ordBelow*25,t0:now,vy:0,bounced:false,settled:false})}
 write--}}}
 function tickFalls(t,dt){
@@ -1722,9 +1704,8 @@ let empty=true;
 outer:for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(G.grid[y][x]){empty=false;break outer}
 if(empty&&G.playing){
 lcAfter(120,()=>{
-const bonus=TUNE.allClearCap;
-G.score+=bonus;
-popShow(fxW/2,BY+gy+cell*3,'ac',[{txt:'ALL CLEAR',sc:.8,pal:'gold'}],44,900,{flash:true});
+G.score+=TUNE.allClearCap;
+popShow(fxW/2,BY+gy+cell*3,'ac44',[{txt:'ALL CLEAR',sc:.8,pal:'gold'}],44,900,{flash:true});
 SFX.perfect();flashScreen();confetti(18);
 updateBestHUD()})}}}}
 function checkDanger(){
@@ -1736,7 +1717,6 @@ document.body.style.background=G.danger?'#7a2e3e':'';
 buildBoardBG()}}
 /* ================= SCORE / COMBO / POPS ================= */
 function applyScore(pts,cx,cy){
-if(!G.playing&&!G.over)return;
 G.score+=pts;
 popShow(cx,cy,'p'+pts,[{txt:String(pts),sc:1,pal:'white'}],40,700,{flash:true});
 const tier=Math.floor(G.score/5000);
@@ -1788,6 +1768,21 @@ fxc.drawImage(hv,-p.bm.w/2,-p.bm.h/2,p.bm.w,p.bm.h);
 fxc.globalAlpha=al}
 fxc.drawImage(p.bm.cv,-p.bm.w/2,-p.bm.h/2,p.bm.w,p.bm.h);
 fxc.restore()}}
+/* FIX v44.1 : score dessiné sur fxLayer (l'ancien était à y négatif sur board → invisible) */
+function drawScoreHUD(){
+if(!G.playing&&!G.over)return;
+const sx=BX+gx+N*cell/2,sy=BY+gy-12;
+if(sy<50)return;
+fxc.save();
+fxc.font='900 48px "Nunito Sans","Fredoka",sans-serif';
+fxc.textAlign='center';fxc.textBaseline='alphabetic';
+fxc.shadowColor='rgba(0,0,0,.55)';fxc.shadowBlur=10;fxc.shadowOffsetY=3;
+fxc.fillStyle='rgba(190,200,225,.85)';
+fxc.fillText(fmt(Math.round(G.shown)),sx,sy+2.5);
+fxc.shadowColor='transparent';
+fxc.fillStyle='#ffffff';
+fxc.fillText(fmt(Math.round(G.shown)),sx,sy);
+fxc.restore()}
 function flashScreen(){const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
 function confetti(n){
 const cols=['#FF5757','#FFA53D','#FFD53D','#5DDC6A','#3DC9EC','#7FA6FF','#C98FFF'];
@@ -1832,29 +1827,16 @@ if(t-f.t0<f.delay)continue;
 const Y=f.ycur-BY-gy;
 drawCellBoard(gctx,st,gx+f.x*cell,Y,{ci:f.ci,gem:f.gem},1,1)}
 if(ghost&&drag&&drag.ok){
-const st2=STYLES[G.style];
 drag.p.cells.forEach(cl=>{
 const X=gx+(ghost.x+cl.dx)*cell,Y=gy+(ghost.y+cl.dy)*cell;
-const im=getTile(st2.id,drag.p.ci);
+const im=getTile(st.id,drag.p.ci);
 gctx.save();gctx.globalAlpha=.35;
 if(im)gctx.drawImage(im,X,Y,cell,cell);
 else dGel(gctx,X,Y,cell,drag.p.ci%16,.35);
 gctx.globalAlpha=.8;
-gctx.strokeStyle=mixHex(st2.light||'#FFD23D','#000000',.2);
+gctx.strokeStyle=mixHex(st.light||'#FFD23D','#000000',.2);
 gctx.lineWidth=2;rr(gctx,X+1,Y+1,cell-2,cell-2,cell*.26);gctx.stroke();
 gctx.restore()})}
-const scTxt=fmt(Math.round(G.shown));
-gctx.save();
-gctx.font='900 48px "Nunito Sans","Fredoka",sans-serif';
-gctx.textAlign='center';gctx.textBaseline='alphabetic';
-const sx=gx+N*cell/2,sy=gy-34;
-gctx.shadowColor='rgba(0,0,0,.55)';gctx.shadowBlur=10;gctx.shadowOffsetY=3;
-gctx.fillStyle='rgba(190,200,225,.85)';
-gctx.fillText(scTxt,sx,sy+2.5);
-gctx.shadowColor='transparent';
-gctx.fillStyle='#ffffff';
-gctx.fillText(scTxt,sx,sy);
-gctx.restore();
 gctx.restore()}
 /* ================= BOUCLE ================= */
 let lastT=performance.now();
@@ -1867,7 +1849,8 @@ if(!G.pause){
 tickFalls(t,dt);
 drawBoard(t);
 lcDraw(t,dt);
-drawPops(t)}
+drawPops(t);
+drawScoreHUD()}
 else drawBoard(t);
 drawDeco(t);
 drawDragTick();
@@ -1894,8 +1877,7 @@ dlc.restore()}
 /* ================= GAME OVER / WIN ================= */
 function checkGameOverSoon(){
 lcAfter(650,()=>{
-if(!G.playing||G.over)return;
-if(falls.length)return;
+if(!G.playing||G.over||falls.length)return;
 const alive=trayPieces.some(p=>p&&anyPlacement(p.sh));
 if(!alive)gameOver()});
 lcAfter(1400,()=>{
@@ -1925,7 +1907,7 @@ else if(L.obj[0]==='score')done=G.score>=L.obj[1];
 if(!done)return;
 G.playing=false;G.over=true;
 const stars=G.score>=L.s3?3:(G.score>=L.s2?2:1);
-if(stars>(G.advc[G.lvl]||0)){G.advc[G.lvl]=stars;saveState()}
+if(stars>(G.advc[G.lvl]||0)){G.advc[G.lvl]=stars}
 if(G.score>G.best){G.best=G.score;checkUnlocks()}
 saveState();
 SFX.win();confetti(26);
@@ -1958,13 +1940,12 @@ const L=LEVELS[G.lvl];
 if(mode==='adv'&&L&&L.preset){
 L.preset.forEach((row,y)=>{for(let x=0;x<N;x++){
 const ch=row[x]||'.';
-if(ch==='.')return;
+if(ch==='.')continue;
 let ci=0,gem=0;
 if(ch>='1'&&ch<='8')ci=+ch-1;
 else if(ch>='A'&&ch<='H'){ci=ch.charCodeAt(0)-65;gem=1}
 G.grid[y][x]={ci,gem}}})}
 if(mode==='classic'){
-let seed=0;
 for(let y=5;y<N;y++)for(let x=0;x<N;x++)
 if(Math.random()<.42)G.grid[y][x]={ci:Math.floor(Math.random()*8)}}
 G.playing=true;
@@ -1980,8 +1961,9 @@ else ob.style.display='none';
 hideAll();
 buildBoardBG()}
 function updateObjBar(){
+if(G.mode!=='adv')return;
 const L=LEVELS[G.lvl];if(!L)return;
-let v=0,max=L.obj[1];
+let v=0;const max=L.obj[1];
 if(L.obj[0]==='lines')v=G.sessionLines;
 else if(L.obj[0]==='gems')v=G.gems;
 else if(L.obj[0]==='score')v=Math.min(G.score,max);
@@ -1991,6 +1973,7 @@ setInterval(()=>{if(G.playing&&G.mode==='adv')updateObjBar()},400);
 function goHome(){
 G.playing=false;G.pause=false;purgeFx();
  $('btnResume').style.display='none';
+ $('objBar').style.display='none';
 show('ovTitle');
 updateTitleStats()}
 function updateTitleStats(){
@@ -2088,7 +2071,7 @@ if(!G.playing){freshGrid();G.playing=true}
 const y=Math.floor(Math.random()*N);
 for(let x=0;x<N;x++)G.grid[y][x]={ci:x%8};
 const lines=findLines();
-if(lines.length){G.style=Math.floor(Math.random()*STYLES.length);buildBoardBG();doClear(lines)}
+if(lines.length){doClear(lines)}
 else toast('Ligne pleine introuvable')});
 if(/dev/.test(location.search)||store.get('bp_dev')==='1'){$('btnDev').style.display='flex';buildDevSelect()}
 /* ================= BOOT ================= */
@@ -2117,10 +2100,8 @@ await sleep(200);
 window.__bpBooted=true;
 updateTitleStats();
 show('ovTitle');
-G.mode='none';
-setInterval(updateObjBar,500)}
+G.mode='none'}
 boot().catch(e=>show(e.message));
-})();
 </script>
 </body>
 </html>
