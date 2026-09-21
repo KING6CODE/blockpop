@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#4a55a8"/>
 <title>BLOCK THUD!</title>
-<!-- v42 : UNE animation signature PAR STYLE (mini-blocs complets,
-     gravité accélérée, rotation 10°/s max), all-clear amélioré + lag fix
-     (préchauffage de tous les styles au boot), confetti allégé -->
+<!-- v43 : Line Clear System — gel prototype (anticipation 35ms, flash 30ms,
+     vague centrale 18ms/pas, destruction 110ms, 8+12 particules pool 250,
+     lumière, ombre résiduelle, gravité 250ms, squash impact 80ms,
+     multi-lignes +25ms, burst central) — moteur réutilisable pour 21 matières -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet"/>
 <style>
 :root{--panel:rgba(255,255,255,.10);--panel2:rgba(255,255,255,.17);--line:rgba(255,255,255,.15);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
@@ -306,7 +307,7 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 'use strict';
 var k = 0;
 /* ================================================================
-   BLOCK THUD! v42 — UN SEUL bloc script (hoisting complet)
+   BLOCK THUD! v43 — moteur (UN SEUL bloc script)
    ================================================================ */
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70,
 allClearCap:1500,guideLockLines:8,presetMin:.30,presetMax:.45};
@@ -682,8 +683,6 @@ const src=tileCache['gel_'+r.s];if(!src)continue;
 tileCache[st.id+'_'+ci]=r.f?pxFilter(src,r.f):src}})}
 function getTile(stId,ci){
 return tileCache[stId+'_'+ci]||tileCache['gel_'+(ci%8)]||null}
-/* v42 ANTI-LAG : préchauffage de TOUS les styles en arrière-plan au boot
-   → plus AUCUN getImageData pendant le jeu → all-clear fluide */
 function preheatAllStyles(){
 let i=1;
 const step=()=>{
@@ -866,10 +865,123 @@ MUSIC.init();
 MUSIC.start();
 window.removeEventListener(ev,once)},{once:true}));
 /* ================================================================
-   DESTRUCTION v42 — UNE SIGNATURE PAR MATIÈRE
-   Base commune : spawnMiniBlocks = 3 VRAIS mini-blocs (texture entière
-   à 55 %), vy≈0 → gravité accélère, rotation 0.052 rad/s = 3°/s,
-   fade 1,2-1,6 s. Puis chaque famille ajoute SES effets.
+   LINE CLEAR SYSTEM v43 — logique/animation séparées
+   La ligne est null dans la grille immédiatement ; les blocs sont
+   capturés (positions monde FIGÉES) et animés ici. Timeline gel :
+   0-35 anticipation · 35-65 flash · 65-175 destruction · +80 ombre
+   Vague : centre → bords, 18 ms/pas · multi-lignes : +25 ms/ligne
+   ================================================================ */
+const LC={blocks:[],parts:[],MAXP:250,WAVE:18,LINE_STEP:25,idx:0};
+function lcCapture(bx,by,tile,ci,delay){
+LC.blocks.push({bx:bx,by:by,tile:tile,ci:ci,delay:delay,
+t0:performance.now(),sp:false,
+rot:(Math.random()<.5?-1:1)*R(1.2,2.5)})}
+function lcPart(x,y,vx,vy,sz,col,life,g,ring){
+let p;
+if(LC.parts.length<LC.MAXP){p={on:true};LC.parts.push(p)}
+else{p=LC.parts[LC.idx];LC.idx=(LC.idx+1)%LC.MAXP;p.on=true}
+p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.sz=sz;p.col=col;
+p.t0=performance.now();p.life=life;p.g=g;p.ring=!!ring;return p}
+function lcSpawnParticles(bx,by,ci){
+const cx0=bx+cell/2,cy0=by+cell/2,CS=cell/1000;
+for(let i=0;i<8;i++){
+const a=R(0,6.3),sp=R(2.5,5)*CS;
+const col=i<4?COLORS[ci].b:(i<6?COLORS_L[ci]:COLORS_D[ci]);
+lcPart(cx0,cy0,Math.cos(a)*sp,Math.sin(a)*sp-R(.4,1.2)*CS,
+cell*R(.06,.11),col,R(180,270),3.5)}
+for(let i=0;i<12;i++){
+const a=R(0,6.3),sp=R(5,8)*CS;
+lcPart(cx0,cy0,Math.cos(a)*sp,Math.sin(a)*sp-R(.2,.8)*CS,
+cell*R(.015,.03),i%2?'#ffffff':COLORS_L[ci],R(90,150),3.5)}}
+function lcRing(x,y,col){
+lcPart(x,y,0,0,cell,col,180,0,true)}
+function lcDraw(t,dt){
+if(!LC.blocks.length&&!LC.parts.length)return;
+const CS=cell/1000;
+for(let i=0;i<LC.parts.length;i++){
+const p=LC.parts[i];
+if(!p.on)continue;
+const age=t-p.t0;
+if(age>=p.life){p.on=false;continue}
+p.vy+=3.5*CS*dt;
+p.x+=p.vx*dt;p.y+=p.vy*dt;
+const kk=age/p.life;
+bctx.save();
+bctx.globalAlpha=1-kk;
+if(p.ring){
+bctx.strokeStyle=p.col;
+bctx.lineWidth=Math.max(1.5,cell*.05*(1-kk));
+bctx.beginPath();bctx.arc(p.x,p.y,p.sz*(.15+kk*1.65),0,6.3);bctx.stroke()}
+else{
+bctx.fillStyle=p.col;
+rr(bctx,p.x-p.sz/2,p.y-p.sz/2,p.sz,p.sz,p.sz*.25);bctx.fill()}
+bctx.restore()}
+for(let i=LC.blocks.length-1;i>=0;i--){
+const b=LC.blocks[i];
+const age=t-b.t0-b.delay;
+if(age>255){LC.blocks.splice(i,1);continue}
+const cx0=b.bx+cell/2,cy0=b.by+cell/2;
+if(age<0){
+drawBlock(bctx,b.bx,b.by,cell,b.ci,1);
+continue}
+if(age<65){
+let sx=1,sy=1,hx=0,ho=0;
+if(age<35){
+const kk=age/35,e=1-(1-kk)*(1-kk);
+sx=1-.04*e;sy=1-.06*e;
+if(age>=10){
+const hk=(age-10)/25;
+hx=-cell*.15+hk*cell*.30;
+ho=hk<.5?hk*1.1:(1-hk)*1.1}}
+drawBlock(bctx,b.bx,b.by,cell,b.ci,1,1,false,sx,sy);
+if(age>=35){
+bctx.save();bctx.globalAlpha=.35;
+bctx.fillStyle='#ffffff';
+rr(bctx,b.bx,b.by,cell,cell,cell*.22);bctx.fill();
+bctx.restore()}
+if(ho>0){
+bctx.save();bctx.globalAlpha=clamp(ho,0,.55);
+bctx.fillStyle='#ffffff';
+rr(bctx,b.bx+cell*.225+hx,b.by+cell*.10,cell*.55,cell*.07,cell*.035);
+bctx.fill();bctx.restore()}
+continue}
+if(!b.sp){b.sp=true;lcSpawnParticles(b.bx,b.by,b.ci)}
+const kk=clamp((age-65)/110,0,1);
+let sc,rot;
+if(kk<.5){
+const e=backOut(kk/.5);
+sc=1+.07*e;rot=b.rot*(kk/.5)*.5}
+else{
+const e=(kk-.5)/.5;
+sc=(1.07)*(1-e*e);rot=b.rot*(.5+e*.5)}
+let wob=0;
+if(age>60&&age<130)wob=Math.sin((age-60)/70*Math.PI*2)*.04;
+if(age<165){
+const lk=(age-65)/100;
+const lr=cell*(.12+lk*.53);
+const lg=bctx.createRadialGradient(cx0,cy0,lr*.15,cx0,cy0,lr);
+lg.addColorStop(0,'rgba(255,255,255,'+(.70*(1-lk))+')');
+lg.addColorStop(1,'rgba(255,255,255,0)');
+bctx.fillStyle=lg;
+bctx.fillRect(cx0-lr,cy0-lr,lr*2,lr*2)}
+bctx.save();
+bctx.translate(cx0,cy0);
+bctx.rotate(b.rot*Math.PI/180*Math.sin(kk*Math.PI));
+bctx.translate(-cell/2,-cell/2);
+drawBlock(bctx,0,0,cell,b.ci,1,sc,false,sc*(1+wob),sc);
+bctx.restore();
+if(age>175){
+const sk=(age-175)/80;
+bctx.save();
+bctx.globalAlpha=.25*(1-sk);
+bctx.fillStyle='#000000';
+const g2=cell*(1+sk*.25);
+rr(bctx,b.bx-(g2-cell)/2,b.by-(g2-cell)/2,g2,g2,cell*.22);
+bctx.fill();
+bctx.restore()}}}
+function lcPurge(){LC.blocks=[];LC.parts=[]}
+/* ================================================================
+   DESTRUCTION v42 — les 14 familles (matières non-gel) + LC pour gel
    ================================================================ */
 function frag(x,y,vx,vy,sz,col,life,sh,extra){
 if(particles.length>300)return;
@@ -893,14 +1005,6 @@ function spawnDestroy(fam,x,y,tile,ci){
 const T=performance.now();
 const base=COLORS[ci].b,light=COLORS_L[ci],dark=COLORS_D[ci];
 switch(fam){
-case 'pop':{
-miniBlocks(x,y,tile,3);
-frag(x,y,R(-.30,.30),R(-.36,-.06),cell*.16,light,420,1);
-frag(x,y,R(-.30,.30),R(-.30,.10),cell*.13,base,460,1);
-frag(x,y,R(-.24,.24),R(-.26,.06),cell*.10,dark,500,1);
-waveRing(x,y,light);
-crossSpark(x,y,'#ffffff');
-break}
 case 'soft':{
 miniBlocks(x,y,tile,3,{g:.55,life:1500});
 for(let i=0;i<5;i++){
@@ -1082,8 +1186,7 @@ try{appEl.animate([
 {transform:'translate('+px+'px,'+(-px*.6)+'px)'},
 {transform:'translate('+(-px*.8)+'px,'+(px*.4)+'px)'},
 {transform:'translate(0,0)'}],
-{duration:170,easing:'ease-out'})}catch(e){}}
-/* v42 : ALL-CLEAR — ondes dorées concentriques + pluie d'étoiles */
+{duration:70,easing:'ease-out'})}catch(e){}}
 function allClearFx(){
 const cx0=cw/2,cy0=gy+cell*4;
 for(let i=0;i<3;i++)frag(cx0-cell*.5,cy0-cell*.5,0,0,cell*(2+i*1.6),
@@ -1094,7 +1197,6 @@ frag(gx+Math.random()*cell*N,gy-cell*(.5+Math.random()),
 R(-.012,.012),R(.010,.024),cell*(.14+Math.random()*.14),
 goldCols[i%3],1500+R(0,400),8,{g:.28,vr:R(-.06,.06)})}
 for(let i=0;i<8;i++)crossSpark(cx0+R(-2,2)*cell,cy0+R(-2,2)*cell,'#FFF3B0',600)}
-/* ---------- Géométrie ---------- */
 function updateBoardRect(){boardRect=boardEl.getBoundingClientRect()}
 function resize(){
 const r=boardWrap.getBoundingClientRect();cw=r.width;
@@ -1571,11 +1673,6 @@ else if(mode2==='GIFT'){
 const pack=GIFT_PACKS[Math.floor(Math.random()*GIFT_PACKS.length)];
 newSi=pack.slice();
 newSi[Math.floor(Math.random()*3)]=randPieceWeighted()}
-else if(mode2==='SAVE_COMBO'){
-let saver=null;
-for(let t=0;t<40;t++){const cand=randPieceWeighted();const a=analyzePiece(cand);
-if(a.lines>=2||a.near>0){saver=cand;break}}
-if(saver!==null)newSi[Math.floor(Math.random()*3)]=saver}
 else if(mode2==='PUNISH'){
 let worst=null,worstSc=-1;
 for(let t=0;t<16;t++){const cand=randPieceWeighted();const a=analyzePiece(cand);
@@ -1737,10 +1834,7 @@ const v=map[word];
 if(v&&playCustom(v,.85))return}
 function showBanner(cb,lines,chain,mult){
 queuePop(comboSegs(cb),cell*(cb>=5?1.0:.85),400,true,showBanner.fx,showBanner.fy)}
-/* v42 : table de mapping style → famille d'animation signature */
 const DESTROY_MAP={
-gel:'pop',gel_bleu:'pop',gel_vert:'pop',gel_azur:'pop',gel_jaune:'pop',
-gel_menthe:'pop',gel_duo:'pop',gel_terne:'pop',gel_primaire:'pop',gel_pastel:'pop',
 coussin:'soft',bonbon:'candy',pastille:'round',sculpted:'crack',biscuit:'crumb',
 bois:'wood',laine:'wool',moelleux:'soft2',pierre:'crack2',brique:'wood2',
 glace:'crystal',ambre:'crystal2',pasteque:'organic',miel:'viscous',
@@ -1761,10 +1855,18 @@ const fam=DESTROY_MAP[stCur.id]||stCur.destroy||'pop';
 rows.forEach(r=>sweeps.push({t:'r',i:r,t0:t0}));
 cols.forEach(c=>sweeps.push({t:'c',i:c,t0:t0}));
 cleared.forEach((rc,idx)=>{const r=rc[0],c=rc[1],obj=grid[r][c];
-clearFx.push({r,c,ci:obj.c,t0:t0+idx*16,st:theme});grid[r][c]=null;
+grid[r][c]=null;
 const px0=gx+c*cell+cell/2,py0=gy+r*cell+cell/2;
 const tile=getTile(stCur.id,obj.c);
-spawnDestroy(fam,px0,py0,tile,obj.c);
+/* v43 : gel → Line Clear System · autres matières → familles v42 */
+if(stCur.gel){
+let lcD;const ri=rows.indexOf(r);
+if(ri>=0)lcD=ri*LC.LINE_STEP+Math.abs(c-(N-1)/2)*LC.WAVE;
+else{const cj=cols.indexOf(c);lcD=cj*LC.LINE_STEP+Math.abs(r-(N-1)/2)*LC.WAVE}
+lcCapture(gx+c*cell,gy+r*cell,tile,obj.c,lcD)}
+else{
+clearFx.push({r,c,ci:obj.c,t0:t0+idx*16,st:theme});
+spawnDestroy(fam,px0,py0,tile,obj.c)}
 if(obj.gem)collectGem(r,c);
 sx+=c;sy+=r});
 if(particles.length>300){
@@ -1774,6 +1876,14 @@ x:gx+Math.random()*cell*N,y:gy+cell*N,
 vx:(Math.random()-.5)*.04,vy:-(.03+Math.random()*.04),sz:cell*.12,
 col:i%2?'#ff8c28':'#ffd23d',t0:t0,life:600+Math.random()*300,sh:4,g:0,rot:0,vr:.0004})}
 const lines=rows.length+cols.length;linesTotal+=lines;advLines+=lines;
+/* v43 : burst central multi-lignes (gel) */
+if(stCur.gel&&lines>=2){
+const bx0=gx+(sx/cleared.length)*cell,by0=gy+(sy/cleared.length)*cell;
+for(let i=0;i<12;i++){
+const a=i/12*6.3,sp=R(5,8)*cell/1000;
+lcPart(bx0,by0,Math.cos(a)*sp,Math.sin(a)*sp,
+cell*R(.07,.11),i%2?'#ffffff':COLORS_L[theme],R(200,300),2.5)}
+lcRing(bx0,by0,'rgba(255,255,255,.85)')}
 const linePts=lines*(lines+1)/2*80;
 clearBonusAcc+=linePts;
 const gain=Math.round(linePts*(1+Math.min(combo-1,6)*.15)+(chain?150:0));
@@ -1788,9 +1898,9 @@ confetti();SFX.win();flash()}
 gainFx.push({txt:'+'+gain,
 x:boardRect.left+gx+(sx/cleared.length)*cell+cell/2,
 y:boardRect.top+gy+(sy/cleared.length)*cell+cell/2-cell*.3,
-t0:t0,life:950});
+t0:t0+110,life:950});
 flyScores.push({x:gx+(sx/cleared.length)*cell+cell/2,y:gy+(sy/cleared.length)*cell+cell/2,txt:'+'+gain,t0:t0,life:1000});
-screenShake(clamp(3+lines*1.5,3,9));
+screenShake(clamp(1+lines,2,4));
 if(!playCustom('clear_'+stCur.id,.85))SFX.clearByStyle(lines,theme);
 if(combo>=2){
 if(!playCustom('combo_'+stCur.id,.8))SFX.comboByStyle(combo,theme);
@@ -1844,7 +1954,7 @@ if(!fc.rows.length&&!fc.cols.length)break;
 chain++;advChain=Math.max(advChain,chain);
 doClear(fc.rows,fc.cols,chain>1);
 if(my!==turnId)return;
-await sleep(200);if(my!==turnId)return;
+await sleep(STYLES[theme].gel?250:200);if(my!==turnId)return;
 const moved=applyGravity();if(moved)await waitSettled();
 if(my!==turnId)return;
 await sleep(60);if(my!==turnId)return}
@@ -1853,7 +1963,6 @@ const bonus=Math.min(TUNE.allClearCap,Math.round(clearBonusAcc*1.5));
 score+=bonus;
 floats.push({x:cw/2,y:gy+cell*4,txt:'+'+bonus,t0:performance.now(),life:1400});
 playCustom('voice_perfect',.9);
-/* v42 : animation all-clear — ondes dorées + pluie d'étoiles */
 allClearFx();
 queuePop(perfectSegs('PERFECT CLEAR'),cell*1.05,400);
 SFX.perfect();vib([30,50,30,50,30]);flash();
@@ -1915,7 +2024,6 @@ function applyPlace(i,r,c){
 const p=tray[i],now=performance.now();
 if(p.bomb){tray[i]=null;renderTray(false);bombExplode(r,c);return}
 const fitInfo=(p.si>=0)?analyzePiece(p.si):null;
-/* slide rigide : t=now-1000 → aucun pop ni flash sur les pièces posées */
 const canSlide=lastDrop&&now-lastDrop.t<400;
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(v){
@@ -1970,6 +2078,7 @@ theme=(d.theme!=null&&d.theme<STYLES.length)?d.theme:themeOrder[styleLevel];
 ensureTiles(theme);
 reviveUsed=!!d.reviveUsed;gameStart=d.gameStart||performance.now();
 newRecordShown=false;evilLeft=0;evilWarn=false;themeTrans=null;
+lcPurge();
 updateBg();renderTray(false);resize();state='playing';toast('Game restored')}
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 const ADMOB_IDS={
@@ -2323,8 +2432,8 @@ if(ty<-cell)continue;
 bctx.globalAlpha=.13/k3;bctx.fillStyle=colr;
 rr(bctx,gx+c*cell+3,gy+r*cell+ty+3,cell-6,cell-6,cell*.10);bctx.fill()}
 bctx.globalAlpha=1}
-if(o.fall.squash){const kk=(t-o.fall.squash)/130;
-if(kk<1){const s2=Math.sin(kk*Math.PI);sx=1+.16*s2;sy=1-.2*s2}}}
+if(o.fall.squash){const kk=(t-o.fall.squash)/80;
+if(kk<1){const s2=Math.sin(kk*Math.PI);sx=1+.08*s2;sy=1-.08*s2}}}
 let bOx=0,bOy=0,bCi=o.c,bSc=1;
 if(hs1Set&&hs1Set.has(r*N+c)&&drag){
 const lfx=STYLES[theme].lfx||'classic';
@@ -2446,6 +2555,8 @@ grad.addColorStop(.5,'rgba(255,255,255,.75)');
 grad.addColorStop(1,'rgba(255,255,255,0)');
 bctx.fillStyle=grad;
 bctx.fillRect(gx+sh.c*cell,py0,cell,cell*1.2)}})}}
+/* v43 : Line Clear System — blocs gel en destruction + particules pool */
+lcDraw(t,dt);
 clearFx=clearFx.filter(fx=>{
 const age=t-fx.t0;if(age<0)return true;
 const x=gx+fx.c*cell,y=gy+fx.r*cell;
@@ -2651,7 +2762,7 @@ if(now-last<400)return;last=now;fn(e)};
 el.addEventListener('pointerdown',go);el.addEventListener('click',go)}
 function goHome(){
 turnId++;animating=false;drag=null;ghost=null;
-popQueue=[];popCur=null;
+popQueue=[];popCur=null;lcPurge();
 dragLayer.style.display='none';
 state='title';mode='classic';lvl=null;
 ovPause.classList.remove('show');ovOver.classList.remove('show');
@@ -2697,7 +2808,7 @@ newRecordShown=false;bestAtStart=-1;
 particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
 plusOnes=[];gainFx=[];clearBonusAcc=0;sweeps=[];clearFxFlash=[];
 evilLeft=0;evilWarn=false;
-thumbs=[];decParts=[];
+thumbs=[];decParts=[];lcPurge();
 setHudMode();updateBg();updateObjHUD();
 resize();genTray(true);
 state='playing';
@@ -2777,7 +2888,7 @@ reviveUsed=false;gameStart=performance.now();
 newRecordShown=false;bestAtStart=best;
 particles=[];floats=[];flyScores=[];clearFx=[];shakeAmt=0;ghost=null;
 plusOnes=[];gainFx=[];clearBonusAcc=0;sweeps=[];clearFxFlash=[];
-thumbs=[];decParts=[];
+thumbs=[];decParts=[];lcPurge();
 spawnPreset();
 updateBg();store.del('bp_save');
 resize();genTray(true);
@@ -2912,7 +3023,6 @@ refreshTitle();ovTitle.classList.add('show');
 },220)}},120)}
 function setLoading(p){$('loadFill').style.width=Math.round(clamp(p,0,1)*100)+'%'}
 bootWait();
-/* v42 : préchauffage de tous les styles en arrière-plan → all-clear sans lag */
 preheatAllStyles();
 bindTap($('devPreview'),()=>{
 const idx=styleIdxById($('devStyle').value);
@@ -2925,7 +3035,10 @@ resize();
 for(let c=0;c<4;c++)for(let r=N-1;r>N-4;r--){
 const px0=gx+c*cell+cell/2,py0=gy+r*cell+cell/2;
 const tile=getTile(STYLES[idx].id,grid[r][c].c);
-spawnDestroy(DESTROY_MAP[STYLES[idx].id]||'pop',px0,py0,tile,grid[r][c].c);
+if(STYLES[idx].gel){
+lcCapture(px0-cell/2,py0-cell/2,tile,grid[r][c].c,0)}
+else{
+spawnDestroy(DESTROY_MAP[STYLES[idx].id]||'pop',px0,py0,tile,grid[r][c].c)}
 grid[r][c]=null}
 toast('Preview: '+STYLES[idx].name)});
 if(document.fonts&&document.fonts.load){
