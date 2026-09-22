@@ -3,22 +3,20 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
-<meta name="theme-color" content="#155FC5"/>
+<meta name="theme-color" content="#1660C4"/>
 <title>BLOCK THUD!</title>
-<!-- v45 : UI Block Blast — home dégradé royal→cyan + logo lettres 3D glossy
-     (extrusion drop-shadow, reflets, couronne) + panneau Best Score
-     blanc/lavande + boutons capsules (gradient, highlight, extrusion,
-     ombre bleu-noir, pastilles rouges 3D) + Settings à double volume
-     (bordure bleue claire + plaque intérieure indigo), toggles épais avec
-     barre rouge diagonale, slider vibration 3 crans, séparateur, Replay/
-     Home verts, Style en gris-lavande + losange combo recentré sur le
-     score (taille plafonnée, ombre allégée) -->
+<!-- v46 : images UI assets/ui/crown.png, medal.png, gem_blue.png, gem_orange.png
+     (fallbacks SVG intégrés) + page Achievement (Statistics 2×2 + 9 Awards
+     octogonaux) + map Adventure en losange (barre de progression gemmes,
+     bouton Level N vert) + gemmes 2 types bleue/orange comptées séparément
+     + home aux mesures exactes (92 %, face 55/relief 6, rayon 10, pastille
+     rouge qui dépasse) + bouton Resume supprimé -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
-<noscript><link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet"/></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet"/></noscript>
 <style>
-:root{--panel:rgba(255,255,255,.10);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f}
+:root{--panel:rgba(255,255,255,.10);--ink:#fff;--dim:rgba(255,255,255,.80);--gold:#ffd23d;--gold-d:#c9a41f;--navy:#345A9F}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{color-scheme:dark}html,body{height:100%}
 body{background:#4a55a8;color:var(--ink);font-family:'Fredoka',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
@@ -34,7 +32,9 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .hside{width:104px;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .hside.right{align-items:flex-end}
 #bestWrap{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:27px;font-weight:800;margin-top:2px;font-family:'Nunito Sans','Fredoka',sans-serif;text-shadow:0 3.6px 8px rgba(90,64,8,.60),0 1.2px 0 rgba(169,126,18,.80)}
-#bestWrap svg{width:36px;height:36px;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+#bestWrap .crownSlot{position:relative;width:36px;height:36px;flex:none}
+#bestWrap .crownSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:2}
+#bestWrap .crownSlot svg{position:absolute;inset:0;width:100%;height:100%;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
 #btnPause{background:none;border:none;padding:2px;margin-top:0;cursor:pointer;line-height:0;color:#e8eeff}
 #btnPause svg{width:44px;height:44px}
 #btnPause img{width:48px;height:48px}
@@ -62,60 +62,108 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 @keyframes tpPop{from{opacity:.9;transform:scale(.5)}to{opacity:0;transform:scale(1.5) translateY(-9px)}}
 .overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .3s;background:rgba(18,25,44,.88)}
 .overlay.show{opacity:1;pointer-events:auto}
-/* ---- Panneau double volume (Block Blast) ---- */
 .panel{width:min(100%,368px);max-height:calc(100dvh - 32px);overflow:auto;background:linear-gradient(180deg,#7B97F2,#5B76DC);border:none;border-radius:26px;padding:10px;text-align:center;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 18px 42px rgba(4,8,32,.60),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(20,30,90,.35)}
 .overlay.show .panel{transform:none}
 .panelIn{background:linear-gradient(180deg,#4353C6,#32409E);border-radius:18px;padding:18px 14px 14px;box-shadow:inset 0 4px 10px rgba(8,12,45,.5)}
-/* ---- Boutons objets (capsules plastique) ---- */
-.btn3d{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;border:none;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:21px;color:#fff;border-radius:18px;padding:15px 20px;width:100%;margin-bottom:14px;text-shadow:0 2px 0 rgba(0,0,0,.22);background:linear-gradient(180deg,#8a90b8,#6a7098);box-shadow:0 6px 0 #4a5078,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.35);transition:transform .07s,box-shadow .07s}
+.btn3d{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;border:none;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px;color:#fff;border-radius:18px;padding:14px 20px;width:100%;margin-bottom:14px;text-shadow:0 2px 0 rgba(0,0,0,.22);background:linear-gradient(180deg,#8a90b8,#6a7098);box-shadow:0 6px 0 #4a5078,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.35);transition:transform .07s,box-shadow .07s}
 .btn3d:active{transform:translateY(5px);box-shadow:0 1px 0 #4a5078,0 6px 12px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.35)}
 .btn3d .ico{width:28px;height:28px;flex:none;fill:#fff;filter:drop-shadow(0 2px 0 rgba(0,0,0,.20))}
-.btn3d .ico.st{fill:none;stroke:#fff;filter:drop-shadow(0 2px 0 rgba(0,0,0,.20))}
 .btn3d.green{background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);box-shadow:0 6px 0 #1E8A12,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.42)}
 .btn3d.green:active{box-shadow:0 1px 0 #1E8A12,0 6px 12px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.42)}
-.btn3d.orange{background:linear-gradient(180deg,#FFC93D,#F79E10 55%,#E8870A);box-shadow:0 6px 0 #C56A00,0 14px 22px rgba(10,20,64,.38),inset 0 2px 0 rgba(255,255,255,.45)}
-.btn3d.orange:active{box-shadow:0 1px 0 #C56A00,0 6px 12px rgba(10,20,64,.32),inset 0 2px 0 rgba(255,255,255,.45)}
-.btn3d.teal{background:linear-gradient(180deg,#3CEABB,#17C893 55%,#0FAE7C);box-shadow:0 6px 0 #0B8E62,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.42)}
-.btn3d.teal:active{box-shadow:0 1px 0 #0B8E62,0 6px 12px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.42)}
-.btn3d.blue{background:linear-gradient(180deg,#6B8CFF,#4a6ae0);box-shadow:0 6px 0 #3550bd,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.4)}
-.btn3d.blue:active{box-shadow:0 1px 0 #3550bd,0 6px 12px rgba(10,20,64,.3),inset 0 2px 0 rgba(255,255,255,.4)}
 .btn3d.lav{background:linear-gradient(180deg,#A2A9CB,#7C84AC 55%,#6B739C);box-shadow:0 6px 0 #575E86,0 12px 18px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.30)}
 .btn3d.lav:active{box-shadow:0 1px 0 #575E86,0 5px 10px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.30)}
 .btn3d.ghost{background:linear-gradient(180deg,#8a90b8,#6a7098);box-shadow:0 6px 0 #4a5078,0 12px 18px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.3)}
 .btn3d.ghost:active{box-shadow:0 1px 0 #4a5078,0 5px 10px rgba(10,20,64,.25),inset 0 2px 0 rgba(255,255,255,.3)}
 .btn3d:disabled{opacity:.5;pointer-events:none}
-/* ---- Pastille notification rouge 3D ---- */
-.dotRed{position:absolute;top:-6px;right:14px;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF8A7E,#F0271C 62%,#C41608);box-shadow:0 3px 5px rgba(0,0,0,.35),inset 0 2px 2px rgba(255,255,255,.5);pointer-events:none}
-#ovLoad{z-index:150;background:linear-gradient(180deg,#163DB2 0%,#1596DA 100%);backdrop-filter:none}
-#ovLoad .panel{background:transparent;border:none;box-shadow:none;overflow:visible;max-height:none;padding:0}
-.loadBar{width:210px;height:14px;border-radius:99px;background:rgba(255,255,255,.22);margin:30px auto 0;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
-.loadBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD23D,#FFA53D);border-radius:99px;transition:width .18s}
-/* ---- LOGO 3D ---- */
-.titleCol{width:min(100%,362px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:6px 2px;text-align:center}
-.bigLogo{position:relative;text-align:center;user-select:none;margin-top:10px}
-.bigLogo .crown3d{position:absolute;top:-24px;left:calc(50% - 12px);width:62px;height:46px;transform:rotate(-8deg);filter:drop-shadow(0 4px 0 #C47F00) drop-shadow(0 9px 7px rgba(8,16,60,.45));z-index:2}
+/* ---------- HOME (mesures Block Blast) ---------- */
+#ovTitle{background:linear-gradient(180deg,#1B66CC 0%,#1660C4 45%,#1260C2 100%);backdrop-filter:none;place-items:start center}
+.titleCol{position:relative;width:min(100%,470px);height:100dvh;overflow-y:auto;padding:calc(8px + env(safe-area-inset-top)) 0 30px;text-align:center}
+.medalBadge{position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;width:64px;cursor:pointer;text-align:center;filter:drop-shadow(0 0 12px rgba(120,190,255,.8));z-index:5}
+.medalBadge .mSlot{position:relative;width:52px;height:52px;margin:0 auto}
+.medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
+.medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
+.medalBadge span{display:block;color:#fff;font:800 15px 'Nunito Sans';margin-top:-4px;text-shadow:0 2px 3px rgba(10,20,70,.5)}
+.bigLogo{position:relative;text-align:center;user-select:none;margin-top:56px}
+.bigLogo .crown3d{position:absolute;top:-26px;left:calc(50% - 12px);width:62px;height:46px;transform:rotate(-8deg);filter:drop-shadow(0 4px 0 #C47F00) drop-shadow(0 9px 7px rgba(8,16,60,.45));z-index:2}
+.bigLogo .crownImg{position:absolute;top:-28px;left:calc(50% - 20px);width:64px;height:52px;transform:rotate(-8deg);z-index:3}
 .bigLogo .row{display:flex;justify-content:center;gap:1px;align-items:flex-end}
 .bigLogo .lt{font-family:'Lilita One',Fredoka,sans-serif;font-size:58px;line-height:1.04;display:inline-block;padding:0 1px;transform:rotate(var(--r)) translateY(var(--y,0px));background:linear-gradient(180deg,#fff 0%,var(--c1) 15%,var(--c2) 55%,var(--c3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 0 var(--cd)) drop-shadow(0 11px 8px rgba(8,16,60,.45))}
 .bigLogo .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:44px;line-height:1;letter-spacing:3px;margin-top:4px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #0B78A8) drop-shadow(0 9px 8px rgba(8,16,60,.4))}
 .bigLogo .tag{color:#BBD8F5;font-weight:700;font-size:13px;letter-spacing:3px;margin-top:9px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
-/* ---- Badge Medal ---- */
-.medalBadge{position:absolute;top:calc(8px + env(safe-area-inset-top));right:12px;width:64px;cursor:pointer;text-align:center;filter:drop-shadow(0 0 12px rgba(130,190,255,.75));z-index:5}
-.medalBadge svg{width:52px;height:52px}
-.medalBadge span{display:block;color:#fff;font-weight:700;font-size:14px;margin-top:-4px;text-shadow:0 2px 3px rgba(10,20,70,.5)}
-/* ---- Panneau Best Score (daily victories) ---- */
-.dailyPanel{width:min(100%,320px);margin:26px auto 0;border-radius:20px;overflow:hidden;box-shadow:0 12px 24px rgba(8,16,60,.42),0 2px 0 rgba(255,255,255,.12) inset;text-align:left}
-.dpHead{background:linear-gradient(180deg,#ADB4F2,#8E97E4);color:#2A3170;font-weight:700;font-size:16px;text-align:center;padding:9px 10px}
-.dpBody{background:linear-gradient(180deg,#FBF8F0,#EEE9DE);display:flex;align-items:center;gap:12px;padding:14px 14px 16px}
-.winBadge{position:relative;width:66px;height:60px;flex:none;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#4A6AE0 54%,#3A54C0 56%);border-radius:14px 14px 16px 16px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.22),0 3px 6px rgba(10,20,70,.25)}
-.winBadge svg{width:42px;height:34px;margin-top:-10px;filter:drop-shadow(0 2px 0 #C47F00)}
-.winBadge .wTag{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#5FE84C,#2FA824);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 11px;border-radius:9px;box-shadow:0 2px 0 #1E7A12;text-shadow:0 1px 0 rgba(0,0,0,.25)}
-.dpVal{font-family:'Nunito Sans',sans-serif;font-weight:900;font-size:28px;color:#2A3170;flex:1;text-align:center;text-shadow:0 1px 0 rgba(255,255,255,.8)}
-.dpMore{width:30px;height:30px;flex:none;border-radius:50%;border:none;background:linear-gradient(180deg,#ECE8E0,#D6D1C6);color:#8A8578;font-size:17px;font-weight:700;cursor:pointer;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.18);line-height:1}
-.titleBtns{margin-top:24px}
-.titleBtns .btn3d{margin-bottom:24px}
-.miniStats{color:var(--dim);font-size:12.5px;margin-top:6px;white-space:pre-line}
-#btnResume{margin-top:0}
-/* ---- Settings ---- */
+.dailyPanel{width:92%;margin:26px auto 0;border-radius:10px;overflow:hidden;box-shadow:0 3px 5px rgba(0,0,0,.22);text-align:left}
+.dpHead{background:linear-gradient(180deg,#96BBFB,#8EB5FA);color:var(--navy);font:800 15.5px 'Nunito Sans',sans-serif;text-align:center;padding:6px 10px}
+.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:10px;padding:8px 14px 10px;min-height:78px}
+.winBadge{position:relative;width:64px;height:60px;flex:none}
+.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:47px;height:47px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#33B84E,#1E8A38 72%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.22),0 2px 4px rgba(10,20,70,.3)}
+.wbCirc .cSlot{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:34px;height:30px}
+.wbCirc .cSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 0 rgba(120,80,0,.6));z-index:2}
+.wbCirc .cSlot svg{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 2px 0 #B87F00)}
+.wTag{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 9px 'Nunito Sans';letter-spacing:1px;padding:1px 9px;border-radius:7px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3)}
+.dpVal{font:800 22px 'Nunito Sans',sans-serif;color:var(--navy);flex:1;text-align:center}
+.dpMore{width:16px;height:16px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0}
+.titleBtns{margin-top:22px;padding:0 12px}
+.homeBtn{position:relative;display:flex;align-items:center;gap:16px;width:100%;min-height:55px;border-radius:10px;cursor:pointer;color:#fff;font:800 26px 'Nunito Sans',sans-serif;padding:0 18px;margin-bottom:36px;text-shadow:0 2px 2px rgba(0,0,0,.18);border:1px solid transparent;transition:transform .07s,box-shadow .07s}
+.homeBtn .ico{width:33px;height:33px;flex:none;fill:#fff;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
+.homeBtn .ico.st{fill:none;stroke:#fff}
+#btnAdv{background:linear-gradient(180deg,#F5A91D,#F1A01A 45%,#E99514);border-color:#D9850F;box-shadow:0 6px 0 #C77A10,0 3px 5px rgba(0,0,0,.22)}
+#btnAdv:active{transform:translateY(5px);box-shadow:0 1px 0 #C77A10,0 1px 2px rgba(0,0,0,.2)}
+#btnPlay{background:linear-gradient(180deg,#22D2AE,#1BCFA9 45%,#15BFA0);border-color:#12A88C;box-shadow:0 6px 0 #079F8C,0 3px 5px rgba(0,0,0,.22)}
+#btnPlay:active{transform:translateY(5px);box-shadow:0 1px 0 #079F8C,0 1px 2px rgba(0,0,0,.2)}
+.dotRed{position:absolute;top:-7px;right:-6px;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF7A6E,#F20F16 60%,#C40A10);box-shadow:0 2px 3px rgba(0,0,0,.35),inset 0 1px 1px rgba(255,255,255,.45);pointer-events:none}
+.miniStats{color:var(--dim);font-size:12.5px;margin-top:2px;white-space:pre-line}
+#devPanel{margin-top:8px}
+#ovLoad{z-index:150;background:linear-gradient(180deg,#163DB2 0%,#1596DA 100%);backdrop-filter:none}
+#ovLoad .panel{background:transparent;border:none;box-shadow:none;overflow:visible;max-height:none;padding:0}
+.loadBar{width:210px;height:14px;border-radius:99px;background:rgba(255,255,255,.22);margin:30px auto 0;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
+.loadBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD23D,#FFA53D);border-radius:99px;transition:width .18s}
+/* ---------- Pages pleine hauteur ---------- */
+.achWrap{width:min(100%,470px);height:100dvh;display:flex;flex-direction:column;background:linear-gradient(180deg,#33408A,#2C3778);transform:none;box-shadow:none;border-radius:0;overflow:hidden}
+.achHead{position:relative;display:flex;align-items:center;justify-content:space-between;padding:calc(8px + env(safe-area-inset-top)) 12px 10px;background:linear-gradient(180deg,#5B76DC,#465CD2);box-shadow:0 3px 7px rgba(0,0,0,.32);flex:none}
+.achTitle{position:absolute;left:0;right:0;text-align:center;font:800 27px 'Nunito Sans',sans-serif;color:#fff;text-shadow:0 2px 3px rgba(10,20,70,.4);pointer-events:none}
+.achBack{position:relative;z-index:2;background:none;border:none;color:#BBD2FF;font-size:38px;font-weight:800;cursor:pointer;line-height:1;padding:0 10px;text-shadow:0 2px 2px rgba(10,20,70,.4)}
+.achHead .sp{width:44px;flex:none}
+.achBody{flex:1;overflow-y:auto;padding:16px 16px 30px}
+.achH{font:800 24px 'Nunito Sans',sans-serif;color:#fff;margin:4px 2px 14px;text-shadow:0 2px 2px rgba(10,20,70,.4)}
+.statGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px 14px}
+.statBox{border:2px solid #5B76DC;border-radius:10px;padding:12px 6px 10px;text-align:center}
+.sv{font:800 26px 'Nunito Sans',sans-serif;color:var(--gold)}
+.sl{font:700 17px 'Nunito Sans',sans-serif;color:#C7D2F5;margin-top:2px}
+.achSep{height:16px;background:rgba(12,18,54,.42);margin:20px -16px;box-shadow:inset 0 2px 5px rgba(0,0,0,.3)}
+.awGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 8px}
+.awItem{text-align:center}
+.awBadge{position:relative;width:88px;height:88px;margin:0 auto;clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%);display:grid;place-items:center;background:linear-gradient(180deg,#C2CEDE,#8494AC)}
+.awBadge .awInner{width:66px;height:66px;border-radius:50%;background:radial-gradient(circle at 50% 34%,#E4EDF7,#9FB0C8 78%);display:grid;place-items:center;font-size:30px;box-shadow:inset 0 -3px 5px rgba(0,0,0,.15)}
+.awBadge.gold{background:linear-gradient(180deg,#FFDD4D,#F0A81A)}
+.awBadge.gold .awInner{background:radial-gradient(circle at 50% 34%,#FFC93D,#E8870A 80%)}
+.awBadge.lock{background:linear-gradient(180deg,#454F76,#3A4468)}
+.awBadge.lock .awInner{background:radial-gradient(circle at 50% 34%,#535E88,#454F78 80%);filter:saturate(.3)}
+.awName{font:800 15px 'Nunito Sans',sans-serif;color:#fff;margin-top:9px;line-height:1.15;text-shadow:0 1px 2px rgba(10,20,70,.4)}
+.awName.dim{color:#78849F}
+.awProg{font:700 15px 'Nunito Sans',sans-serif;color:#8B98BC;margin-top:3px}
+.awDot{position:absolute;top:1px;right:1px;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FF8A7E,#F0271C 60%,#C41608);box-shadow:0 2px 3px rgba(0,0,0,.4)}
+/* ---------- Adventure map (losange) ---------- */
+.gemRow{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 2px}
+.gemChip{display:flex;align-items:center;gap:6px}
+.gemChip .gSlot{position:relative;width:24px;height:24px}
+.gemChip .gSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));z-index:2}
+.gemChip .gSlot svg{position:absolute;inset:0;width:100%;height:100%}
+.gemChip b{font:800 19px 'Nunito Sans',sans-serif;color:#fff;text-shadow:0 2px 2px rgba(10,20,70,.5)}
+.gemBar{flex:1;max-width:170px;height:12px;border-radius:99px;background:rgba(10,16,50,.6);overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.4)}
+.gemBar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#4FC8FF,#3FC8EE 55%,#FFA53D);transition:width .4s}
+.mapBoard{position:relative;width:min(88vw,340px);margin:18px auto 6px;user-select:none}
+.mapRow{display:flex;justify-content:center;gap:8px;margin-bottom:9px}
+.mapLv{position:relative;width:52px;height:52px;border:none;border-radius:12px;cursor:pointer;font:800 19px 'Nunito Sans',sans-serif;color:#fff;background:linear-gradient(180deg,#5B6AD8,#4353C6);box-shadow:0 4px 0 #2E3AA0,inset 0 1px 0 rgba(255,255,255,.3);transition:transform .1s;text-shadow:0 1px 2px rgba(0,0,0,.3);padding:0}
+.mapLv:active{transform:scale(.9)}
+.mapLv .mlSt{position:absolute;bottom:3px;left:0;right:0;font-size:9px;letter-spacing:1px;color:var(--gold)}
+.mapLv.locked{background:linear-gradient(180deg,#3E4470,#333A5E);box-shadow:0 4px 0 #262B48,inset 0 1px 0 rgba(255,255,255,.14);cursor:default;color:#78849F}
+.mapLv.next{background:linear-gradient(180deg,#FFC93D,#F0A01A);box-shadow:0 4px 0 #C77A10,inset 0 1px 0 rgba(255,255,255,.45);color:#5A3A00;animation:lvPulse 1.2s ease infinite}
+.mapLv.next .mlSt{color:#7A5200}
+@keyframes lvPulse{50%{transform:scale(1.07)}}
+.trophyBlock{text-align:center;margin:10px 0 2px}
+.trophyBlock p{font:700 14px 'Nunito Sans',sans-serif;color:#C7D2F5;line-height:1.4;margin-top:2px}
+.goLvlBtn{width:min(100%,250px);margin:10px auto 6px;display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border:none;border-radius:10px;cursor:pointer;color:#fff;font:800 23px 'Nunito Sans',sans-serif;background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);border:1px solid #229A16;box-shadow:0 6px 0 #1E8A12,0 3px 5px rgba(0,0,0,.22);text-shadow:0 2px 2px rgba(0,0,0,.2);transition:transform .07s}
+.goLvlBtn:active{transform:translateY(5px);box-shadow:0 1px 0 #1E8A12}
+/* ---------- Settings / autres overlays ---------- */
 #ovPause .panel{width:min(100%,392px)}
 .pTitle{font-family:'Lilita One',Fredoka,sans-serif;font-size:32px;font-weight:400;color:#fff;text-shadow:0 3px 0 rgba(15,25,80,.45);margin:2px 0 14px}
 .pClose{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;line-height:0;padding:4px;filter:drop-shadow(0 2px 2px rgba(10,20,70,.5))}
@@ -125,7 +173,6 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .tgl svg{width:46px;height:46px;fill:#fff;filter:drop-shadow(0 2px 1px rgba(10,15,50,.45))}
 .tgl .slash{display:none;position:absolute;top:19px;left:50%;width:52px;height:6px;margin-left:-26px;border-radius:3px;background:linear-gradient(180deg,#FF5A4E,#D91E12);transform:rotate(-38deg);box-shadow:0 2px 3px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.35);z-index:3}
 .tgl.off .slash{display:block}
-.tgl.off svg{opacity:.95}
 .vibSl{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:2px}
 .vibSl button{width:22px;height:22px;border:none;border-radius:6px;background:linear-gradient(180deg,#5B6AD8,#4353C6);color:#fff;font-size:14px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 0 #2E3AA0,inset 0 1px 0 rgba(255,255,255,.35);font-family:'Fredoka'}
 .vibSl button:active{transform:translateY(2px);box-shadow:0 0 0 #2E3AA0}
@@ -133,16 +180,17 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .vTrack i{position:absolute;top:50%;left:50%;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#DCE2F5 70%);box-shadow:0 2px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%);transition:left .15s}
 .sepLine{height:3px;border-radius:99px;background:linear-gradient(180deg,#28339A,#1E2878);margin:2px 6px 16px;box-shadow:0 1px 0 rgba(255,255,255,.14)}
 #ovOver{background:rgba(18,25,44,.88)}
-#ovOver .panelIn{background:transparent;box-shadow:none;padding:6px 2px}
+#ovOver .panel{background:transparent;border:none;box-shadow:none;padding:0;overflow:visible}
+#ovOver .fo-crown{display:none}
+#ovOver.rec .fo-crown{display:block;width:56px;height:44px;margin:0 auto 2px}
+#ovOver.rec .fo-crown img{width:100%;height:100%;object-fit:contain}
+#ovOver.rec .fo-crown svg{display:none}
 #foTitle{font-family:'Lilita One',Fredoka,sans-serif;font-size:38px;font-weight:400;color:#fff;letter-spacing:1px;text-shadow:0 4px 0 #2c3aa0,0 5px 0 rgba(0,0,0,.25),0 10px 16px rgba(0,0,0,.35)}
 #foScore{font-size:58px;font-weight:900;font-family:'Nunito Sans',sans-serif;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.22),0 8px 16px rgba(0,0,0,.3)}
 #foBadge{display:none;margin:8px auto;width:max-content;background:linear-gradient(180deg,#FFD84D,#F5A818);color:#141420;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:6px 18px;border-radius:99px;animation:bump .5s ease infinite;box-shadow:0 3px 0 #C47F00,0 6px 10px rgba(0,0,0,.3)}
 #foBadge.on{display:block}
 @keyframes bump{50%{transform:scale(1.09)}}
 #foStats{color:rgba(255,255,255,.88);font-size:13.5px;margin:14px 0 18px;line-height:1.55;white-space:pre-line}
-#ovOver .panel{background:transparent;border:none;box-shadow:none;padding:0;overflow:visible}
-#ovOver .fo-crown{display:none}
-#ovOver.rec .fo-crown{display:block;width:56px;height:44px;margin:0 auto 2px;fill:var(--gold);filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))}
 .wstars{display:flex;justify-content:center;gap:10px;margin:10px 0 4px}
 .wstars svg{width:44px;height:44px;fill:rgba(255,255,255,.18);transform:scale(.5);opacity:.4;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
 .wstars svg.on{fill:var(--gold);transform:scale(1);opacity:1}
@@ -151,19 +199,12 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .fo-stats{color:rgba(255,255,255,.88);font-size:14px;line-height:1.55}
 .adBox{width:100%;height:110px;border-radius:14px;background:rgba(255,255,255,.08);display:grid;place-items:center;margin-bottom:14px;color:var(--dim);font-size:13px}
 #adTxt{font-size:17px;font-weight:600;margin-bottom:12px}
-#lvGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0 12px}
-.lvbtn{aspect-ratio:1;border:none;border-radius:15px;background:linear-gradient(180deg,#5B6AD8,#4353C6);color:var(--ink);font-family:inherit;font-weight:700;font-size:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:transform .1s;padding:2px;box-shadow:0 4px 0 #2E3AA0,inset 0 1px 0 rgba(255,255,255,.3)}
-.lvbtn:active{transform:scale(.92)}
-.lvbtn .st{font-size:10px;letter-spacing:1px;color:var(--gold)}
-.lvbtn.locked{opacity:.4;cursor:not-allowed}
-.lvbtn.done{background:linear-gradient(180deg,#8A79D8,#6A5AB8)}
 #devStyle{width:100%;margin-top:8px;padding:8px;border-radius:10px;background:#1c2040;color:#fff;border:1px solid rgba(255,255,255,.2);font-family:inherit;font-size:13px}
 #toast{position:fixed;left:50%;bottom:150px;z-index:200;transform:translateX(-50%) translateY(12px);background:#2b3157;border:1px solid rgba(255,255,255,.14);padding:10px 18px;border-radius:14px;font-size:14.5px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;max-width:92vw;text-align:center;box-shadow:0 10px 20px rgba(0,0,0,.4)}
 #toast.show{opacity:1;transform:translateX(-50%)}
 #fatalMsg{display:none;position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#5a1620;color:#fff;border:1px solid #ff8a8a;border-radius:10px;padding:10px;font:12px/1.4 monospace;word-break:break-all;pointer-events:none}
 .cf{position:fixed;top:-20px;width:9px;height:14px;border-radius:2px;z-index:120;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{from{transform:translateY(-4vh) rotate(0)}to{transform:translateY(110vh) rotate(680deg)}}
-#ovTitle{background:linear-gradient(180deg,#163DB2 0%,#155FC5 45%,#1596DA 100%);backdrop-filter:none}
 </style>
 </head>
 <body>
@@ -174,7 +215,10 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
   <header>
     <div class="hside">
       <div id="bestWrap">
-        <svg viewBox="0 0 24 24"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+        <span class="crownSlot">
+          <img id="crownImg" src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
+          <svg viewBox="0 0 24 24"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+        </span>
         <span id="bestVal">0</span>
       </div>
     </div>
@@ -209,7 +253,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 <div class="overlay show" id="ovLoad">
   <div class="panel">
     <div class="bigLogo">
-      <svg class="crown3d" viewBox="0 0 24 24"><defs><linearGradient id="cg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE566"/><stop offset=".55" stop-color="#FFC919"/><stop offset="1" stop-color="#E8A800"/></linearGradient></defs><path fill="url(#cg1)" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/><circle cx="4.2" cy="7.6" r="1.5" fill="url(#cg1)"/><circle cx="12" cy="4.6" r="1.7" fill="url(#cg1)"/><circle cx="19.8" cy="7.6" r="1.5" fill="url(#cg1)"/></svg>
+      <img class="crownImg" src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
+      <svg class="crown3d" viewBox="0 0 24 24"><path fill="#FFC919" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/><circle cx="4.2" cy="7.6" r="1.5" fill="#FFC919"/><circle cx="12" cy="4.6" r="1.7" fill="#FFC919"/><circle cx="19.8" cy="7.6" r="1.5" fill="#FFC919"/></svg>
       <div class="row">
         <span class="lt" style="--r:-5deg;--y:-2px;--c1:#FFD24D;--c2:#F79200;--c3:#D97700;--cd:#A85A00">B</span><span class="lt" style="--r:3deg;--y:2px;--c1:#6FC2FF;--c2:#1F8FE8;--c3:#0E6FC8;--cd:#0A559A">L</span><span class="lt" style="--r:-3deg;--y:-1px;--c1:#FF8A7E;--c2:#F03A2E;--c3:#C22318;--cd:#961510">O</span><span class="lt" style="--r:4deg;--y:2px;--c1:#FFE966;--c2:#FFC919;--c3:#E8A800;--cd:#B87F00">C</span><span class="lt" style="--r:-4deg;--y:-2px;--c1:#E39CFF;--c2:#B03AE8;--c3:#8A18C0;--cd:#6E10A0">K</span>
       </div>
@@ -220,21 +265,24 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
   </div>
 </div>
 <div class="overlay" id="ovTitle">
-  <div class="medalBadge" id="btnMedal">
-    <svg viewBox="0 0 48 48">
-      <path d="M14 30l-4 12 7-3 3 7 4-10z" fill="#D91E12"/>
-      <path d="M34 30l4 12-7-3-3 7-4-10z" fill="#B0140A"/>
-      <path d="M24 2l3.4 4.1 5.2-1.2 1.2 5.2 5 2.1-2.1 5 2.1 5-5 2.1-1.2 5.2-5.2-1.2L24 32.5l-3.4-4.1-5.2 1.2-1.2-5.2-5-2.1 2.1-5-2.1-5 5-2.1 1.2-5.2 5.2 1.2z" fill="#FFC919"/>
-      <circle cx="24" cy="17.5" r="9.5" fill="#FF8A1D"/>
-      <path d="M24 11.5l1.9 3.9 4.3.6-3.1 3 .7 4.3-3.8-2-3.8 2 .7-4.3-3.1-3 4.3-.6z" fill="#FFF6D8"/>
-      <circle cx="39" cy="8" r="5" fill="#F0271C"/>
-      <circle cx="37.6" cy="6.6" r="1.6" fill="#FF9A8E" opacity=".8"/>
-    </svg>
-    <span>Medal</span>
-  </div>
   <div class="titleCol">
+    <div class="medalBadge" id="btnMedal">
+      <div class="mSlot">
+        <img src="assets/ui/medal.png" alt="" onerror="this.style.display='none'"/>
+        <svg viewBox="0 0 48 48">
+          <path d="M14 30l-4 12 7-3 3 7 4-10z" fill="#D91E12"/>
+          <path d="M34 30l4 12-7-3-3 7-4-10z" fill="#B0140A"/>
+          <path d="M24 2l3.4 4.1 5.2-1.2 1.2 5.2 5 2.1-2.1 5 2.1 5-5 2.1-1.2 5.2-5.2-1.2L24 32.5l-3.4-4.1-5.2 1.2-1.2-5.2-5-2.1 2.1-5-2.1-5 5-2.1 1.2-5.2 5.2 1.2z" fill="#FFC919"/>
+          <circle cx="24" cy="17.5" r="9.5" fill="#FF8A1D"/>
+          <path d="M24 11.5l1.9 3.9 4.3.6-3.1 3 .7 4.3-3.8-2-3.8 2 .7-4.3-3.1-3 4.3-.6z" fill="#FFF6D8"/>
+          <circle cx="39" cy="8" r="5" fill="#F0271C"/>
+        </svg>
+      </div>
+      <span>Medal</span>
+    </div>
     <div class="bigLogo">
-      <svg class="crown3d" viewBox="0 0 24 24"><path fill="url(#cg1)" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/><circle cx="4.2" cy="7.6" r="1.5" fill="url(#cg1)"/><circle cx="12" cy="4.6" r="1.7" fill="url(#cg1)"/><circle cx="19.8" cy="7.6" r="1.5" fill="url(#cg1)"/></svg>
+      <img class="crownImg" src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
+      <svg class="crown3d" viewBox="0 0 24 24"><path fill="#FFC919" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/><circle cx="4.2" cy="7.6" r="1.5" fill="#FFC919"/><circle cx="12" cy="4.6" r="1.7" fill="#FFC919"/><circle cx="19.8" cy="7.6" r="1.5" fill="#FFC919"/></svg>
       <div class="row">
         <span class="lt" style="--r:-5deg;--y:-2px;--c1:#FFD24D;--c2:#F79200;--c3:#D97700;--cd:#A85A00">B</span><span class="lt" style="--r:3deg;--y:2px;--c1:#6FC2FF;--c2:#1F8FE8;--c3:#0E6FC8;--cd:#0A559A">L</span><span class="lt" style="--r:-3deg;--y:-1px;--c1:#FF8A7E;--c2:#F03A2E;--c3:#C22318;--cd:#961510">O</span><span class="lt" style="--r:4deg;--y:2px;--c1:#FFE966;--c2:#FFC919;--c3:#E8A800;--cd:#B87F00">C</span><span class="lt" style="--r:-4deg;--y:-2px;--c1:#E39CFF;--c2:#B03AE8;--c3:#8A18C0;--cd:#6E10A0">K</span>
       </div>
@@ -242,23 +290,25 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
       <div class="tag">Gravity Puzzle</div>
     </div>
     <div class="dailyPanel">
-      <div class="dpHead">Consecutive Best Score</div>
+      <div class="dpHead">Consecutive Daily Victories</div>
       <div class="dpBody">
         <div class="winBadge">
-          <svg viewBox="0 0 24 24"><path fill="#FFC919" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
-          <span class="wTag">BEST</span>
+          <div class="cSlot">
+            <img src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
+            <svg viewBox="0 0 24 24"><path fill="#FFC919" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+          </div>
+          <span class="wTag">WIN</span>
         </div>
         <div class="dpVal" id="titleBest">0</div>
-        <button class="dpMore" id="btnStats" aria-label="Stats">›</button>
+        <button class="dpMore" id="btnStats" aria-label="Stats">✓</button>
       </div>
     </div>
     <p class="miniStats" id="titleStats"></p>
     <div class="titleBtns">
-      <button class="btn3d orange" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2z"/></svg>Adventure<i class="dotRed"></i></button>
-      <button class="btn3d teal" id="btnPlay"><svg class="ico st" viewBox="0 0 24 24" stroke-width="3.4"><circle cx="8.2" cy="12" r="4.1"/><circle cx="15.8" cy="12" r="4.1"/></svg>Classic</button>
-      <button class="btn3d green" id="btnResume" style="display:none"><svg class="ico" viewBox="0 0 24 24"><path d="M8 5.2c0-1.1 1.2-1.8 2.1-1.2l10 6c.9.6.9 1.9 0 2.4l-10 6c-.9.6-2.1-.1-2.1-1.2z"/></svg>Resume</button>
+      <button class="homeBtn" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2z"/></svg>Adventure<i class="dotRed"></i></button>
+      <button class="homeBtn" id="btnPlay"><svg class="ico st" viewBox="0 0 24 24" stroke-width="3.4"><circle cx="8.2" cy="12" r="4.1"/><circle cx="15.8" cy="12" r="4.1"/></svg>Classic</button>
     </div>
-    <button class="btn3d lav" id="btnDev" style="display:none;padding:10px;font-size:14px">🛠 DEV</button>
+    <button class="btn3d lav" id="btnDev" style="display:none;padding:10px;font-size:14px;width:min(100%,250px);margin:0 auto">🛠 DEV</button>
     <div id="devPanel" style="display:none">
       <p class="miniStats">Dev best: <b id="devBest">0</b></p>
       <div style="display:flex;gap:6px;justify-content:center">
@@ -273,13 +323,62 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     </div>
   </div>
 </div>
-<div class="overlay" id="ovLevels">
-  <div class="panel"><div class="panelIn">
-    <h2 class="fo-title" style="font-size:26px;margin-bottom:2px">Adventure</h2>
-    <p style="color:var(--dim);font-size:13px;font-weight:600" id="advProg"></p>
-    <div id="lvGrid"></div>
-    <button class="btn3d lav" id="btnMapBack">Back</button>
-  </div></div>
+<!-- ===== PAGE ACHIEVEMENT ===== -->
+<div class="overlay" id="ovAch">
+  <div class="achWrap">
+    <div class="achHead">
+      <button class="achBack" id="btnAchBack">‹</button>
+      <div class="achTitle">Achievement</div>
+      <span class="sp"></span>
+    </div>
+    <div class="achBody">
+      <h2 class="achH">Statistics</h2>
+      <div class="statGrid">
+        <div class="statBox"><div class="sv" id="stCombo">0</div><div class="sl">Highest Combo</div></div>
+        <div class="statBox"><div class="sv" id="stBest">0</div><div class="sl">Best Score</div></div>
+        <div class="statBox"><div class="sv" id="stRounds">0</div><div class="sl">Rounds</div></div>
+        <div class="statBox"><div class="sv" id="stGems">0</div><div class="sl">Gems Found</div></div>
+      </div>
+      <div class="achSep"></div>
+      <h2 class="achH">Awards</h2>
+      <div class="awGrid" id="awGrid"></div>
+    </div>
+  </div>
+</div>
+<!-- ===== MAP ADVENTURE (losange) ===== -->
+<div class="overlay" id="ovMap">
+  <div class="achWrap">
+    <div class="achHead">
+      <button class="achBack" id="btnMapBack">‹</button>
+      <div class="achTitle">Adventure</div>
+      <span class="sp"></span>
+    </div>
+    <div class="achBody">
+      <div class="trophyBlock">
+        <svg viewBox="0 0 24 24"><path fill="#3E4B8E" d="M6 3h12v2h3v3c0 2.6-1.9 4.7-4.4 5-.8 1.9-2.5 3.3-4.6 3.6V19h3.5c.6 0 1 .4 1 1v1c0 .6-.4 1-1 1h-9c-.6 0-1-.4-1-1v-1c0-.6.4-1 1-1H12v-2.4c-2.1-.3-3.8-1.7-4.6-3.6C4.9 12.7 3 10.6 3 8V5h3V3zm-1 4v1c0 1.3.8 2.4 2 2.8V7H5zm14 0h-2v3.8c1.2-.4 2-1.5 2-2.8V7z"/><path fill="#2E3A78" d="M12 4.2c1.7 1 4.1 1.7 6 1.9v3.3c0 3.3-2.7 6-6 6s-6-2.7-6-6V6.1c1.9-.2 4.3-.9 6-1.9z"/></svg>
+        <p>Take part in the Adventure<br/>and win the gems!</p>
+      </div>
+      <div class="gemRow">
+        <div class="gemChip">
+          <span class="gSlot">
+            <img src="assets/ui/gem_blue.png" alt="" onerror="this.style.display='none'"/>
+            <svg viewBox="0 0 24 24"><path fill="#3FC8EE" d="M12 3l7 6.2L12 21 5 9.2z"/><path fill="#BDEFFF" d="M12 3l3.4 6.2H8.6z"/></svg>
+          </span>
+          <b id="gemBCnt">0</b>
+        </div>
+        <span class="gemBar"><i id="gemFill"></i></span>
+        <div class="gemChip">
+          <b id="gemOCnt">0</b>
+          <span class="gSlot">
+            <img src="assets/ui/gem_orange.png" alt="" onerror="this.style.display='none'"/>
+            <svg viewBox="0 0 24 24"><path fill="#FFA53D" d="M12 2l2.4 5 5.6.7-4 3.9.9 5.4L12 14.5 7.1 17l.9-5.4-4-3.9L9.6 7z"/></svg>
+          </span>
+        </div>
+      </div>
+      <div class="mapBoard" id="mapBoard"></div>
+      <button class="goLvlBtn" id="btnGoLevel">Level 1 ▶</button>
+    </div>
+  </div>
 </div>
 <div class="overlay" id="ovWin">
   <div class="panel"><div class="panelIn">
@@ -292,16 +391,16 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     <div class="fo-score" id="winScore" style="font-size:40px">0</div>
     <p class="fo-stats" id="winStats"></p>
     <button class="btn3d green" id="btnNext"><svg class="ico" viewBox="0 0 24 24"><path d="M8 5.2c0-1.1 1.2-1.8 2.1-1.2l10 6c.9.6.9 1.9 0 2.4l-10 6c-.9.6-2.1-.1-2.1-1.2z"/></svg>Next level</button>
-    <button class="btn3d teal" id="btnReplay"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.6a7.6 7.6 0 1 0 7.6 7.6" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/><path d="M10.6 1.4l9 3.4-7.7 4.8z"/></svg>Replay</button>
-    <button class="btn3d lav" id="btnWinMap"><svg class="ico" viewBox="0 0 24 24"><path d="M5.5 2.5c.9 0 1.5.7 1.5 1.5v17c0 .8-.6 1.5-1.5 1.5S4 21.8 4 21V4c0-.8.6-1.5 1.5-1.5z"/><path d="M8.5 4.2c2-1 4.5-1.2 7 .1 1.9 1 3.7.7 4.9.1V13c-1.2.6-3 .9-4.9-.1-2.5-1.3-5-1.1-7-.1z"/></svg>Map</button>
+    <button class="btn3d green" id="btnReplay"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.6a7.6 7.6 0 1 0 7.6 7.6" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/><path d="M10.6 1.4l9 3.4-7.7 4.8z"/></svg>Replay</button>
+    <button class="btn3d lav" id="btnWinMap">Map</button>
   </div></div>
 </div>
 <div class="overlay" id="ovFail">
   <div class="panel"><div class="panelIn">
     <h2 class="fo-title" style="font-size:30px">Failed…</h2>
     <p class="fo-stats" id="failReason"></p>
-    <button class="btn3d green" id="btnRetry"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.6a7.6 7.6 0 1 0 7.6 7.6" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/><path d="M10.6 1.4l9 3.4-7.7 4.8z"/></svg>Retry</button>
-    <button class="btn3d lav" id="btnFailMap"><svg class="ico" viewBox="0 0 24 24"><path d="M5.5 2.5c.9 0 1.5.7 1.5 1.5v17c0 .8-.6 1.5-1.5 1.5S4 21.8 4 21V4c0-.8.6-1.5 1.5-1.5z"/><path d="M8.5 4.2c2-1 4.5-1.2 7 .1 1.9 1 3.7.7 4.9.1V13c-1.2.6-3 .9-4.9-.1-2.5-1.3-5-1.1-7-.1z"/></svg>Map</button>
+    <button class="btn3d green" id="btnRetry">Retry</button>
+    <button class="btn3d lav" id="btnFailMap">Map</button>
   </div></div>
 </div>
 <div class="overlay" id="ovPause">
@@ -333,16 +432,19 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
       </div>
       <div class="sepLine"></div>
       <button class="btn3d green" id="btnPRestart"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.6a7.6 7.6 0 1 0 7.6 7.6" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/><path d="M10.6 1.4l9 3.4-7.7 4.8z"/></svg>Replay</button>
-      <button class="btn3d green" id="btnPHome"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.2 3 10.6h2.4V20h5.1v-5.4h3V20h5.1v-9.4H21z"/></svg>Home<i class="dotRed" id="homeDot" style="display:none"></i></button>
-      <button class="btn3d green" id="btnPMap" style="display:none"><svg class="ico" viewBox="0 0 24 24"><path d="M5.5 2.5c.9 0 1.5.7 1.5 1.5v17c0 .8-.6 1.5-1.5 1.5S4 21.8 4 21V4c0-.8.6-1.5 1.5-1.5z"/><path d="M8.5 4.2c2-1 4.5-1.2 7 .1 1.9 1 3.7.7 4.9.1V13c-1.2.6-3 .9-4.9-.1-2.5-1.3-5-1.1-7-.1z"/></svg>Level map</button>
-      <button class="btn3d lav" id="btnSkin"><svg class="ico" viewBox="0 0 24 24"><path d="M9 3 4.5 5.5 2.8 9.6l3.4 1.5.8-1.6V20c0 .6.4 1 1 1h8c.6 0 1-.4 1-1v-10.5l.8 1.6 3.4-1.5L19.5 5.5 15 3c-.7 1.2-1.8 1.8-3 1.8S9.7 4.2 9 3z"/></svg><span id="btnSkinTxt">Style</span></button>
+      <button class="btn3d green" id="btnPHome"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.2 3 10.6h2.4V20h5.1v-5.4h3V20h5.1v-9.4H21z"/></svg>Home</button>
+      <button class="btn3d green" id="btnPMap" style="display:none">Level map</button>
+      <button class="btn3d lav" id="btnSkin"><span id="btnSkinTxt">Style</span></button>
       <p class="miniStats" id="pauseInfo"></p>
     </div>
   </div>
 </div>
 <div class="overlay" id="ovOver">
   <div class="panel">
-    <svg class="fo-crown" viewBox="0 0 24 24"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+    <span class="fo-crown">
+      <img src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
+      <svg viewBox="0 0 24 24" style="width:56px;height:44px;margin:0 auto;display:block;fill:var(--gold);filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+    </span>
     <h2 class="fo-title" id="foTitle">Game Over</h2>
     <div id="foScore">0</div>
     <div id="foBadge">New record!</div>
@@ -352,8 +454,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     </div>
     <p id="foStats"></p>
     <button class="btn3d orange" id="btnRevive" style="display:none">▶ Continue — watch an ad</button>
-    <button class="btn3d green" id="btnAgain"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.6a7.6 7.6 0 1 0 7.6 7.6" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/><path d="M10.6 1.4l9 3.4-7.7 4.8z"/></svg>Replay</button>
-    <button class="btn3d lav" id="btnMenu"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.2 3 10.6h2.4V20h5.1v-5.4h3V20h5.1v-9.4H21z"/></svg>Home</button>
+    <button class="btn3d green" id="btnAgain">Replay</button>
+    <button class="btn3d lav" id="btnMenu">Home</button>
   </div>
 </div>
 <div class="overlay" id="ovAd">
@@ -377,7 +479,7 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 'use strict';
 var k = 0;
 /* ================================================================
-   BLOCK THUD! v45 — UN SEUL bloc script (hoisting complet)
+   BLOCK THUD! v46 — UN SEUL bloc script (hoisting complet)
    ================================================================ */
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70,
 allClearCap:1500,guideLockLines:8,presetMin:.30,presetMax:.45};
@@ -423,6 +525,17 @@ function rgbOf(h,s,l){if(s===0){const v=Math.round(l*255);return[v,v,v]}
 const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;
 const f=t=>{t=(t%1+1)%1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p};
 return[Math.round(f(h+1/3)*255),Math.round(f(h)*255),Math.round(f(h-1/3)*255)]}
+/* ---------- v46 : assets UI (images avec fallbacks SVG dans le DOM) ---------- */
+const UIAssets={imgs:{},
+load(id){try{const im=new Image();
+im.addEventListener('load',()=>{UIAssets.imgs[id]=im});
+im.addEventListener('error',()=>{});
+im.src='assets/ui/'+id+'.png'}catch(e){}},
+get(id){return this.imgs[id]||null}};
+UIAssets.load('crown');
+UIAssets.load('medal');
+UIAssets.load('gem_blue');
+UIAssets.load('gem_orange');
 const SFX={ctx:null,on:store.get('bp_snd')!=='0',
 init(){try{if(!this.ctx){const A=window.AudioContext||window.webkitAudioContext;if(A)this.ctx=new A()}if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume()}catch(e){}},
 tone(f,dur,type,vol,slide,when){if(!this.on||!this.ctx)return;type=type||'sine';vol=vol==null?.2:vol;when=when||0;
@@ -453,7 +566,6 @@ star(){[659,830,1046,1318].forEach((f,i)=>this.tone(f,.13,'triangle',.16,null,i*
 perfect(){[523,659,784,1047,1319].forEach((f,i)=>this.tone(f,.2,'triangle',.2,null,i*.09))},
 win(){[392,523,659,784].forEach((f,i)=>this.tone(f,.22,'triangle',.2,null,i*.13))},
 over(){[330,262,208,165].forEach((f,i)=>this.tone(f,.34,'sine',.18,null,i*.19))}};
-/* v45 : vibration à 3 crans (off / normale / forte) */
 let vibLvl=(()=>{const s=store.get('bp_viblvl');
 if(s==='0'||s==='1'||s==='2')return parseInt(s);
 if(store.get('bp_vib')==='0')return 0;
@@ -507,8 +619,8 @@ o.connect(fl);o2.connect(fl);fl.connect(g).connect(SFX.ctx.destination);
 o.start(t0);o2.start(t0);o.stop(t0+4.6);o2.stop(t0+4.6)});
 const arp=[523.25,659.25,783.99,659.25];
 for(let i=0;i<4;i++){
-const o=SFX.ctx.createOscillator(),g=SFX.ctx.createGain();
-o.type='triangle';o.frequency.value=arp[i];
+const o=SFX.ctx.createOscillator(),g=this.ctx===null?null:SFX.ctx.createGain();
+if(!g)return;o.type='triangle';o.frequency.value=arp[i];
 g.gain.setValueAtTime(.0001,t0+i);
 g.gain.linearRampToValueAtTime(.018,t0+i+.05);
 g.gain.exponentialRampToValueAtTime(.0001,t0+i+.9);
@@ -906,7 +1018,7 @@ g.addColorStop(.5,'rgba(255,255,255,'+mid+')');
 g.addColorStop(1,'rgba(255,255,255,0)');
 c.fillStyle=g;c.fillRect(0,0,vert?thick:len,vert?len:thick)})}
 /* ================================================================
-   v43-LC — MOTEUR DE DESTRUCTION PAR MATIÈRE
+   v43-LC — MOTEUR DE DESTRUCTION PAR MATIÈRE (cf. v44/v45)
    ================================================================ */
 const LC_PROFILES={
 gel:{ant:130,s:[.94,1.06],bright:1,sheen:1,wave:20,dir:1,kill:150,grav:250,sq:[1.06,.94],mode:'softpop'},
@@ -1666,7 +1778,8 @@ const bgFx=$('bgFx'),flashEl=$('flash'),glowEl=$('glow');
 const appEl=$('app');
 const toastEl=$('toast');
 const ovTitle=$('ovTitle'),ovOver=$('ovOver'),ovAd=$('ovAd');
-const ovLevels=$('ovLevels'),ovWin=$('ovWin'),ovFail=$('ovFail'),ovPause=$('ovPause'),ovLoad=$('ovLoad');
+const ovAch=$('ovAch'),ovMap=$('ovMap');
+const ovWin=$('ovWin'),ovFail=$('ovFail'),ovPause=$('ovPause'),ovLoad=$('ovLoad');
 const objBar=$('objBar'),objTxt=$('objTxt'),objFill=$('objFill'),objPieces=$('objPieces');
 const slotEls=[...document.querySelectorAll('.slot')];
 const slotCvs=slotEls.map(s2=>s2.querySelector('canvas'));
@@ -1701,12 +1814,16 @@ if(pool.length)return pool[Math.floor(Math.random()*pool.length)].id}
 return coll.unlocked[Math.floor(Math.random()*coll.unlocked.length)]}
 let grid=[],tray=[null,null,null];
 let best=parseInt(store.get('bp_best'))||0;
-let stats=(()=>{try{const s2=JSON.parse(store.get('bp_stats'));if(s2&&typeof s2.games==='number')return s2}catch(e){}return{games:0,lines:0}})();
+let stats=(()=>{let d={games:0,lines:0,pieces:0,bombs:0,gems:0,gemsB:0,gemsO:0,perfect:0,maxCombo:0};
+try{const s2=JSON.parse(store.get('bp_stats'));
+if(s2&&typeof s2.games==='number'){for(const k3 in d)if(typeof s2[k3]==='number')d[k3]=s2[k3]}}catch(e){}
+return d})();
+function saveStats(){store.set('bp_stats',JSON.stringify(stats))}
 let score=0,shownScore=0,stars=0;
 let combo=0,grace=3,maxCombo=0,placedCount=0,linesTotal=0;
 let bestAtStart=0,newRecordShown=false;
 let mode='classic',lvl=null,advLevel=0;
-let advLines=0,advChain=0,advComboMax=0,advPlaced=0,advGems=0,advFixedIdx=0;
+let advLines=0,advChain=0,advComboMax=0,advPlaced=0,advGems=0,advGemsB=0,advGemsO=0,advFixedIdx=0;
 let advStars=(()=>{try{const a=JSON.parse(store.get('bp_adv'));if(Array.isArray(a)&&a.length===LEVELS.length)return a}catch(e){}return LEVELS.map(()=>0)})();
 let state='title';
 let animating=false,turnId=0;
@@ -1812,12 +1929,17 @@ rr(c,x+bw*.1,y+bw*.1,bw*.8,bw*.8,bw*.16);c.stroke();
 const g=c.createRadialGradient(cx,cy,1,cx,cy,bw*.32);
 g.addColorStop(0,'#fff3b0');g.addColorStop(.5,'#ff8c28');g.addColorStop(1,'rgba(255,80,20,0)');
 c.fillStyle=g;c.beginPath();c.arc(cx,cy,bw*.32,0,6.3);c.fill();c.restore()}
-function drawGemIcon(c,x,y,s,t){
+/* v46 : gemmes 2 types — images gem_blue.png / gem_orange.png, fallback vectoriel */
+function drawGemIcon(c,x,y,s,t,gt){
+const im=UIAssets.get(gt===2?'gem_orange':'gem_blue');
+if(im){const ds=s*.6;c.drawImage(im,x+(s-ds)/2,y+(s-ds)/2,ds,ds);return}
 const cx=x+s/2,cy=y+s/2,r2=s*.24,w=Math.sin((t||0)/280+x*.05)*.5+.5;
+const main=gt===2?'#FFB53D':'#7ee7ff';
+const lit=gt===2?'#FFE3B0':'#ffffff';
 c.save();c.translate(cx,cy);
-c.fillStyle='#7ee7ff';
+c.fillStyle=main;
 c.beginPath();c.moveTo(0,-r2);c.lineTo(r2*.85,-r2*.25);c.lineTo(0,r2);c.lineTo(-r2*.85,-r2*.25);c.closePath();c.fill();
-c.fillStyle='#fff';c.globalAlpha=.5+w*.4;
+c.fillStyle=lit;c.globalAlpha=.5+w*.4;
 c.beginPath();c.moveTo(0,-r2);c.lineTo(r2*.85,-r2*.25);c.lineTo(0,-r2*.1);c.closePath();c.fill();c.restore()}
 function drawGhostCell(c,x,y,s,ci){
 const tile=getTile(STYLES[theme].id,ci);
@@ -2210,8 +2332,6 @@ const pr=pressure();
 const fill=grid.flat().filter(Boolean).length/(N*N);
 const nearNow=nearLinesNow();
 const holesNow=countHoles(simGrid());
-const kept=tray.filter(p=>p&&!p.bomb).map(p=>analyzePiece(p.si));
-const keptCanClear=kept.some(a=>a.lines>0);
 let mode2='NEUTRAL';
 if(best<=0&&score<4000)mode2='TUTORIAL';
 else if(evilLeft>0){evilLeft--;
@@ -2418,13 +2538,17 @@ if(!v)return;
 plusOnes.push({x:boardRect.left+gx+(c+dc)*cell+cell/2,
 y:boardRect.top+gy+(r+dr)*cell+cell/2,
 t0:performance.now()+((dr+dc)*55),life:620})}))}
-function collectGem(r,c){
-advGems++;score+=200;
+/* v46 : collectGem avec type (1=bleue, 2=orange), stats + compteurs run */
+function collectGem(r,c,gt){
+advGems++;advGemsB+=gt===2?0:1;advGemsO+=gt===2?1:0;
+stats.gems++;if(gt===2)stats.gemsO++;else stats.gemsB++;
+score+=200;
 const px=gx+c*cell+cell/2,py=gy+r*cell+cell/2;
 for(let k2=0;k2<6;k2++)particles.push({x:px,y:py,
 vx:(Math.random()-.5)*.034,vy:-(.012+Math.random()*.026),sz:cell*.10,
-col:k2%2?'#7ee7ff':'#ffffff',t0:performance.now(),life:560,sh:4,g:0,rot:0,vr:0});
-floats.push({x:px,y:py,txt:'💎+200',t0:performance.now(),life:800});
+col:gt===2?(k2%2?'#FFB53D':'#FFE3B0'):(k2%2?'#7ee7ff':'#ffffff'),
+t0:performance.now(),life:560,sh:4,g:0,rot:0,vr:0});
+floats.push({x:px,y:py,txt:gt===2?'🔶+200':'💎+200',t0:performance.now(),life:800});
 SFX.gem();updateObjHUD()}
 function praiseVoice(word){
 const map={Great:'voice_great',Amazing:'voice_amazing',Incredible:'voice_incredible',
@@ -2455,7 +2579,7 @@ const tile=getTile(stCur.id,obj.c);
 const st2=t0+lcWaveDelay(P,r,c,rows,cols);
 lcFx.push({r,c,ci:obj.c,t0:st2,tile,prof:P});
 lcSpawnParts(P,obj.c,px0,py0,tile,st2+(P.ant||30)+(P.flash||0));
-if(obj.gem)collectGem(r,c);
+if(obj.gem)collectGem(r,c,obj.gem);
 sx+=c;sy+=r});
 if(particles.length>300){
 particles.splice(0,particles.length-300)}
@@ -2546,6 +2670,7 @@ playCustom('voice_perfect',.9);
 allClearFx();
 queuePop(perfectSegs('PERFECT CLEAR'),cell*1.05,400);
 SFX.perfect();vib([30,50,30,50,30]);flash();
+if(mode==='classic'){stats.perfect++;saveStats()}
 checkBest();
 grantCollect()}
 }finally{if(my===turnId){animating=false;endTurn()}}}
@@ -2563,8 +2688,9 @@ if(b){const px0=gx+cc2*cell+cell/2,py0=gy+rr2*cell+cell/2;
 const tile=getTile(STYLES[theme].id,b.c);
 lcFx.push({r:rr2,c:cc2,ci:b.c,t0:Tn,tile,prof:P});
 lcSpawnParts(P,b.c,px0,py0,tile,Tn+(P.ant||30)+(P.flash||0));
-if(b.gem)collectGem(rr2,cc2);
+if(b.gem)collectGem(rr2,cc2,b.gem);
 grid[rr2][cc2]=null}}
+stats.bombs++;saveStats();
 score+=300;
 floats.push({x:gx+c*cell+cell/2,y:gy+r*cell+cell/2,txt:'+300',t0:performance.now(),life:800});
 SFX.boom();vib([30,20,30]);shakeAmt=Math.max(shakeAmt,12);flash();
@@ -2614,7 +2740,7 @@ const b={c:effColor(p.ci,dr,dc),t:now-1000,fall:null};
 if(canSlide){
 b.slide={fx:lastDrop.x-c*cell,fy:lastDrop.y-r*cell,t0:now,dur:70}}
 grid[r+dr][c+dc]=b}}));
-placedCount++;advPlaced++;
+placedCount++;advPlaced++;stats.pieces++;
 if(!store.get('bp_tut'))store.set('bp_tut','1');
 plusOnesScore+=p.m.flat().length*10;bumpScore();
 SFX.place();vib(12);
@@ -2641,27 +2767,6 @@ score,stars,combo,grace,maxCombo,placedCount,linesTotal,
 theme,stylePts,styleLevel,themeOrder,reviveUsed,gameStart,bestAtStart};
 store.set('bp_save',JSON.stringify(data))}
 function hasSave(){return !!store.get('bp_save')}
-function resumeGame(){let d=null;
-try{d=JSON.parse(store.get('bp_save'))}catch(e){}
-if(!d)return;
-mode='classic';lvl=null;setHudMode();
-ovTitle.classList.remove('show');ovOver.classList.remove('show');
-grid=d.grid.map(row=>row.map(v=>v>=0&&v<16?{c:v,t:0,fall:null}:null));
-tray=(d.tray||[null,null,null]).map(p=>{
-if(!p)return null;
-if(p.bomb)return{bomb:true,m:[[1]],si:-1,ci:2,dead:false};
-return{si:p.si,m:SHAPES[p.si].m,ci:p.ci,dead:!canAnywhere(SHAPES[p.si].m)}});
-score=d.score;shownScore=score;stars=d.stars;
-combo=d.combo;grace=d.grace!=null?d.grace:3;
-maxCombo=d.maxCombo;placedCount=d.placedCount;linesTotal=d.linesTotal;
-bestAtStart=d.bestAtStart;stylePts=d.stylePts||0;
-styleLevel=d.styleLevel||0;
-themeOrder=(d.themeOrder&&d.themeOrder.length===STYLES.length)?d.themeOrder:buildThemeOrder();
-theme=(d.theme!=null&&d.theme<STYLES.length)?d.theme:themeOrder[styleLevel];
-ensureTiles(theme);ensureStyleSfx(theme);
-reviveUsed=!!d.reviveUsed;gameStart=d.gameStart||performance.now();
-newRecordShown=false;evilLeft=0;evilWarn=false;themeTrans=null;
-updateBg();renderTray(false);resize();state='playing';toast('Game restored')}
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 const ADMOB_IDS={
 appId:'ca-app-pub-3940256099942544~3347511713',
@@ -2678,15 +2783,8 @@ admobReady=true;
 console.log('✔ AdMob ready')}
 catch(e){console.warn('AdMob unavailable (web or plugin missing)',e)}}
 setTimeout(admobInit,1000);
-async function showInterstitialAd(cb){
-if(!IS_NATIVE||!admobReady){if(cb)cb();return}
-try{
-await admobPlugin.prepareInterstitial({adId:{android:ADMOB_IDS.interstit}});
-await admobPlugin.showInterstitial()}
-catch(e){console.warn('interstitial fail',e)}
-finally{if(cb)cb()}}
 async function showRewardedAd(cb){
-if(!IS_NATIVE||!admobReady){if(cb)cb();return}
+if(!IS_NATIVE||!admobReady){if(cb)cb(false);return}
 try{
 const m=await import('/capacitor-modules/admob.js');
 await m.Admob.prepareRewardVideoAd({adId:{android:ADMOB_IDS.rewarded}});
@@ -2807,8 +2905,6 @@ dragLayer.style.display='none';slotCvs[sl].style.visibility=''}}}
 slotEls.forEach((el,i)=>el.addEventListener('pointerdown',e=>onDown(e,i)));
 dragLayer.addEventListener('contextmenu',e=>e.preventDefault());
 let fbHadContent=false;
-/* v45 : losange recentré exactement derrière le score, taille plafonnée,
-   ombre allégée (plus de masse énorme qui pend sous le score) */
 function drawDiamondDeco(t){
 const dx=boardRect.left+gx+cell*N/2;
 const dy=boardRect.top+gy-34;
@@ -3075,7 +3171,7 @@ bSc=1+.05*Math.sin(t/280+(r+c)*.7)}
 else if(lfx==='pulse'){
 bSc=1+.04*Math.sin(t/240)}
 drawBlock(bctx,gx+c*cell+bOx+ox,gy+r*cell+oyF+bOy+oy,cell,bCi,1,pop*bSc,false,sx*bSc,sy*bSc);
-if(o.gem)drawGemIcon(bctx,gx+c*cell+ox,gy+r*cell+oyF,cell,t);
+if(o.gem)drawGemIcon(bctx,gx+c*cell+ox,gy+r*cell+oyF,cell,t,o.gem);
 if(!o.fall&&!o.slide&&age<300){
 const kk=1-age/300;
 bctx.fillStyle='rgba(255,255,255,'+(.32*kk)+')';
@@ -3255,7 +3351,7 @@ bctx.fillStyle=p.col;
 const n=p.pn||5;
 bctx.beginPath();
 for(let i=0;i<n;i++){const a=i/n*6.283+p.ph;
-const rr3=p.sz*(.35+srnd2(p.sd*13+i)*.3);
+const rr3=p.sz*(.35+srnd2((p.sd||0)*13+i)*.3);
 const qx=Math.cos(a)*rr3,qy=Math.sin(a)*rr3*.8;
 i?bctx.lineTo(qx,qy):bctx.moveTo(qx,qy)}
 bctx.closePath();bctx.fill()}
@@ -3508,21 +3604,22 @@ function bindTap(el,fn){let last=0;
 const go=e=>{const now=performance.now();
 if(now-last<400)return;last=now;fn(e)};
 el.addEventListener('pointerdown',go);el.addEventListener('click',go)}
+function hideAllOv(){
+ovPause.classList.remove('show');ovOver.classList.remove('show');
+ovAch.classList.remove('show');ovMap.classList.remove('show');
+ovWin.classList.remove('show');ovFail.classList.remove('show');ovAd.classList.remove('show')}
 function goHome(){
 turnId++;animating=false;drag=null;ghost=null;
 popQueue=[];popCur=null;
 dragLayer.style.display='none';
 state='title';mode='classic';lvl=null;
-ovPause.classList.remove('show');ovOver.classList.remove('show');
-ovLevels.classList.remove('show');ovWin.classList.remove('show');
-ovFail.classList.remove('show');ovAd.classList.remove('show');
+hideAllOv();
 setHudMode();refreshTitle();ovTitle.classList.add('show')}
 function openPause(){if(state!=='playing')return;
 state='paused';
  $('pauseInfo').textContent=mode==='adv'?('Level '+(advLevel+1)+' — '+lvl.name):('Score: '+score+' · Style: '+STYLES[theme].name);
  $('btnPMap').style.display=mode==='adv'?'flex':'none';
- $('btnSkinTxt').textContent=STYLES[theme].name;
- $('homeDot').style.display=hasSave()?'block':'none';
+ $('btnSkinTxt').textContent='Style: '+STYLES[theme].name;
 updateVibSlider();
 refreshPauseToggles();
 ovPause.classList.add('show')}
@@ -3536,21 +3633,20 @@ store.set('bp_viblvl',''+vibLvl);
 refreshPauseToggles();updateVibSlider();
 if(vibLvl)vib(18)}
 const CHARMAP={'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'A':0,'B':1,'C':2,'D':3,'E':4,'F':5,'G':6,'H':7};
-const GEMCHARS={A:1,B:1,C:1,D:1,E:1,F:1,G:1,H:1};
+/* v46 : gemmes A-D = bleues (type 1), E-H = orange (type 2) */
+const GEMCHARS={A:1,B:1,C:1,D:1,E:2,F:2,G:2,H:2};
 function startLevel(i){
 advLevel=i;lvl=LEVELS[i];mode='adv';
 turnId++;animating=false;
 popQueue=[];popCur=null;
-ovTitle.classList.remove('show');ovLevels.classList.remove('show');
-ovWin.classList.remove('show');ovFail.classList.remove('show');
-ovOver.classList.remove('show');ovPause.classList.remove('show');
+hideAllOv();ovTitle.classList.remove('show');
 grid=Array.from({length:N},()=>Array(N).fill(null));
 if(lvl.preset)lvl.preset.forEach((row,r)=>{for(let c=0;c<N;c++){
 const ch=row[c];
-if(ch&&ch!=='.')grid[r][c]={c:CHARMAP[ch],gem:!!GEMCHARS[ch],t:0,fall:null}}});
+if(ch&&ch!=='.')grid[r][c]={c:CHARMAP[ch],gem:GEMCHARS[ch]||0,t:0,fall:null}}});
 score=0;shownScore=0;
 combo=0;grace=3;maxCombo=0;placedCount=0;advPlaced=0;
-linesTotal=0;advLines=0;advChain=0;advComboMax=0;advGems=0;advFixedIdx=0;
+linesTotal=0;advLines=0;advChain=0;advComboMax=0;advGems=0;advGemsB=0;advGemsO=0;advFixedIdx=0;
 stars=0;
 themeOrder=[0];
 for(let t2=1;t2<=6;t2++){
@@ -3573,6 +3669,8 @@ function levelWin(){state='over';ovPause.classList.remove('show');
 const st=1+(score>=lvl.s2?1:0)+(score>=lvl.s3?1:0);
 if(st>advStars[advLevel]){advStars[advLevel]=st;
 store.set('bp_adv',JSON.stringify(advStars))}
+stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
+saveStats();
 SFX.win();vib([20,40,20,40,20]);
 if(st>=3)confetti();
 for(let k2=0;k2<24;k2++)particles.push({
@@ -3587,25 +3685,83 @@ if(k2<st)setTimeout(()=>{el.classList.add('on');SFX.star();vib(15)},400+k2*350)}
  $('btnNext').style.display=(advLevel<LEVELS.length-1)?'flex':'none';
 setTimeout(()=>ovWin.classList.add('show'),650)}
 function levelFail(reason){state='over';ovPause.classList.remove('show');
+stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
+saveStats();
 SFX.over();vib([70,50,70]);
  $('failReason').textContent=reason+' ('+lvl.hint+')';
 ovFail.classList.add('show')}
-function buildMap(){const g=$('lvGrid');g.innerHTML='';
-let done=0,tot=0;
-advStars.forEach(s2=>{tot+=s2;if(s2>0)done++});
- $('advProg').textContent=done+'/'+LEVELS.length+' levels · '+tot+' ★';
-LEVELS.forEach((lv,i)=>{
-const unlocked=i===0||advStars[i-1]>0;
+/* ---------- v46 : MAP ADVENTURE en losange ---------- */
+/* Rangées : 1-2-3-4-3-4-3 = 20 niveaux (forme différente de la pyramide Block Blast) */
+const MAP_ROWS=[1,2,3,4,3,4,3];
+function nextAdvLevel(){
+for(let i=0;i<LEVELS.length;i++){
+if(advStars[i]===0)return i}
+return LEVELS.length-1}
+function buildAdventureMap(){
+const bd=$('mapBoard');bd.innerHTML='';
+let n=0;
+MAP_ROWS.forEach(cnt=>{
+const row=document.createElement('div');
+row.className='mapRow';
+for(let j=0;j<cnt&&n<LEVELS.length;j++,n++){
 const b=document.createElement('button');
-b.className='lvbtn'+(unlocked?'':' locked')+(advStars[i]>0?' done':'');
-if(unlocked){b.innerHTML='<span>'+(i+1)+'</span><span class="st">'+(advStars[i]>0?'★'.repeat(advStars[i]):'·')+'</span>';
-b.title=lv.name;
-bindTap(b,()=>{SFX.init();startLevel(i)})}
-else b.innerHTML='<span>🔒</span>';
-g.appendChild(b)})}
-function openMap(){buildMap();
+const unlocked=n===0||advStars[n-1]>0;
+const done=advStars[n]>0;
+b.className='mapLv'+(unlocked?'':' locked')+(unlocked&&!done&&n===nextAdvLevel()?' next':'');
+if(unlocked){
+b.innerHTML=(n+1)+'<span class="mlSt">'+(done?'★'.repeat(advStars[n]):'·')+'</span>';
+b.title=LEVELS[n].name;
+bindTap(b,()=>{SFX.init();startLevel(n)})}
+else b.innerHTML='🔒';
+row.appendChild(b)}
+bd.appendChild(row)});
+const nxt=nextAdvLevel();
+ $('btnGoLevel').textContent='Level '+(nxt+1)+' ▶';
+ $('gemBCnt').textContent=stats.gemsB;
+ $('gemOCnt').textContent=stats.gemsO;
+let totStars=0;advStars.forEach(s2=>totStars+=s2);
+ $('gemFill').style.width=clamp(totStars/(LEVELS.length*3)*100,0,100)+'%'}
+function openMap(){
 ovTitle.classList.remove('show');ovWin.classList.remove('show');ovFail.classList.remove('show');
-ovLevels.classList.add('show')}
+buildAdventureMap();
+ovMap.classList.add('show')}
+/* ---------- v46 : PAGE ACHIEVEMENT ---------- */
+const AWARDS=[
+{name:'Score Champion',icon:'🎯',max:12,fn:()=>[Math.min(12,Math.floor(best/4000)),12]},
+{name:'Invincible Legend',icon:'▶',max:5,fn:()=>[Math.min(5,Math.floor(stats.maxCombo/1)),5]},
+{name:'Perseverance',icon:'📅',max:10,fn:()=>[Math.min(10,stats.games),10]},
+{name:'Block Master',icon:'🧱',max:10,fn:()=>[Math.min(10,Math.floor(stats.pieces/50)),10]},
+{name:'Opportunist',icon:'💥',max:10,fn:()=>[Math.min(10,stats.bombs),10]},
+{name:'Jewelry Tycoon',icon:'💎',max:10,fn:()=>[Math.min(10,Math.floor(stats.gems/10)),10]},
+{name:'Unwavering',icon:'🐻',max:5,fn:()=>[Math.min(5,stats.perfect),5]},
+{name:'Master Cleaner',icon:'🧹',max:10,fn:()=>[Math.min(10,Math.floor(stats.lines/100)),10]},
+{name:'Adventurer',icon:'🗺️',max:20,fn:()=>[advStars.filter(s2=>s2>0).length,20]}];
+function buildAchPage(){
+ $('stCombo').textContent=stats.maxCombo;
+ $('stBest').textContent=best;
+ $('stRounds').textContent=stats.games;
+ $('stGems').textContent=stats.gems;
+const g=$('awGrid');g.innerHTML='';
+const seen=(()=>{try{return JSON.parse(store.get('bp_awseen'))||{}}catch(e){return{}}})();
+let changed=false;
+AWARDS.forEach((aw,i)=>{
+const[cur,max]=aw.fn();
+const gold=cur>=max,locked=cur<=0;
+const seenKey='aw'+i;
+const isNew=!seen[seenKey]&&cur>0;
+if(isNew){seen[seenKey]=1;changed=true}
+const it=document.createElement('div');
+it.className='awItem';
+it.innerHTML='<div class="awBadge'+(gold?' gold':(locked?' lock':''))+'">'+
+(isNew?'<span class="awDot"></span>':'')+
+'<div class="awInner">'+aw.icon+'</div></div>'+
+'<div class="awName'+(locked?' dim':'')+'">'+aw.name+'</div>'+
+'<div class="awProg">'+cur+'/'+max+'</div>';
+g.appendChild(it)});
+if(changed)store.set('bp_awseen',JSON.stringify(seen))}
+function openAch(){buildAchPage();
+ovTitle.classList.remove('show');
+ovAch.classList.add('show')}
 function fakeAd(){if(state!=='over')return;
 if(IS_NATIVE&&admobReady){
 showRewardedAd(ok=>{if(ok)doRevive();
@@ -3654,7 +3810,8 @@ if(!store.get('bp_tut'))toast('Drag a piece onto the board')}
 function showGameOver(){state='over';ovPause.classList.remove('show');
 store.del('bp_save');
 stats.games++;stats.lines+=linesTotal;
-store.set('bp_stats',JSON.stringify(stats));
+stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
+saveStats();
 SFX.over();vib([70,50,70]);
 const rec=score>bestAtStart&&score>0;
  $('foTitle').textContent=rec?'New Record!':
@@ -3685,9 +3842,7 @@ vib(4);
 setTimeout(tick,28)};
 setTimeout(tick,350)}
 function refreshTitle(){
- $('titleBest').textContent=best;
- $('titleStats').textContent=stats.games>0?(stats.games+' games · '+stats.lines+' lines · '+coll.unlocked.length+'/'+STYLES.length+' styles'):('Collection: '+coll.unlocked.length+'/'+STYLES.length+' styles');
- $('btnResume').style.display=hasSave()?'flex':'none'}
+ $('titleBest').textContent=best}
 function updateCrown(){
 const fill=$('crownFill');
 if(!fill)return;
@@ -3695,13 +3850,15 @@ const pr=best>0?clamp(score/best,0,1):0;
 fill.setAttribute('width',(pr*24).toFixed(2))}
 bindTap($('btnPlay'),()=>{SFX.init();newGame()});
 bindTap($('btnAdv'),()=>{SFX.init();openMap()});
-bindTap($('btnMapBack'),()=>goHome());
+bindTap($('btnMedal'),()=>{SFX.init();openAch()});
+bindTap($('btnAchBack'),()=>{SFX.init();ovAch.classList.remove('show');ovTitle.classList.add('show')});
+bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.classList.add('show')});
+bindTap($('btnGoLevel'),()=>{SFX.init();startLevel(nextAdvLevel())});
 bindTap($('btnNext'),()=>{SFX.init();startLevel(advLevel+1)});
 bindTap($('btnReplay'),()=>{SFX.init();startLevel(advLevel)});
 bindTap($('btnWinMap'),()=>{SFX.init();state='title';openMap()});
 bindTap($('btnRetry'),()=>{SFX.init();startLevel(advLevel)});
 bindTap($('btnFailMap'),()=>{SFX.init();state='title';openMap()});
-bindTap($('btnResume'),()=>{SFX.init();resumeGame()});
 bindTap($('btnAgain'),()=>{SFX.init();newGame()});
 bindTap($('btnRevive'),()=>{SFX.init();fakeAd()});
 bindTap($('btnAdSkip'),()=>{ovAd.classList.remove('show')});
@@ -3714,6 +3871,7 @@ if(mode==='adv')startLevel(advLevel);else newGame()});
 bindTap($('btnPMap'),()=>{SFX.init();goHome();openMap()});
 bindTap($('btnSkin'),()=>{SFX.init();
 toast('Style: '+STYLES[theme].name+' — unlock new styles with PERFECT CLEARs!')});
+bindTap($('btnStats'),()=>{SFX.init();openAch()});
 bindTap($('tglSound'),()=>{SFX.on=!SFX.on;
 store.set('bp_snd',SFX.on?'1':'0');
 refreshPauseToggles();
@@ -3726,14 +3884,8 @@ refreshPauseToggles()});
 bindTap($('tglVib'),()=>{setVibLvl(vibLvl?0:1)});
 bindTap($('vibMinus'),e=>{if(e){e.stopPropagation()}setVibLvl(vibLvl-1)});
 bindTap($('vibPlus'),e=>{if(e){e.stopPropagation()}setVibLvl(vibLvl+1)});
-bindTap($('btnMedal'),()=>{SFX.init();
-toast('🏅 '+stats.games+' games · '+stats.lines+' lines · '+coll.unlocked.length+'/'+STYLES.length+' styles',3600)});
-bindTap($('btnStats'),()=>{SFX.init();
-const el=$('titleStats');
-el.style.display=el.style.display==='none'?'block':'block';
-toast(el.textContent||'No stats yet',3000)});
 let devTaps=0,devLastTap=0;
- $('titleStats').addEventListener('pointerdown',()=>{
+ $('bestWrap').addEventListener('pointerdown',()=>{
 const now=performance.now();
 if(now-devLastTap>1200)devTaps=0;
 devLastTap=now;
