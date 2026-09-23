@@ -5,13 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#1660C4"/>
 <title>BLOCK THUD!</title>
-<!-- v48 : coins des boutons home moins arrondis (14 px) · icône Classic
-     redessinée (vrai infini, trait 2.7 comme l'horloge) · logo = UNE image
-     assets/ui/logo.png (couronne intégrée, plus de couronne superposée),
-     fallback lettres masqué dès que l'image charge · TOUS les fallbacks SVG
-     (médaille, couronnes, gemmes) masqués quand l'image est présente ·
-     icônes Replay/Home/Map/Style dans le menu pause · fix croix Settings
-     (panel position:relative → la croix reste dans le panneau) -->
+<!-- v49 : home recomposée au pixel sur la référence —
+     · logo réduit (BLOCK ~68 % écran, THUD ~45 % de BLOCK, resserré) +
+       sous-titre ADVENTURE MASTER TOUJOURS visible sous le logo (image ou fallback)
+     · médaille collée au coin supérieur droit, texte directement sous l'icône
+     · carte stats élargie (68 %) et aplatie (bandeau 26 px, corps 62 px)
+     · boutons plus larges, rayon 17 px, vraie épaisseur inférieure 5 px,
+       Adventure gradient 3 paliers + ombre douce bleu-gris,
+       Classic passé au TURQUOISE/MENTHE (#24CFA3)
+     · rythme vertical : logo ~14 vh, carte ~45 %, boutons groupés,
+       ~22 % de respiration sous Classic · fond éclairci vers le bas
+     · SYSTÈME PUB COMPLET : Ads manager (bannière bas d'accueil,
+       interstitiel tous les 3 game-over avec simulation web, rewarded revive)
+       + placeholders visuels, hooks AdMob prêts (ids de test) -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
@@ -63,7 +69,6 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 @keyframes tpPop{from{opacity:.9;transform:scale(.5)}to{opacity:0;transform:scale(1.5) translateY(-9px)}}
 .overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .3s;background:rgba(18,25,44,.88)}
 .overlay.show{opacity:1;pointer-events:auto}
-/* v48 : position:relative → la croix s'ancre au PANNEAU, pas à l'écran */
 .panel{position:relative;width:min(100%,368px);max-height:calc(100dvh - 32px);overflow:auto;background:linear-gradient(180deg,#7B97F2,#5B76DC);border:none;border-radius:26px;padding:10px;text-align:center;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 18px 42px rgba(4,8,32,.60),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(20,30,90,.35)}
 .overlay.show .panel{transform:none}
 .panelIn{background:linear-gradient(180deg,#4353C6,#32409E);border-radius:18px;padding:18px 14px 14px;box-shadow:inset 0 4px 10px rgba(8,12,45,.5)}
@@ -75,50 +80,54 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .btn3d.lav{background:linear-gradient(180deg,#A2A9CB,#7C84AC 55%,#6B739C);box-shadow:0 6px 0 #575E86,0 12px 18px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.30)}
 .btn3d.lav:active{box-shadow:0 1px 0 #575E86,0 5px 10px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.30)}
 .btn3d:disabled{opacity:.5;pointer-events:none}
-/* ---------- règles fallback images UI ---------- */
+/* ---------- fallbacks : image présente → SVG masqué ---------- */
 .ok>svg{display:none!important}
-/* ---------- HOME ---------- */
-#ovTitle{background:linear-gradient(180deg,#1B66CC 0%,#1660C4 50%,#1160C4 100%);backdrop-filter:none;place-items:start center}
-.titleCol{position:relative;width:100%;max-width:470px;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 0 26px}
-.medalBadge{position:absolute;top:calc(14px + env(safe-area-inset-top));right:5%;width:96px;cursor:pointer;text-align:center;filter:drop-shadow(0 0 14px rgba(120,190,255,.85));z-index:5}
-.medalBadge .mSlot{position:relative;width:80px;height:80px;margin:0 auto}
+/* ================= HOME — proportions référence ================= */
+#ovTitle{background:linear-gradient(180deg,#1A5EC8 0%,#1668CC 45%,#2AA0E6 100%);backdrop-filter:none;place-items:start center}
+.titleCol{position:relative;width:100%;max-width:470px;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 0 21vh}
+.medalBadge{position:absolute;top:calc(6px + env(safe-area-inset-top));right:6px;width:80px;cursor:pointer;text-align:center;filter:drop-shadow(0 0 14px rgba(120,190,255,.85));z-index:5}
+.medalBadge .mSlot{position:relative;width:66px;height:66px;margin:0 auto}
 .medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
-.medalBadge span{display:block;color:#fff;font:800 19px 'Nunito Sans';margin-top:-6px;text-shadow:0 2px 4px rgba(10,20,70,.55)}
-.bigLogo{position:relative;margin-top:calc(10vh + env(safe-area-inset-top));user-select:none;width:100%}
-.logoImg{display:none;width:min(88vw,400px);height:auto;margin:0 auto;filter:drop-shadow(0 12px 18px rgba(8,16,60,.35))}
+.medalBadge span{display:block;color:#fff;font:800 16px 'Nunito Sans';margin-top:-3px;text-shadow:0 2px 4px rgba(10,20,70,.55)}
+.bigLogo{position:relative;margin-top:14vh;user-select:none;width:100%}
+.logoImg{display:none;width:min(68vw,312px);height:auto;margin:0 auto;filter:drop-shadow(0 10px 16px rgba(10,25,80,.30))}
 .bigLogo.ok .logoImg{display:block}
 .bigLogo.ok .logoFb{display:none}
-#ovLoad .logoImg{width:min(64vw,300px)}
-#ovLoad .bigLogo{margin-top:6vh}
 .logoFb .row{display:flex;justify-content:center;gap:1px;align-items:flex-end}
-.logoFb .lt{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(44px,12.5vw,62px);line-height:1.04;display:inline-block;padding:0 1px;transform:rotate(var(--r)) translateY(var(--y,0px));background:linear-gradient(180deg,#fff 0%,var(--c1) 15%,var(--c2) 55%,var(--c3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 0 var(--cd)) drop-shadow(0 11px 8px rgba(8,16,60,.45))}
-.logoFb .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(32px,9.5vw,47px);line-height:1;letter-spacing:4px;margin-top:5px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #0B78A8) drop-shadow(0 9px 8px rgba(8,16,60,.4))}
-.logoFb .tag{color:#BBD8F5;font:800 clamp(11px,3.2vw,14px) 'Nunito Sans';letter-spacing:3px;margin-top:8px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
-.dailyPanel{width:59%;max-width:280px;margin-top:7.5vh;border-radius:14px;overflow:hidden;box-shadow:0 4px 7px rgba(0,0,0,.24);text-align:left}
-.dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:var(--navy);font:800 clamp(12px,3.7vw,16px) 'Nunito Sans',sans-serif;text-align:center;padding:8px 6px}
-.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:6px;padding:8px 10px 10px;min-height:82px}
-.winBadge{position:relative;width:58px;height:56px;flex:none}
-.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.22),0 2px 4px rgba(10,20,70,.3)}
-.wbCirc .cSlot{position:absolute;top:1px;left:50%;transform:translateX(-50%);width:32px;height:28px}
+.logoFb .lt{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(34px,9.6vw,50px);line-height:1.02;display:inline-block;padding:0 1px;transform:rotate(var(--r)) translateY(var(--y,0px));background:linear-gradient(180deg,#fff 0%,var(--c1) 15%,var(--c2) 55%,var(--c3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 var(--cd)) drop-shadow(0 9px 7px rgba(8,16,60,.45))}
+.logoFb .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(18px,4.7vw,25px);line-height:1;letter-spacing:7px;margin-top:5px;text-indent:7px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #0B78A8) drop-shadow(0 7px 6px rgba(8,16,60,.4))}
+/* sous-titre TOUJOURS visible (l'image du logo ne le contient pas) */
+.logoSub{color:#BFD9F7;font:800 clamp(11px,2.9vw,13.5px) 'Nunito Sans',sans-serif;letter-spacing:4.5px;margin-top:10px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
+.dailyPanel{width:68%;max-width:322px;margin-top:6vh;border-radius:14px;overflow:hidden;box-shadow:0 4px 9px rgba(20,45,110,.30);text-align:left}
+.dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:var(--navy);font:800 clamp(11.5px,3.3vw,15px) 'Nunito Sans',sans-serif;text-align:center;padding:5px 6px}
+.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:8px;padding:5px 12px 7px;min-height:62px}
+.winBadge{position:relative;width:50px;height:48px;flex:none}
+.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);box-shadow:inset 0 -2px 0 rgba(0,0,0,.22),0 2px 3px rgba(10,20,70,.3)}
+.wbCirc .cSlot{position:absolute;top:1px;left:50%;transform:translateX(-50%);width:28px;height:25px}
 .wbCirc .cSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .wbCirc .cSlot svg{position:absolute;inset:0;width:100%;height:100%;fill:#FFC919;filter:drop-shadow(0 2px 0 #B87F00)}
-.wTag{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 9px 'Nunito Sans';letter-spacing:1px;padding:1px 8px;border-radius:7px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3);white-space:nowrap}
-.dpVal{font:800 21px 'Nunito Sans',sans-serif;color:var(--navy);flex:1;text-align:center}
-.dpMore{width:17px;height:17px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0}
-.titleBtns{margin-top:5.5vh;width:59%;max-width:280px;display:flex;flex-direction:column;gap:4.4vh}
-/* v48 : coins moins arrondis (14 px) */
-.homeBtn{position:relative;display:flex;align-items:center;gap:13px;width:100%;aspect-ratio:636/133;border-radius:14px;cursor:pointer;color:#fff;font:800 clamp(19px,5.5vw,27px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(0,0,0,.18);border:1px solid transparent;transition:transform .07s,box-shadow .07s}
-.homeBtn .ico{width:clamp(26px,7.4vw,36px);height:clamp(26px,7.4vw,36px);flex:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
-#btnAdv{background:linear-gradient(180deg,#F5A91D,#F1A01A 45%,#E99514);border-color:#D9850F;box-shadow:0 6px 0 #C77A10,0 3px 5px rgba(0,0,0,.22)}
-#btnAdv:active{transform:translateY(6px);box-shadow:0 0 0 #C77A10,0 1px 2px rgba(0,0,0,.2)}
-#btnPlay{background:linear-gradient(180deg,#3BE08A,#27C973 55%,#1FB765);border-color:#1CA95E;box-shadow:0 6px 0 #16A058,0 3px 5px rgba(0,0,0,.22)}
-#btnPlay:active{transform:translateY(6px);box-shadow:0 0 0 #16A058,0 1px 2px rgba(0,0,0,.2)}
+.wTag{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 8px 'Nunito Sans';letter-spacing:1px;padding:1px 7px;border-radius:6px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3);white-space:nowrap}
+.dpVal{font:800 19px 'Nunito Sans',sans-serif;color:var(--navy);flex:1;text-align:center}
+.dpMore{width:16px;height:16px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0}
+.titleBtns{margin-top:4.6vh;width:68%;max-width:322px;display:flex;flex-direction:column;gap:4vh}
+.homeBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;height:clamp(78px,16.5vh,92px);border-radius:17px;cursor:pointer;color:#fff;font:800 clamp(19px,5.3vw,26px) 'Nunito Sans',sans-serif;padding:0 8%;text-shadow:0 2px 2px rgba(30,20,0,.18);border:1px solid rgba(0,0,0,.06);transition:transform .07s,box-shadow .07s}
+.homeBtn .ico{width:clamp(26px,7vw,34px);height:clamp(26px,7vw,34px);flex:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
+#btnAdv{background:linear-gradient(180deg,#FFC13A 0%,#F6A81C 45%,#ED9713 100%);border-color:#D9850F;box-shadow:0 5px 0 #C7790E,0 12px 22px rgba(25,50,120,.26),inset 0 2px 0 rgba(255,255,255,.38)}
+#btnAdv:active{transform:translateY(5px);box-shadow:0 0 0 #C7790E,0 4px 8px rgba(25,50,120,.22),inset 0 2px 0 rgba(255,255,255,.38)}
+/* Classic : turquoise/menthe comme la référence (plus vert pomme) */
+#btnPlay{background:linear-gradient(180deg,#43E6B5 0%,#24CFA3 45%,#17BD92 100%);border-color:#13A87F;box-shadow:0 5px 0 #0D9B74,0 12px 22px rgba(25,50,120,.26),inset 0 2px 0 rgba(255,255,255,.35)}
+#btnPlay:active{transform:translateY(5px);box-shadow:0 0 0 #0D9B74,0 4px 8px rgba(25,50,120,.22),inset 0 2px 0 rgba(255,255,255,.35)}
 .dotRed{position:absolute;top:-7px;right:-6px;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF7A6E,#F20F16 60%,#C40A10);box-shadow:0 2px 3px rgba(0,0,0,.35),inset 0 1px 1px rgba(255,255,255,.45);pointer-events:none}
 .miniStats{color:var(--dim);font-size:12.5px;margin-top:2px;white-space:pre-line}
 #devPanel{margin-top:8px}
+/* ---------- bannière pub accueil (placeholder web / AdMob natif) ---------- */
+#adBannerHome{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(92%,440px);height:52px;display:none;align-items:center;justify-content:center;gap:10px;background:rgba(10,20,60,.38);border:1px solid rgba(255,255,255,.18);border-radius:12px;color:rgba(255,255,255,.88);font:700 13px 'Nunito Sans',sans-serif;z-index:6;backdrop-filter:blur(3px)}
+#adBannerHome .adTag{background:#FFD23D;color:#3A2A00;font:800 10px 'Nunito Sans';padding:2px 6px;border-radius:4px;letter-spacing:1px}
 #ovLoad{z-index:150;background:linear-gradient(180deg,#163DB2 0%,#1596DA 100%);backdrop-filter:none}
 #ovLoad .panel{background:transparent;border:none;box-shadow:none;overflow:visible;max-height:none;padding:0}
+#ovLoad .bigLogo{margin-top:9vh}
+#ovLoad .logoImg{width:min(58vw,262px)}
 .loadBar{width:210px;height:14px;border-radius:99px;background:rgba(255,255,255,.22);margin:26px auto 0;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
 .loadBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD23D,#FFA53D);border-radius:99px;transition:width .18s}
 /* ---------- Pages pleine hauteur ---------- */
@@ -254,7 +263,6 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 <canvas id="fxBack"></canvas>
 <canvas id="dragLayer"></canvas>
 <canvas id="fxLayer"></canvas>
-<!-- écran de chargement : logo image unique (fallback lettres sans couronne) -->
 <div class="overlay show" id="ovLoad">
   <div class="panel">
     <div class="bigLogo">
@@ -264,8 +272,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
           <span class="lt" style="--r:-5deg;--y:-2px;--c1:#FFD24D;--c2:#F79200;--c3:#D97700;--cd:#A85A00">B</span><span class="lt" style="--r:3deg;--y:2px;--c1:#6FC2FF;--c2:#1F8FE8;--c3:#0E6FC8;--cd:#0A559A">L</span><span class="lt" style="--r:-3deg;--y:-1px;--c1:#FF8A7E;--c2:#F03A2E;--c3:#C22318;--cd:#961510">O</span><span class="lt" style="--r:4deg;--y:2px;--c1:#FFE966;--c2:#FFC919;--c3:#E8A800;--cd:#B87F00">C</span><span class="lt" style="--r:-4deg;--y:-2px;--c1:#E39CFF;--c2:#B03AE8;--c3:#8A18C0;--cd:#6E10A0">K</span>
         </div>
         <div class="blast">THUD!</div>
-        <div class="tag">Adventure Master</div>
       </div>
+      <div class="logoSub">Adventure Master</div>
     </div>
     <div class="loadBar"><i id="loadFill"></i></div>
   </div>
@@ -293,8 +301,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
           <span class="lt" style="--r:-5deg;--y:-2px;--c1:#FFD24D;--c2:#F79200;--c3:#D97700;--cd:#A85A00">B</span><span class="lt" style="--r:3deg;--y:2px;--c1:#6FC2FF;--c2:#1F8FE8;--c3:#0E6FC8;--cd:#0A559A">L</span><span class="lt" style="--r:-3deg;--y:-1px;--c1:#FF8A7E;--c2:#F03A2E;--c3:#C22318;--cd:#961510">O</span><span class="lt" style="--r:4deg;--y:2px;--c1:#FFE966;--c2:#FFC919;--c3:#E8A800;--cd:#B87F00">C</span><span class="lt" style="--r:-4deg;--y:-2px;--c1:#E39CFF;--c2:#B03AE8;--c3:#8A18C0;--cd:#6E10A0">K</span>
         </div>
         <div class="blast">THUD!</div>
-        <div class="tag">Adventure Master</div>
       </div>
+      <div class="logoSub">Adventure Master</div>
     </div>
     <div class="dailyPanel">
       <div class="dpHead">Consecutive Daily Victories</div>
@@ -316,7 +324,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
       <button class="homeBtn" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure</button>
       <button class="homeBtn" id="btnPlay"><svg class="ico" viewBox="0 0 24 24"><path d="M3.6 12C3.6 9.8 5.4 8 7.6 8c3.2 0 5.6 8 8.8 8 2.2 0 4-1.8 4-4s-1.8-4-4-4c-3.2 0-5.6 8-8.8 8-2.2 0-4-1.8-4-4z" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg>Classic</button>
     </div>
-    <button class="btn3d lav" id="btnDev" style="display:none;padding:10px;font-size:14px;width:min(76%,250px);margin-top:5vh">DEV</button>
+    <button class="btn3d lav" id="btnDev" style="display:none;padding:10px;font-size:14px;width:min(76%,250px);margin-top:4vh">DEV</button>
     <div id="devPanel" style="display:none">
       <p class="miniStats">Dev best: <b id="devBest">0</b></p>
       <div style="display:flex;gap:6px;justify-content:center">
@@ -330,6 +338,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
       <button class="btn3d lav" id="devUnlockAll" style="margin-top:8px;padding:10px;font-size:13px">Unlock all styles</button>
     </div>
   </div>
+  <div id="adBannerHome"><span class="adTag">AD</span><span>Espace bannière AdMob — accueil</span></div>
 </div>
 <div class="overlay" id="ovAch">
   <div class="achWrap">
@@ -463,9 +472,16 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 </div>
 <div class="overlay" id="ovAd">
   <div class="panel"><div class="panelIn">
-    <p id="adTxt">Simulated ad… 3</p>
+    <p id="adTxt">Rewarded ad… 3</p>
     <div class="adBox">Rewarded ad slot<br>(AdMob in production)</div>
     <button class="btn3d lav" id="btnAdSkip">Skip (lost)</button>
+  </div></div>
+</div>
+<div class="overlay" id="ovInter">
+  <div class="panel"><div class="panelIn">
+    <p id="interTxt">Publicité… 3</p>
+    <div class="adBox">Interstitial AdMob<br>(entre deux parties)</div>
+    <button class="btn3d lav" id="btnInterClose" disabled>Fermer (3)</button>
   </div></div>
 </div>
 <div id="toast"></div>
@@ -482,7 +498,7 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 'use strict';
 var k = 0;
 /* ================================================================
-   BLOCK THUD! v48 — moteur v47 + UI images/fallbacks propres
+   BLOCK THUD! v49 — moteur v48 + home recalibrée + Ads manager
    ================================================================ */
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70,
 allClearCap:1500,guideLockLines:4,acAidAfter:5,presetMin:.30,presetMax:.45};
@@ -1018,7 +1034,7 @@ g.addColorStop(0,'rgba(255,255,255,0)');
 g.addColorStop(.5,'rgba(255,255,255,'+mid+')');
 g.addColorStop(1,'rgba(255,255,255,0)');
 c.fillStyle=g;c.fillRect(0,0,vert?thick:len,vert?len:thick)})}
-/* ============ MOTEUR LC DE DESTRUCTION (inchangé v44) ============ */
+/* ============ MOTEUR LC DE DESTRUCTION (inchangé) ============ */
 const LC_PROFILES={
 gel:{ant:130,s:[.94,1.06],bright:1,sheen:1,wave:20,dir:1,kill:150,grav:250,sq:[1.06,.94],mode:'softpop'},
 coussin:{ant:45,s:[.94,.90],flash:30,fa:.20,tint:'#FFE9D2',wave:26,kill:160,rot:4,wob:1,grav:280,sq:[1.10,.88],mode:'kf',dust:1,dustCol:'#E8E0D2'},
@@ -1784,7 +1800,7 @@ const boardWrap=$('boardWrap'),scoreEl=$('score'),bestVal=$('bestVal');
 const bgFx=$('bgFx'),flashEl=$('flash'),glowEl=$('glow');
 const appEl=$('app');
 const toastEl=$('toast');
-const ovTitle=$('ovTitle'),ovOver=$('ovOver'),ovAd=$('ovAd');
+const ovTitle=$('ovTitle'),ovOver=$('ovOver'),ovAd=$('ovAd'),ovInter=$('ovInter');
 const ovAch=$('ovAch'),ovMap=$('ovMap');
 const ovWin=$('ovWin'),ovFail=$('ovFail'),ovPause=$('ovPause'),ovLoad=$('ovLoad');
 const objBar=$('objBar'),objTxt=$('objTxt'),objFill=$('objFill'),objPieces=$('objPieces');
@@ -1793,7 +1809,6 @@ const slotCvs=slotEls.map(s2=>s2.querySelector('canvas'));
 const hsideL=document.querySelector('.hside');
 const hsideR=document.querySelector('.hside.right');
 window.addEventListener('error',e=>{try{toast(e.message||'Error',5000)}catch(_){}});
-/* v48 : quand une image UI charge → masque le fallback SVG du même slot */
 function wireUiImgs(){
 document.querySelectorAll('.mSlot,.crownSlot,.cSlot,.gSlot,.fo-crown,.bigLogo').forEach(slot=>{
 const im=slot.querySelector('img');
@@ -2780,29 +2795,92 @@ score,stars,combo,grace,maxCombo,placedCount,linesTotal,
 theme,stylePts,styleLevel,themeOrder,reviveUsed,gameStart,bestAtStart};
 store.set('bp_save',JSON.stringify(data))}
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+/* ================================================================
+   v49 — SYSTÈME PUBLICITAIRE COMPLET (prêt pour AdMob)
+   Placements :
+   · BANNIÈRE bas de l'écran d'accueil (placeholder web, vrai banner natif)
+   · INTERSTITIEL tous les 3 game-over, à la sortie de partie
+     (simulation web skippable, vrai interstitial natif)
+   · REWARDED : bouton "Continue — watch an ad" du game-over (revive)
+   Tous les hooks sont isolés dans Ads.* → branchement AdMob sans retoucher
+   au gameplay. IDs de test Google fournis ; remplacer en production.
+   ================================================================ */
 const ADMOB_IDS={
 appId:'ca-app-pub-3940256099942544~3347511713',
+banner:'ca-app-pub-3940256099942544/6300978111',
 interstit:'ca-app-pub-3940256099942544/1033173712',
 rewarded:'ca-app-pub-3940256099942544/5224354917'};
-let admobReady=false,admobPlugin=null;
-async function admobInit(){
-if(!IS_NATIVE||admobReady) return;
+let adCb=null;
+const Ads={
+INTERSTIT_EVERY:3,
+sinceInterstit:0,
+nativeReady:false,plugin:null,
+init(){setTimeout(()=>this.initNative(),600)},
+async initNative(){
+if(!IS_NATIVE||this.nativeReady)return;
 try{
 const m=await import('/capacitor-modules/admob.js');
-admobPlugin=m.Admob;
-await admobPlugin.initialize({initializeForTesting:true});
-admobReady=true;
-console.log('AdMob ready')}
-catch(e){console.warn('AdMob unavailable (web or plugin missing)',e)}}
-setTimeout(admobInit,1000);
-async function showRewardedAd(cb){
-if(!IS_NATIVE||!admobReady){if(cb)cb(false);return}
+this.plugin=m.Admob;
+await this.plugin.initialize({initializeForTesting:true});
+try{await this.plugin.prepareBanner({adId:{android:ADMOB_IDS.banner},position:'BOTTOM_CENTER'})}catch(e){}
+this.nativeReady=true;
+console.log('AdMob ready (banner + interstitial + rewarded)')}
+catch(e){console.warn('AdMob unavailable (web or plugin missing)',e)}},
+showBannerHome(){
+if(this.nativeReady){try{this.plugin.showBanner()}catch(e){}return}
+const el=$('adBannerHome');if(el)el.style.display='flex'},
+hideBanner(){
+if(this.nativeReady){try{this.plugin.hideBanner()}catch(e){}}
+const el=$('adBannerHome');if(el)el.style.display='none'},
+/* interstitial : appelé en quittant un game-over (Replay ou Home) */
+maybeInterstitial(after){
+this.sinceInterstit++;
+if(this.sinceInterstit<this.INTERSTIT_EVERY){if(after)after();return}
+this.sinceInterstit=0;
+if(this.nativeReady){
+(async()=>{
 try{
-const m=await import('/capacitor-modules/admob.js');
-await m.Admob.prepareRewardVideoAd({adId:{android:ADMOB_IDS.rewarded}});
-await m.Admob.showRewardVideoAd();
-if(cb)cb(true)}
-catch(e){console.warn('rewarded fail',e);if(cb)cb(false)}}
+await this.plugin.prepareInterstitial({adId:{android:ADMOB_IDS.interstit}});
+await this.plugin.showInterstitial()}
+catch(e){console.warn('interstitial fail',e)}
+finally{if(after)after()}})();
+}else this.showInterSim(after)},
+showInterSim(after){
+ovInter.classList.add('show');
+let n=3;const txt=$('interTxt'),btn=$('btnInterClose');
+btn.disabled=true;btn.textContent='Fermer ('+n+')';
+txt.textContent='Publicité… '+n;
+const iv=setInterval(()=>{n--;
+if(n>0){txt.textContent='Publicité… '+n;btn.textContent='Fermer ('+n+')'}
+else{clearInterval(iv);btn.disabled=false;btn.textContent='Fermer'}},1000);
+const done=()=>{clearInterval(iv);ovInter.classList.remove('show');
+btn.removeEventListener('pointerdown',done);btn.removeEventListener('click',done);
+if(after)after()};
+btn.addEventListener('pointerdown',done);btn.addEventListener('click',done)},
+/* rewarded : cb(true) si la pub est vue jusqu'au bout */
+rewarded(cb){
+if(this.nativeReady){
+(async()=>{
+try{
+await this.plugin.prepareRewardVideoAd({adId:{android:ADMOB_IDS.rewarded}});
+await this.plugin.showRewardVideoAd();
+cb(true)}
+catch(e){console.warn('rewarded fail',e);cb(false)}})();
+return}
+/* simulation web : ovAd avec compte à rebours */
+adCb=cb;
+ovAd.classList.add('show');
+let n=3;$('adTxt').textContent='Rewarded ad… '+n;
+const iv=setInterval(()=>{n--;
+if(n>0){$('adTxt').textContent='Rewarded ad… '+n}
+else{clearInterval(iv);
+ $('adTxt').textContent='Reward received!';
+setTimeout(()=>{ovAd.classList.remove('show');
+const f2=adCb;adCb=null;if(f2)f2(true)},550)}},1000)}
+};
+function fakeAd(){if(state!=='over')return;
+Ads.rewarded(ok=>{if(ok)doRevive();
+else toast('Ad not completed — no revive')})}
 const OFFS=[[0,0],[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
 [0,2],[0,-2],[2,0],[-2,0],[1,2],[2,1],[-1,-2],[-2,-1],[1,-2],[-1,2],[2,-1],[-2,1],
 [2,2],[-2,-2],[2,-2],[-2,2]];
@@ -3618,14 +3696,17 @@ el.addEventListener('pointerdown',go);el.addEventListener('click',go)}
 function hideAllOv(){
 ovPause.classList.remove('show');ovOver.classList.remove('show');
 ovAch.classList.remove('show');ovMap.classList.remove('show');
-ovWin.classList.remove('show');ovFail.classList.remove('show');ovAd.classList.remove('show')}
+ovWin.classList.remove('show');ovFail.classList.remove('show');
+ovAd.classList.remove('show');ovInter.classList.remove('show')}
 function goHome(){
 turnId++;animating=false;drag=null;ghost=null;
 popQueue=[];popCur=null;
 dragLayer.style.display='none';
 state='title';mode='classic';lvl=null;
 hideAllOv();
-setHudMode();refreshTitle();ovTitle.classList.add('show')}
+setHudMode();refreshTitle();
+ovTitle.classList.add('show');
+Ads.showBannerHome()}
 function openPause(){if(state!=='playing')return;
 state='paused';
  $('pauseInfo').textContent=mode==='adv'?('Level '+(advLevel+1)+' — '+lvl.name):('Score: '+score+' · Style: '+STYLES[theme].name);
@@ -3650,6 +3731,7 @@ if(i<0||i>=LEVELS.length)return;
 advLevel=i;lvl=LEVELS[i];mode='adv';
 turnId++;animating=false;
 popQueue=[];popCur=null;
+Ads.hideBanner();
 hideAllOv();ovTitle.classList.remove('show');
 grid=Array.from({length:N},()=>Array(N).fill(null));
 let preset=lvl.preset;
@@ -3748,6 +3830,7 @@ const nxt=nextAdvLevel();
 let totStars=0;advStars.forEach(s2=>totStars+=s2);
  $('gemFill').style.width=clamp(totStars/(LEVELS.length*3)*100,0,100)+'%'}
 function openMap(){
+Ads.hideBanner();
 ovTitle.classList.remove('show');ovWin.classList.remove('show');ovFail.classList.remove('show');
 buildAdventureMap();
 ovMap.classList.add('show')}
@@ -3793,20 +3876,9 @@ it.innerHTML='<div class="awBadge'+(gold?' gold':(locked?' lock':''))+'">'+
 g.appendChild(it)});
 if(changed)store.set('bp_awseen',JSON.stringify(seen))}
 function openAch(){buildAchPage();
+Ads.hideBanner();
 ovTitle.classList.remove('show');
 ovAch.classList.add('show')}
-function fakeAd(){if(state!=='over')return;
-if(IS_NATIVE&&admobReady){
-showRewardedAd(ok=>{if(ok)doRevive();
-else toast('Ad not completed — no revive')});
-return}
-ovAd.classList.add('show');
-let n=3;$('adTxt').textContent='Simulated ad… '+n;
-const iv=setInterval(()=>{n--;
-if(n>0)$('adTxt').textContent='Simulated ad… '+n;
-else{clearInterval(iv);
- $('adTxt').textContent='Reward received!';
-setTimeout(()=>{ovAd.classList.remove('show');doRevive()},550)}},1000)}
 function doRevive(){reviveUsed=true;
 for(let r=N-TUNE.reviveClearRows;r<N;r++)for(let c=0;c<N;c++){
 if(grid[r][c]){spawnParticles(gx+c*cell+cell/2,gy+r*cell+cell/2,grid[r][c].c);
@@ -3821,6 +3893,7 @@ saveGame()}
 function newGame(){mode='classic';lvl=null;setHudMode();
 turnId++;animating=false;
 popQueue=[];popCur=null;
+Ads.hideBanner();
 ovTitle.classList.remove('show');ovOver.classList.remove('show');ovPause.classList.remove('show');
 score=0;shownScore=0;
 combo=0;grace=3;maxCombo=0;placedCount=0;linesTotal=0;stars=0;
@@ -3878,18 +3951,20 @@ function refreshTitle(){
 bindTap($('btnPlay'),()=>{SFX.init();newGame()});
 bindTap($('btnAdv'),()=>{SFX.init();openMap()});
 bindTap($('btnMedal'),()=>{SFX.init();openAch()});
-bindTap($('btnAchBack'),()=>{SFX.init();ovAch.classList.remove('show');ovTitle.classList.add('show')});
-bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.classList.add('show')});
+bindTap($('btnAchBack'),()=>{SFX.init();ovAch.classList.remove('show');ovTitle.classList.add('show');Ads.showBannerHome()});
+bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.classList.add('show');Ads.showBannerHome()});
 bindTap($('btnGoLevel'),()=>{SFX.init();startLevel(nextAdvLevel())});
 bindTap($('btnNext'),()=>{SFX.init();startLevel(advLevel+1)});
 bindTap($('btnReplay'),()=>{SFX.init();startLevel(advLevel)});
 bindTap($('btnWinMap'),()=>{SFX.init();state='title';openMap()});
 bindTap($('btnRetry'),()=>{SFX.init();startLevel(advLevel)});
 bindTap($('btnFailMap'),()=>{SFX.init();state='title';openMap()});
-bindTap($('btnAgain'),()=>{SFX.init();newGame()});
+/* Replay / Home depuis un game-over → interstitiel tous les 3 game-over */
+bindTap($('btnAgain'),()=>{SFX.init();Ads.maybeInterstitial(()=>newGame())});
+bindTap($('btnMenu'),()=>{SFX.init();Ads.maybeInterstitial(()=>goHome())});
 bindTap($('btnRevive'),()=>{SFX.init();fakeAd()});
-bindTap($('btnAdSkip'),()=>{ovAd.classList.remove('show')});
-bindTap($('btnMenu'),()=>{SFX.init();goHome()});
+bindTap($('btnAdSkip'),()=>{ovAd.classList.remove('show');
+const f2=adCb;adCb=null;if(f2)f2(false)});
 bindTap($('btnPause'),()=>{SFX.init();openPause()});
 bindTap($('btnPClose'),()=>{SFX.init();ovPause.classList.remove('show');state='playing'});
 bindTap($('btnPHome'),()=>{SFX.init();goHome()});
@@ -3965,9 +4040,11 @@ clearInterval(iv);setLoading(1);
 setTimeout(()=>{
 ovLoad.classList.remove('show');
 refreshTitle();ovTitle.classList.add('show');
+Ads.showBannerHome();
 },180)}},100)}
 function setLoading(p){$('loadFill').style.width=Math.round(clamp(p,0,1)*100)+'%'}
 bootWait();
+Ads.init();
 preheatAllStyles();
 bindTap($('devPreview'),()=>{
 const idx=styleIdxById($('devStyle').value);
