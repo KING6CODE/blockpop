@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#1660C4"/>
 <title>BLOCK THUD!</title>
-<!-- v47 : home = réplique pixel de la capture (Medal haut-droit, logo+couronne,
-     panneau Daily, Adventure orange icône horloge, Classic vert ∞ — SANS
-     More Games ni Resume) · map Adventure 96 niveaux pyramide inversée au
-     pixel près + trophée réduit + flag niveau 1 + barre de progression
-     gemmes · fix crash startLevel (niveaux générés procéduralement) ·
-     styles UNIQUES par partie · plus de changement de style sans all-clear ·
-     all-clears plus faciles/fréquents · déblocage sans répétition · losange
-     réellement centré derrière le score · ZÉRO emoji (icônes SVG) -->
+<!-- v48 : coins des boutons home moins arrondis (14 px) · icône Classic
+     redessinée (vrai infini, trait 2.7 comme l'horloge) · logo = UNE image
+     assets/ui/logo.png (couronne intégrée, plus de couronne superposée),
+     fallback lettres masqué dès que l'image charge · TOUS les fallbacks SVG
+     (médaille, couronnes, gemmes) masqués quand l'image est présente ·
+     icônes Replay/Home/Map/Style dans le menu pause · fix croix Settings
+     (panel position:relative → la croix reste dans le panneau) -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
@@ -64,7 +63,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 @keyframes tpPop{from{opacity:.9;transform:scale(.5)}to{opacity:0;transform:scale(1.5) translateY(-9px)}}
 .overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .3s;background:rgba(18,25,44,.88)}
 .overlay.show{opacity:1;pointer-events:auto}
-.panel{width:min(100%,368px);max-height:calc(100dvh - 32px);overflow:auto;background:linear-gradient(180deg,#7B97F2,#5B76DC);border:none;border-radius:26px;padding:10px;text-align:center;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 18px 42px rgba(4,8,32,.60),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(20,30,90,.35)}
+/* v48 : position:relative → la croix s'ancre au PANNEAU, pas à l'écran */
+.panel{position:relative;width:min(100%,368px);max-height:calc(100dvh - 32px);overflow:auto;background:linear-gradient(180deg,#7B97F2,#5B76DC);border:none;border-radius:26px;padding:10px;text-align:center;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 18px 42px rgba(4,8,32,.60),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(20,30,90,.35)}
 .overlay.show .panel{transform:none}
 .panelIn{background:linear-gradient(180deg,#4353C6,#32409E);border-radius:18px;padding:18px 14px 14px;box-shadow:inset 0 4px 10px rgba(8,12,45,.5)}
 .btn3d{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;border:none;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px;color:#fff;border-radius:18px;padding:14px 20px;width:100%;margin-bottom:14px;text-shadow:0 2px 0 rgba(0,0,0,.22);background:linear-gradient(180deg,#8a90b8,#6a7098);box-shadow:0 6px 0 #4a5078,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.35);transition:transform .07s,box-shadow .07s}
@@ -75,7 +75,9 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .btn3d.lav{background:linear-gradient(180deg,#A2A9CB,#7C84AC 55%,#6B739C);box-shadow:0 6px 0 #575E86,0 12px 18px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.30)}
 .btn3d.lav:active{box-shadow:0 1px 0 #575E86,0 5px 10px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.30)}
 .btn3d:disabled{opacity:.5;pointer-events:none}
-/* ================= HOME — réplique pixel de la capture ================= */
+/* ---------- règles fallback images UI ---------- */
+.ok>svg{display:none!important}
+/* ---------- HOME ---------- */
 #ovTitle{background:linear-gradient(180deg,#1B66CC 0%,#1660C4 50%,#1160C4 100%);backdrop-filter:none;place-items:start center}
 .titleCol{position:relative;width:100%;max-width:470px;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 0 26px}
 .medalBadge{position:absolute;top:calc(14px + env(safe-area-inset-top));right:5%;width:96px;cursor:pointer;text-align:center;filter:drop-shadow(0 0 14px rgba(120,190,255,.85));z-index:5}
@@ -83,14 +85,17 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
 .medalBadge span{display:block;color:#fff;font:800 19px 'Nunito Sans';margin-top:-6px;text-shadow:0 2px 4px rgba(10,20,70,.55)}
-.bigLogo{position:relative;margin-top:calc(12vh + env(safe-area-inset-top));user-select:none}
-.bigLogo .crown3d{position:absolute;top:-24px;left:calc(50% - 14px);width:54px;height:40px;transform:rotate(-8deg);filter:drop-shadow(0 4px 0 #C47F00) drop-shadow(0 9px 7px rgba(8,16,60,.45));z-index:2}
-.bigLogo .crownImg{position:absolute;top:-26px;left:calc(50% - 20px);width:56px;height:46px;transform:rotate(-8deg);z-index:3}
-.bigLogo .row{display:flex;justify-content:center;gap:1px;align-items:flex-end}
-.bigLogo .lt{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(44px,12.5vw,62px);line-height:1.04;display:inline-block;padding:0 1px;transform:rotate(var(--r)) translateY(var(--y,0px));background:linear-gradient(180deg,#fff 0%,var(--c1) 15%,var(--c2) 55%,var(--c3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 0 var(--cd)) drop-shadow(0 11px 8px rgba(8,16,60,.45))}
-.bigLogo .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(32px,9.5vw,47px);line-height:1;letter-spacing:4px;margin-top:5px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #0B78A8) drop-shadow(0 9px 8px rgba(8,16,60,.4))}
-.bigLogo .tag{color:#BBD8F5;font:800 clamp(11px,3.2vw,14px) 'Nunito Sans';letter-spacing:3px;margin-top:8px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
-.dailyPanel{width:59%;max-width:280px;margin-top:8.5vh;border-radius:22px;overflow:hidden;box-shadow:0 4px 7px rgba(0,0,0,.24);text-align:left}
+.bigLogo{position:relative;margin-top:calc(10vh + env(safe-area-inset-top));user-select:none;width:100%}
+.logoImg{display:none;width:min(88vw,400px);height:auto;margin:0 auto;filter:drop-shadow(0 12px 18px rgba(8,16,60,.35))}
+.bigLogo.ok .logoImg{display:block}
+.bigLogo.ok .logoFb{display:none}
+#ovLoad .logoImg{width:min(64vw,300px)}
+#ovLoad .bigLogo{margin-top:6vh}
+.logoFb .row{display:flex;justify-content:center;gap:1px;align-items:flex-end}
+.logoFb .lt{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(44px,12.5vw,62px);line-height:1.04;display:inline-block;padding:0 1px;transform:rotate(var(--r)) translateY(var(--y,0px));background:linear-gradient(180deg,#fff 0%,var(--c1) 15%,var(--c2) 55%,var(--c3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 0 var(--cd)) drop-shadow(0 11px 8px rgba(8,16,60,.45))}
+.logoFb .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(32px,9.5vw,47px);line-height:1;letter-spacing:4px;margin-top:5px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #0B78A8) drop-shadow(0 9px 8px rgba(8,16,60,.4))}
+.logoFb .tag{color:#BBD8F5;font:800 clamp(11px,3.2vw,14px) 'Nunito Sans';letter-spacing:3px;margin-top:8px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
+.dailyPanel{width:59%;max-width:280px;margin-top:7.5vh;border-radius:14px;overflow:hidden;box-shadow:0 4px 7px rgba(0,0,0,.24);text-align:left}
 .dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:var(--navy);font:800 clamp(12px,3.7vw,16px) 'Nunito Sans',sans-serif;text-align:center;padding:8px 6px}
 .dpBody{background:#F1F0EE;display:flex;align-items:center;gap:6px;padding:8px 10px 10px;min-height:82px}
 .winBadge{position:relative;width:58px;height:56px;flex:none}
@@ -101,10 +106,10 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .wTag{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 9px 'Nunito Sans';letter-spacing:1px;padding:1px 8px;border-radius:7px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3);white-space:nowrap}
 .dpVal{font:800 21px 'Nunito Sans',sans-serif;color:var(--navy);flex:1;text-align:center}
 .dpMore{width:17px;height:17px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0}
-.titleBtns{margin-top:6.5vh;width:59%;max-width:280px;display:flex;flex-direction:column;gap:4.6vh}
-.homeBtn{position:relative;display:flex;align-items:center;gap:13px;width:100%;aspect-ratio:636/133;border-radius:24px;cursor:pointer;color:#fff;font:800 clamp(19px,5.5vw,27px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(0,0,0,.18);border:1px solid transparent;transition:transform .07s,box-shadow .07s}
-.homeBtn .ico{width:clamp(26px,7.4vw,36px);height:clamp(26px,7.4vw,36px);flex:none;fill:#fff;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
-.homeBtn .ico.st{fill:none;stroke:#fff}
+.titleBtns{margin-top:5.5vh;width:59%;max-width:280px;display:flex;flex-direction:column;gap:4.4vh}
+/* v48 : coins moins arrondis (14 px) */
+.homeBtn{position:relative;display:flex;align-items:center;gap:13px;width:100%;aspect-ratio:636/133;border-radius:14px;cursor:pointer;color:#fff;font:800 clamp(19px,5.5vw,27px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(0,0,0,.18);border:1px solid transparent;transition:transform .07s,box-shadow .07s}
+.homeBtn .ico{width:clamp(26px,7.4vw,36px);height:clamp(26px,7.4vw,36px);flex:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
 #btnAdv{background:linear-gradient(180deg,#F5A91D,#F1A01A 45%,#E99514);border-color:#D9850F;box-shadow:0 6px 0 #C77A10,0 3px 5px rgba(0,0,0,.22)}
 #btnAdv:active{transform:translateY(6px);box-shadow:0 0 0 #C77A10,0 1px 2px rgba(0,0,0,.2)}
 #btnPlay{background:linear-gradient(180deg,#3BE08A,#27C973 55%,#1FB765);border-color:#1CA95E;box-shadow:0 6px 0 #16A058,0 3px 5px rgba(0,0,0,.22)}
@@ -114,9 +119,9 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 #devPanel{margin-top:8px}
 #ovLoad{z-index:150;background:linear-gradient(180deg,#163DB2 0%,#1596DA 100%);backdrop-filter:none}
 #ovLoad .panel{background:transparent;border:none;box-shadow:none;overflow:visible;max-height:none;padding:0}
-.loadBar{width:210px;height:14px;border-radius:99px;background:rgba(255,255,255,.22);margin:30px auto 0;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
+.loadBar{width:210px;height:14px;border-radius:99px;background:rgba(255,255,255,.22);margin:26px auto 0;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
 .loadBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD23D,#FFA53D);border-radius:99px;transition:width .18s}
-/* ================= Pages pleine hauteur ================= */
+/* ---------- Pages pleine hauteur ---------- */
 .achWrap{width:min(100%,470px);height:100dvh;display:flex;flex-direction:column;background:linear-gradient(180deg,#33408A,#2C3778);transform:none;box-shadow:none;border-radius:0;overflow:hidden}
 .achHead{position:relative;display:flex;align-items:center;justify-content:space-between;padding:calc(8px + env(safe-area-inset-top)) 12px 10px;background:linear-gradient(180deg,#5B76DC,#465CD2);box-shadow:0 3px 7px rgba(0,0,0,.32);flex:none}
 .achTitle{position:absolute;left:0;right:0;text-align:center;font:800 27px 'Nunito Sans',sans-serif;color:#fff;text-shadow:0 2px 3px rgba(10,20,70,.4);pointer-events:none}
@@ -142,7 +147,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .awName.dim{color:#78849F}
 .awProg{font:700 15px 'Nunito Sans',sans-serif;color:#8B98BC;margin-top:3px}
 .awDot{position:absolute;top:1px;right:1px;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FF8A7E,#F0271C 60%,#C41608);box-shadow:0 2px 3px rgba(0,0,0,.4)}
-/* ================= Adventure map ================= */
+/* ---------- Adventure map ---------- */
 .trophyBlock{text-align:center;margin:6px 0 2px}
 .trophyBlock svg{width:44px;height:44px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}
 .trophyBlock p{font:700 13.5px 'Nunito Sans',sans-serif;color:#C7D2F5;line-height:1.4;margin-top:3px}
@@ -166,10 +171,10 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .mapLv .flagIc{position:absolute;top:-9px;left:-9px;width:20px;height:20px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));z-index:2}
 .goLvlBtn{width:min(76%,250px);margin:12px auto 6px;display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border:none;border-radius:10px;cursor:pointer;color:#fff;font:800 23px 'Nunito Sans',sans-serif;background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);border:1px solid #229A16;box-shadow:0 6px 0 #1E8A12,0 3px 5px rgba(0,0,0,.22);text-shadow:0 2px 2px rgba(0,0,0,.2);transition:transform .07s}
 .goLvlBtn:active{transform:translateY(5px);box-shadow:0 1px 0 #1E8A12}
-/* ================= Settings / overlays ================= */
+/* ---------- Settings ---------- */
 #ovPause .panel{width:min(100%,392px)}
 .pTitle{font-family:'Lilita One',Fredoka,sans-serif;font-size:32px;font-weight:400;color:#fff;text-shadow:0 3px 0 rgba(15,25,80,.45);margin:2px 0 14px}
-.pClose{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;line-height:0;padding:4px;filter:drop-shadow(0 2px 2px rgba(10,20,70,.5))}
+.pClose{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;line-height:0;padding:4px;filter:drop-shadow(0 2px 2px rgba(10,20,70,.5));z-index:5}
 .pClose svg{width:32px;height:32px}
 .tgRow{display:flex;justify-content:space-around;background:linear-gradient(180deg,#2E3BA8,#26318E);border-radius:18px;padding:18px 8px 12px;margin-bottom:14px;box-shadow:inset 0 4px 9px rgba(6,10,40,.55)}
 .tgl{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;color:#fff;font-size:15px;font-weight:700;flex:1;text-shadow:0 2px 2px rgba(10,15,50,.5)}
@@ -184,10 +189,10 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .sepLine{height:3px;border-radius:99px;background:linear-gradient(180deg,#28339A,#1E2878);margin:2px 6px 16px;box-shadow:0 1px 0 rgba(255,255,255,.14)}
 #ovOver{background:rgba(18,25,44,.88)}
 #ovOver .panel{background:transparent;border:none;box-shadow:none;padding:0;overflow:visible}
-#ovOver .fo-crown{display:none}
-#ovOver.rec .fo-crown{display:block;width:56px;height:44px;margin:0 auto 2px}
-#ovOver.rec .fo-crown img{width:100%;height:100%;object-fit:contain}
-#ovOver.rec .fo-crown svg{display:none}
+#ovOver .fo-crown{display:none;position:relative;width:56px;height:44px;margin:0 auto 2px}
+#ovOver.rec .fo-crown{display:block}
+#ovOver .fo-crown img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+#ovOver .fo-crown svg{position:absolute;inset:0;width:100%;height:100%;fill:var(--gold);filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))}
 #foTitle{font-family:'Lilita One',Fredoka,sans-serif;font-size:38px;font-weight:400;color:#fff;letter-spacing:1px;text-shadow:0 4px 0 #2c3aa0,0 5px 0 rgba(0,0,0,.25),0 10px 16px rgba(0,0,0,.35)}
 #foScore{font-size:58px;font-weight:900;font-family:'Nunito Sans',sans-serif;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.22),0 8px 16px rgba(0,0,0,.3)}
 #foBadge{display:none;margin:8px auto;width:max-content;background:linear-gradient(180deg,#FFD84D,#F5A818);color:#141420;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:6px 18px;border-radius:99px;animation:bump .5s ease infinite;box-shadow:0 3px 0 #C47F00,0 6px 10px rgba(0,0,0,.3)}
@@ -249,16 +254,18 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 <canvas id="fxBack"></canvas>
 <canvas id="dragLayer"></canvas>
 <canvas id="fxLayer"></canvas>
+<!-- écran de chargement : logo image unique (fallback lettres sans couronne) -->
 <div class="overlay show" id="ovLoad">
   <div class="panel">
     <div class="bigLogo">
-      <img class="crownImg" src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
-      <svg class="crown3d" viewBox="0 0 24 24"><path fill="#FFC919" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/><circle cx="4.2" cy="7.6" r="1.5" fill="#FFC919"/><circle cx="12" cy="4.6" r="1.7" fill="#FFC919"/><circle cx="19.8" cy="7.6" r="1.5" fill="#FFC919"/></svg>
-      <div class="row">
-        <span class="lt" style="--r:-5deg;--y:-2px;--c1:#FFD24D;--c2:#F79200;--c3:#D97700;--cd:#A85A00">B</span><span class="lt" style="--r:3deg;--y:2px;--c1:#6FC2FF;--c2:#1F8FE8;--c3:#0E6FC8;--cd:#0A559A">L</span><span class="lt" style="--r:-3deg;--y:-1px;--c1:#FF8A7E;--c2:#F03A2E;--c3:#C22318;--cd:#961510">O</span><span class="lt" style="--r:4deg;--y:2px;--c1:#FFE966;--c2:#FFC919;--c3:#E8A800;--cd:#B87F00">C</span><span class="lt" style="--r:-4deg;--y:-2px;--c1:#E39CFF;--c2:#B03AE8;--c3:#8A18C0;--cd:#6E10A0">K</span>
+      <img class="logoImg" src="assets/ui/logo.png" alt="BLOCK THUD!"/>
+      <div class="logoFb">
+        <div class="row">
+          <span class="lt" style="--r:-5deg;--y:-2px;--c1:#FFD24D;--c2:#F79200;--c3:#D97700;--cd:#A85A00">B</span><span class="lt" style="--r:3deg;--y:2px;--c1:#6FC2FF;--c2:#1F8FE8;--c3:#0E6FC8;--cd:#0A559A">L</span><span class="lt" style="--r:-3deg;--y:-1px;--c1:#FF8A7E;--c2:#F03A2E;--c3:#C22318;--cd:#961510">O</span><span class="lt" style="--r:4deg;--y:2px;--c1:#FFE966;--c2:#FFC919;--c3:#E8A800;--cd:#B87F00">C</span><span class="lt" style="--r:-4deg;--y:-2px;--c1:#E39CFF;--c2:#B03AE8;--c3:#8A18C0;--cd:#6E10A0">K</span>
+        </div>
+        <div class="blast">THUD!</div>
+        <div class="tag">Adventure Master</div>
       </div>
-      <div class="blast">THUD!</div>
-      <div class="tag">Adventure Master</div>
     </div>
     <div class="loadBar"><i id="loadFill"></i></div>
   </div>
@@ -280,13 +287,14 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
       <span>Medal</span>
     </div>
     <div class="bigLogo">
-      <img class="crownImg" src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
-      <svg class="crown3d" viewBox="0 0 24 24"><path fill="#FFC919" d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/><circle cx="4.2" cy="7.6" r="1.5" fill="#FFC919"/><circle cx="12" cy="4.6" r="1.7" fill="#FFC919"/><circle cx="19.8" cy="7.6" r="1.5" fill="#FFC919"/></svg>
-      <div class="row">
-        <span class="lt" style="--r:-5deg;--y:-2px;--c1:#FFD24D;--c2:#F79200;--c3:#D97700;--cd:#A85A00">B</span><span class="lt" style="--r:3deg;--y:2px;--c1:#6FC2FF;--c2:#1F8FE8;--c3:#0E6FC8;--cd:#0A559A">L</span><span class="lt" style="--r:-3deg;--y:-1px;--c1:#FF8A7E;--c2:#F03A2E;--c3:#C22318;--cd:#961510">O</span><span class="lt" style="--r:4deg;--y:2px;--c1:#FFE966;--c2:#FFC919;--c3:#E8A800;--cd:#B87F00">C</span><span class="lt" style="--r:-4deg;--y:-2px;--c1:#E39CFF;--c2:#B03AE8;--c3:#8A18C0;--cd:#6E10A0">K</span>
+      <img class="logoImg" src="assets/ui/logo.png" alt="BLOCK THUD!"/>
+      <div class="logoFb">
+        <div class="row">
+          <span class="lt" style="--r:-5deg;--y:-2px;--c1:#FFD24D;--c2:#F79200;--c3:#D97700;--cd:#A85A00">B</span><span class="lt" style="--r:3deg;--y:2px;--c1:#6FC2FF;--c2:#1F8FE8;--c3:#0E6FC8;--cd:#0A559A">L</span><span class="lt" style="--r:-3deg;--y:-1px;--c1:#FF8A7E;--c2:#F03A2E;--c3:#C22318;--cd:#961510">O</span><span class="lt" style="--r:4deg;--y:2px;--c1:#FFE966;--c2:#FFC919;--c3:#E8A800;--cd:#B87F00">C</span><span class="lt" style="--r:-4deg;--y:-2px;--c1:#E39CFF;--c2:#B03AE8;--c3:#8A18C0;--cd:#6E10A0">K</span>
+        </div>
+        <div class="blast">THUD!</div>
+        <div class="tag">Adventure Master</div>
       </div>
-      <div class="blast">THUD!</div>
-      <div class="tag">Adventure Master</div>
     </div>
     <div class="dailyPanel">
       <div class="dpHead">Consecutive Daily Victories</div>
@@ -306,7 +314,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     </div>
     <div class="titleBtns">
       <button class="homeBtn" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure</button>
-      <button class="homeBtn" id="btnPlay"><svg class="ico st" viewBox="0 0 24 24" stroke-width="3.4"><circle cx="8.2" cy="12" r="4.1"/><circle cx="15.8" cy="12" r="4.1"/></svg>Classic</button>
+      <button class="homeBtn" id="btnPlay"><svg class="ico" viewBox="0 0 24 24"><path d="M3.6 12C3.6 9.8 5.4 8 7.6 8c3.2 0 5.6 8 8.8 8 2.2 0 4-1.8 4-4s-1.8-4-4-4c-3.2 0-5.6 8-8.8 8-2.2 0-4-1.8-4-4z" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg>Classic</button>
     </div>
     <button class="btn3d lav" id="btnDev" style="display:none;padding:10px;font-size:14px;width:min(76%,250px);margin-top:5vh">DEV</button>
     <div id="devPanel" style="display:none">
@@ -388,17 +396,17 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     </div>
     <div class="fo-score" id="winScore" style="font-size:40px">0</div>
     <p class="fo-stats" id="winStats"></p>
-    <button class="btn3d green" id="btnNext">Next level</button>
-    <button class="btn3d green" id="btnReplay">Replay</button>
-    <button class="btn3d lav" id="btnWinMap">Map</button>
+    <button class="btn3d green" id="btnNext"><svg class="ico" viewBox="0 0 24 24"><path d="M8 5.2c0-1.1 1.2-1.8 2.1-1.2l10 6c.9.6.9 1.9 0 2.4l-10 6c-.9.6-2.1-.1-2.1-1.2z"/></svg>Next level</button>
+    <button class="btn3d green" id="btnReplay"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Replay</button>
+    <button class="btn3d lav" id="btnWinMap"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
   </div></div>
 </div>
 <div class="overlay" id="ovFail">
   <div class="panel"><div class="panelIn">
     <h2 class="fo-title" style="font-size:30px">Failed…</h2>
     <p class="fo-stats" id="failReason"></p>
-    <button class="btn3d green" id="btnRetry">Retry</button>
-    <button class="btn3d lav" id="btnFailMap">Map</button>
+    <button class="btn3d green" id="btnRetry"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Retry</button>
+    <button class="btn3d lav" id="btnFailMap"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
   </div></div>
 </div>
 <div class="overlay" id="ovPause">
@@ -426,10 +434,10 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
         </div>
       </div>
       <div class="sepLine"></div>
-      <button class="btn3d green" id="btnPRestart">Replay</button>
-      <button class="btn3d green" id="btnPHome">Home</button>
-      <button class="btn3d green" id="btnPMap" style="display:none">Level map</button>
-      <button class="btn3d lav" id="btnSkin"><span id="btnSkinTxt">Style</span></button>
+      <button class="btn3d green" id="btnPRestart"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Replay</button>
+      <button class="btn3d green" id="btnPHome"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.2 3 10.6h2.4V20h5.1v-5.4h3V20h5.1v-9.4H21z"/></svg>Home</button>
+      <button class="btn3d green" id="btnPMap" style="display:none"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Level map</button>
+      <button class="btn3d lav" id="btnSkin"><svg class="ico" viewBox="0 0 24 24"><path d="M9 3 4.5 5.5 2.8 9.6l3.4 1.5.8-1.6V20c0 .6.4 1 1 1h8c.6 0 1-.4 1-1V9.5l.8 1.6 3.4-1.5L19.5 5.5 15 3c-.7 1.2-1.8 1.8-3 1.8S9.7 4.2 9 3z"/></svg><span id="btnSkinTxt">Style</span></button>
       <p class="miniStats" id="pauseInfo"></p>
     </div>
   </div>
@@ -438,7 +446,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
   <div class="panel">
     <span class="fo-crown">
       <img src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
-      <svg viewBox="0 0 24 24" style="width:56px;height:44px;margin:0 auto;display:block;fill:var(--gold);filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
     </span>
     <h2 class="fo-title" id="foTitle">Game Over</h2>
     <div id="foScore">0</div>
@@ -449,8 +457,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     </div>
     <p id="foStats"></p>
     <button class="btn3d orange" id="btnRevive" style="display:none">Continue — watch an ad</button>
-    <button class="btn3d green" id="btnAgain">Replay</button>
-    <button class="btn3d lav" id="btnMenu">Home</button>
+    <button class="btn3d green" id="btnAgain"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Replay</button>
+    <button class="btn3d lav" id="btnMenu"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.2 3 10.6h2.4V20h5.1v-5.4h3V20h5.1v-9.4H21z"/></svg>Home</button>
   </div>
 </div>
 <div class="overlay" id="ovAd">
@@ -474,7 +482,7 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 'use strict';
 var k = 0;
 /* ================================================================
-   BLOCK THUD! v47 — moteur v44/v45 + corrections v47
+   BLOCK THUD! v48 — moteur v47 + UI images/fallbacks propres
    ================================================================ */
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70,
 allClearCap:1500,guideLockLines:4,acAidAfter:5,presetMin:.30,presetMax:.45};
@@ -677,6 +685,7 @@ im.src='assets/blocks/'+id+'.png'}catch(e){}},
 get(id){return this.imgs[id]||null}};
 Assets.load('bomb');
 Assets.load('thumb');
+/* Étoiles des "pouces" à la pose d'une pièce : assets/blocks/star.png */
 Assets.load('star');
 (function(){try{const im=new Image();
 im.addEventListener('load',()=>{const b=$('btnPause');if(!b)return;
@@ -1726,7 +1735,7 @@ bctx.fillStyle=cg;bctx.beginPath();bctx.arc(cx,cy,cell*.4,0,6.3);bctx.fill();
 bctx.restore()}
 return true}
 return false}
-/* ============ v47 : 96 NIVEAUX PROCÉDURAUX (fix crash preset) ============ */
+/* ============ 96 NIVEAUX PROCÉDURAUX ============ */
 function hintFor(obj){
 if(obj[0]==='lines')return 'Blast '+obj[1]+' lines';
 if(obj[0]==='gems')return 'Collect '+obj[1]+' gems';
@@ -1784,6 +1793,15 @@ const slotCvs=slotEls.map(s2=>s2.querySelector('canvas'));
 const hsideL=document.querySelector('.hside');
 const hsideR=document.querySelector('.hside.right');
 window.addEventListener('error',e=>{try{toast(e.message||'Error',5000)}catch(_){}});
+/* v48 : quand une image UI charge → masque le fallback SVG du même slot */
+function wireUiImgs(){
+document.querySelectorAll('.mSlot,.crownSlot,.cSlot,.gSlot,.fo-crown,.bigLogo').forEach(slot=>{
+const im=slot.querySelector('img');
+if(!im)return;
+const ok=()=>slot.classList.add('ok');
+if(im.complete&&im.naturalWidth>0)ok();
+else im.addEventListener('load',ok,{once:true});
+im.addEventListener('error',()=>{im.style.display='none'},{once:true})})}
 function getColl(){
 try{const c=JSON.parse(store.get('bp_coll'));
 if(c&&Array.isArray(c.unlocked)&&STYLES.some(s2=>s2.id===c.current)){
@@ -1794,7 +1812,6 @@ return{unlocked:['gel'],current:'gel'}}
 let coll=getColl();
 function saveColl(){store.set('bp_coll',JSON.stringify(coll))}
 function styleIdxById(id){return STYLES.findIndex(s2=>s2.id===id)}
-/* v47 : order TOUJOURS sans doublon (un style une seule fois par partie) */
 function sanitizeThemeOrder(order,startIdx){
 const seen=new Set(),out=[];
 if(startIdx!=null&&startIdx>=0&&startIdx<STYLES.length&&!seen.has(startIdx)){seen.add(startIdx);out.push(startIdx)}
@@ -1807,7 +1824,6 @@ const startTier=STYLES[startIdx].tier;
 const pool=STYLES.map((s2,i)=>i).filter(i=>i!==startIdx&&STYLES[i].tier===startTier&&coll.unlocked.indexOf(STYLES[i].id)>=0)
 .sort(()=>Math.random()-.5);
 return sanitizeThemeOrder([startIdx].concat(pool),startIdx)}
-/* v47 : déblocage progressif, jamais de retour en arrière ni de répétition */
 let recentStyles=[];
 function collectRoll(){
 const missing=[];
@@ -1857,7 +1873,6 @@ let boardCacheCv=null,boardCacheW=0,boardCacheH=0;
 let lastDrop=null;
 let decParts=[];
 let lcFx=[];
-/* v47 : compteur anti-stagnation pour aider les all-clears */
 let piecesSinceAC=0;
 bestVal.textContent=best;
 ensureTiles(0);ensureTiles(styleIdxById(coll.current));
@@ -2262,7 +2277,6 @@ found=true;const simC=s2.map(row=>row.slice());
 simClearChain(simC);if(bestSim===null)bestSim=simC}}
 if(!found)return false;cur=bestSim}
 return true}
-/* v47 : trio all-clear élargi (plus de pièces candidates, budget supérieur) */
 function findClearTrio(){
 const cells=grid.flat().filter(Boolean).length;
 if(cells<=0||cells>26)return null;
@@ -2351,7 +2365,6 @@ if(best<=0&&score<4000)mode2='TUTORIAL';
 else if(evilLeft>0){evilLeft--;
 if(evilLeft===0)evilWarn=false;
 mode2='EVIL'}
-/* v47 : après 5 pièces sans all-clear → assistance GUIDER vers le vide */
 else if(piecesSinceAC>=TUNE.acAidAfter&&fill<=.60)mode2='GUIDE';
 else if(combo>=2&&Math.random()<.85)mode2='CHAIN';
 else if(fill>0&&fill<=.40&&pr<1.05&&linesTotal>=TUNE.guideLockLines)mode2='GUIDE';
@@ -2466,7 +2479,6 @@ tray=newSi.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[s
 if(mode==='classic'&&score>=TUNE.bombMinScore&&Math.random()<TUNE.bombChance){
 tray[Math.floor(Math.random()*3)]={bomb:true,m:[[1]],si:-1,ci:2,dead:false}}
 renderTray(anim)}
-/* v47 : changement de style UNIQUEMENT via all-clear (grantCollect) */
 function switchStyleNow(idx){
 if(idx==null||idx<0||idx>=STYLES.length||idx===theme)return;
 themeTrans={from:theme,to:idx,t0:performance.now()};
@@ -2522,7 +2534,6 @@ if(f)cols.push(c)}
 return{rows,cols}}
 function bumpScore(){scorePulseT=performance.now()}
 function setHudMode(){objBar.style.display=(mode==='adv')?'flex':'none'}
-/* v47 : HUD objectif sans emojis */
 function updateObjHUD(){if(mode!=='adv'||!lvl)return;
 const o=lvl.obj;let txt='',pct=0;
 if(o[0]==='lines'){txt='Lines '+advLines+' / '+o[1];pct=advLines/o[1]}
@@ -2906,7 +2917,6 @@ dragLayer.style.display='none';slotCvs[sl].style.visibility=''}}}
 slotEls.forEach((el,i)=>el.addEventListener('pointerdown',e=>onDown(e,i)));
 dragLayer.addEventListener('contextmenu',e=>e.preventDefault());
 let fbHadContent=false;
-/* v47 : losange parfaitement centré derrière le score (remonté) */
 function drawDiamondDeco(t){
 const dx=boardRect.left+gx+cell*N/2;
 const dy=boardRect.top+gy-56;
@@ -3694,7 +3704,6 @@ saveStats();
 SFX.over();vib([70,50,70]);
  $('failReason').textContent=reason+' ('+lvl.hint+')';
 ovFail.classList.add('show')}
-/* ====== v47 : MAP ADVENTURE — pyramide inversée 96 niveaux, au pixel près ====== */
 const MAP_ROWS=[3,5,6,7,8,9,10,11,12,12,13];
 const FLAG_SVG='<svg class="flagIc" viewBox="0 0 24 24"><path fill="#FFC919" d="M6 2h3v20H6z"/><path fill="#FFC919" d="M9 3h10l-3 4 3 4H9z"/></svg>';
 function nextAdvLevel(){
@@ -3742,7 +3751,6 @@ function openMap(){
 ovTitle.classList.remove('show');ovWin.classList.remove('show');ovFail.classList.remove('show');
 buildAdventureMap();
 ovMap.classList.add('show')}
-/* ====== v47 : PAGE ACHIEVEMENT (icônes SVG, zéro emoji) ====== */
 const AW_ICONS={
 target:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="12" cy="12" r="7.6"/><circle cx="12" cy="12" r="3.2" fill="#fff" stroke="none"/><path d="M12 1.6v3.6M12 18.8v3.6M1.6 12h3.6M18.8 12h3.6" stroke-linecap="round"/></svg>',
 play:'<svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.8c0-1 1.1-1.7 2-1.1l11 6.3c.9.5.9 1.8 0 2.3L9 18.6c-.9.6-2-.1-2-1.1z"/></svg>',
@@ -3943,6 +3951,7 @@ refreshTitle();toast('All styles unlocked!')});
 grid=Array.from({length:N},()=>Array(N).fill(null));
 genTray(false);setHudMode();
 resize();
+wireUiImgs();
 requestAnimationFrame(function(t){try{frame(t)}catch(e){console.error(e)}});
 function bootWait(){
 const start=performance.now();
