@@ -82,42 +82,46 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .btn3d:disabled{opacity:.5;pointer-events:none}
 /* ---------- fallbacks : image présente → SVG masqué ---------- */
 .ok>svg{display:none!important}
-/* ================= HOME — proportions référence ================= */
-#ovTitle{background:linear-gradient(180deg,#1A5EC8 0%,#1668CC 45%,#2AA0E6 100%);backdrop-filter:none;place-items:start center}
-.titleCol{position:relative;width:100%;max-width:470px;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 0 21vh}
-.medalBadge{position:absolute;top:calc(6px + env(safe-area-inset-top));right:6px;width:80px;cursor:pointer;text-align:center;filter:drop-shadow(0 0 14px rgba(120,190,255,.85));z-index:5}
-.medalBadge .mSlot{position:relative;width:66px;height:66px;margin:0 auto}
+/* ================= HOME — réplique exacte de la référence ================= */
+#ovTitle{background:linear-gradient(180deg,#1A5EC8 0%,#1668CC 42%,#2AA0E5 100%);backdrop-filter:none;place-items:start center}
+.titleCol{position:relative;width:100%;max-width:470px;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 0 18vh}
+/* — Médaille : collée au coin haut droit, GROSSE, texte collé dessous — */
+.medalBadge{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;width:15vw;max-width:74px;cursor:pointer;text-align:center;z-index:5}
+.medalBadge .mSlot{position:relative;width:100%;aspect-ratio:1;margin:0 auto;filter:drop-shadow(0 4px 6px rgba(10,25,80,.5)) drop-shadow(0 0 12px rgba(130,200,255,.85))}
 .medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
-.medalBadge span{display:block;color:#fff;font:800 16px 'Nunito Sans';margin-top:-3px;text-shadow:0 2px 4px rgba(10,20,70,.55)}
-.bigLogo{position:relative;margin-top:14vh;user-select:none;width:100%}
-.logoImg{display:none;width:min(68vw,312px);height:auto;margin:0 auto;filter:drop-shadow(0 10px 16px rgba(10,25,80,.30))}
+.medalBadge span{display:block;color:#fff;font:800 clamp(13px,3.8vw,18px) 'Nunito Sans',sans-serif;margin-top:0;line-height:1.15;text-shadow:0 2px 4px rgba(10,20,70,.55)}
+/* — Logo : 66 % de l'écran, AUCUNE ombre portée derrière — */
+.bigLogo{position:relative;margin-top:17vh;user-select:none;width:100%}
+.logoImg{display:none;width:min(66vw,300px);height:auto;margin:0 auto}
 .bigLogo.ok .logoImg{display:block}
 .bigLogo.ok .logoFb{display:none}
 .logoFb .row{display:flex;justify-content:center;gap:1px;align-items:flex-end}
-.logoFb .lt{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(34px,9.6vw,50px);line-height:1.02;display:inline-block;padding:0 1px;transform:rotate(var(--r)) translateY(var(--y,0px));background:linear-gradient(180deg,#fff 0%,var(--c1) 15%,var(--c2) 55%,var(--c3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 var(--cd)) drop-shadow(0 9px 7px rgba(8,16,60,.45))}
-.logoFb .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(18px,4.7vw,25px);line-height:1;letter-spacing:7px;margin-top:5px;text-indent:7px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #0B78A8) drop-shadow(0 7px 6px rgba(8,16,60,.4))}
-/* sous-titre TOUJOURS visible (l'image du logo ne le contient pas) */
-.logoSub{color:#BFD9F7;font:800 clamp(11px,2.9vw,13.5px) 'Nunito Sans',sans-serif;letter-spacing:4.5px;margin-top:10px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
-.dailyPanel{width:68%;max-width:322px;margin-top:6vh;border-radius:14px;overflow:hidden;box-shadow:0 4px 9px rgba(20,45,110,.30);text-align:left}
-.dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:var(--navy);font:800 clamp(11.5px,3.3vw,15px) 'Nunito Sans',sans-serif;text-align:center;padding:5px 6px}
-.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:8px;padding:5px 12px 7px;min-height:62px}
-.winBadge{position:relative;width:50px;height:48px;flex:none}
-.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);box-shadow:inset 0 -2px 0 rgba(0,0,0,.22),0 2px 3px rgba(10,20,70,.3)}
-.wbCirc .cSlot{position:absolute;top:1px;left:50%;transform:translateX(-50%);width:28px;height:25px}
+.logoFb .lt{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(30px,8.8vw,45px);line-height:1.02;display:inline-block;padding:0 1px;transform:rotate(var(--r)) translateY(var(--y,0px));background:linear-gradient(180deg,#fff 0%,var(--c1) 15%,var(--c2) 55%,var(--c3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 var(--cd))}
+.logoFb .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(16px,4.4vw,23px);line-height:1;letter-spacing:8px;text-indent:8px;margin-top:6px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #0B78A8)}
+.logoSub{color:#BFD9F7;font:800 clamp(10px,2.7vw,12.5px) 'Nunito Sans',sans-serif;letter-spacing:5px;margin-top:9px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
+/* — Carte daily : 57 % de large, compacte (header 28 px + corps 76 px),
+     ombre bleu-gris PRONONCÉE — */
+.dailyPanel{width:57%;max-width:270px;margin-top:4.5vh;border-radius:14px;overflow:hidden;box-shadow:0 7px 16px rgba(15,40,110,.48),0 2px 5px rgba(15,40,110,.38);text-align:left}
+.dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:#2A3170;font:800 clamp(11px,3.2vw,15px) 'Nunito Sans',sans-serif;text-align:center;padding:6px 8px;line-height:1.2}
+.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:8px;padding:6px 12px;height:76px;box-sizing:border-box}
+.winBadge{position:relative;width:52px;height:50px;flex:none}
+.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 2px 4px rgba(10,20,70,.35)}
+.wbCirc .cSlot{position:absolute;top:1px;left:50%;transform:translateX(-50%);width:30px;height:26px}
 .wbCirc .cSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .wbCirc .cSlot svg{position:absolute;inset:0;width:100%;height:100%;fill:#FFC919;filter:drop-shadow(0 2px 0 #B87F00)}
-.wTag{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 8px 'Nunito Sans';letter-spacing:1px;padding:1px 7px;border-radius:6px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3);white-space:nowrap}
-.dpVal{font:800 19px 'Nunito Sans',sans-serif;color:var(--navy);flex:1;text-align:center}
+.wTag{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 9px 'Nunito Sans';letter-spacing:1px;padding:1px 8px;border-radius:6px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3);white-space:nowrap}
+.dpVal{font:800 20px 'Nunito Sans',sans-serif;color:#2A3170;flex:1;text-align:center}
 .dpMore{width:16px;height:16px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0}
-.titleBtns{margin-top:4.6vh;width:68%;max-width:322px;display:flex;flex-direction:column;gap:4vh}
-.homeBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;height:clamp(78px,16.5vh,92px);border-radius:17px;cursor:pointer;color:#fff;font:800 clamp(19px,5.3vw,26px) 'Nunito Sans',sans-serif;padding:0 8%;text-shadow:0 2px 2px rgba(30,20,0,.18);border:1px solid rgba(0,0,0,.06);transition:transform .07s,box-shadow .07s}
-.homeBtn .ico{width:clamp(26px,7vw,34px);height:clamp(26px,7vw,34px);flex:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
-#btnAdv{background:linear-gradient(180deg,#FFC13A 0%,#F6A81C 45%,#ED9713 100%);border-color:#D9850F;box-shadow:0 5px 0 #C7790E,0 12px 22px rgba(25,50,120,.26),inset 0 2px 0 rgba(255,255,255,.38)}
-#btnAdv:active{transform:translateY(5px);box-shadow:0 0 0 #C7790E,0 4px 8px rgba(25,50,120,.22),inset 0 2px 0 rgba(255,255,255,.38)}
-/* Classic : turquoise/menthe comme la référence (plus vert pomme) */
-#btnPlay{background:linear-gradient(180deg,#43E6B5 0%,#24CFA3 45%,#17BD92 100%);border-color:#13A87F;box-shadow:0 5px 0 #0D9B74,0 12px 22px rgba(25,50,120,.26),inset 0 2px 0 rgba(255,255,255,.35)}
-#btnPlay:active{transform:translateY(5px);box-shadow:0 0 0 #0D9B74,0 4px 8px rgba(25,50,120,.22),inset 0 2px 0 rgba(255,255,255,.35)}
+/* — Boutons : même largeur que la carte (57 %), hauteur ~7 vh,
+     rayon 16 px, épaisseur 5 px, ombre forte bleu-gris — */
+.titleBtns{margin-top:1.6vh;width:57%;max-width:270px;display:flex;flex-direction:column;gap:5vh}
+.homeBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;height:clamp(58px,7vh,68px);border-radius:16px;cursor:pointer;color:#fff;font:800 clamp(18px,5vw,25px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(30,20,0,.2);transition:transform .07s,box-shadow .07s}
+.homeBtn .ico{width:clamp(24px,6.6vw,32px);height:clamp(24px,6.6vw,32px);flex:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
+#btnAdv{background:linear-gradient(180deg,#FFC13A 0%,#F6A81C 45%,#ED9713 100%);border:1px solid #D9850F;box-shadow:0 5px 0 #C7790E,0 12px 20px rgba(20,45,115,.45)}
+#btnAdv:active{transform:translateY(5px);box-shadow:0 0 0 #C7790E,0 4px 8px rgba(20,45,115,.3)}
+#btnPlay{background:linear-gradient(180deg,#43E6B5 0%,#24CFA3 45%,#17BD92 100%);border:1px solid #13A87F;box-shadow:0 5px 0 #0D9B74,0 12px 20px rgba(20,45,115,.45)}
+#btnPlay:active{transform:translateY(5px);box-shadow:0 0 0 #0D9B74,0 4px 8px rgba(20,45,115,.3)}
 .dotRed{position:absolute;top:-7px;right:-6px;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF7A6E,#F20F16 60%,#C40A10);box-shadow:0 2px 3px rgba(0,0,0,.35),inset 0 1px 1px rgba(255,255,255,.45);pointer-events:none}
 .miniStats{color:var(--dim);font-size:12.5px;margin-top:2px;white-space:pre-line}
 #devPanel{margin-top:8px}
