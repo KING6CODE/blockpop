@@ -3,21 +3,19 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
-<meta name="theme-color" content="#1660C4"/>
+<meta name="theme-color" content="#1D66D0"/>
 <title>BLOCK THUD!</title>
-<!-- v49 : home recomposée au pixel sur la référence —
-     · logo réduit (BLOCK ~68 % écran, THUD ~45 % de BLOCK, resserré) +
-       sous-titre ADVENTURE MASTER TOUJOURS visible sous le logo (image ou fallback)
-     · médaille collée au coin supérieur droit, texte directement sous l'icône
-     · carte stats élargie (68 %) et aplatie (bandeau 26 px, corps 62 px)
-     · boutons plus larges, rayon 17 px, vraie épaisseur inférieure 5 px,
-       Adventure gradient 3 paliers + ombre douce bleu-gris,
-       Classic passé au TURQUOISE/MENTHE (#24CFA3)
-     · rythme vertical : logo ~14 vh, carte ~45 %, boutons groupés,
-       ~22 % de respiration sous Classic · fond éclairci vers le bas
-     · SYSTÈME PUB COMPLET : Ads manager (bannière bas d'accueil,
-       interstitiel tous les 3 game-over avec simulation web, rewarded revive)
-       + placeholders visuels, hooks AdMob prêts (ids de test) -->
+<!-- v50 : écrans Victoire/Défaite aventure refaits (panneau suspendu par
+     sangles "Consecutive Victories" + carte du niveau en fond + compteur
+     de série) · panneau daily = victoires consécutives aventure · map 96
+     en pyramide exacte, cases finies = texture bloc gel teintée, prochaine
+     = jaune + losange, tout fini = or + trophée doré · trophée détaillé
+     symétrique incrusté · fond home teinte image 4 · vibrations 0-100 %
+     par pas de 10 % sur CHAQUE bouton (réglées au pause) · perte de
+     luminosité au clic · médaille : shimmer continu + étincelles
+     autour + point rouge nouveau succès + texte collé · page succès :
+     animation pop au tap · pouces : geste arrière→avant fluide + rayons
+     lumineux rotatifs derrière · couronne agrandie avec contour -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;800;900&family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
@@ -72,30 +70,35 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .panel{position:relative;width:min(100%,368px);max-height:calc(100dvh - 32px);overflow:auto;background:linear-gradient(180deg,#7B97F2,#5B76DC);border:none;border-radius:26px;padding:10px;text-align:center;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 18px 42px rgba(4,8,32,.60),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(20,30,90,.35)}
 .overlay.show .panel{transform:none}
 .panelIn{background:linear-gradient(180deg,#4353C6,#32409E);border-radius:18px;padding:18px 14px 14px;box-shadow:inset 0 4px 10px rgba(8,12,45,.5)}
-.btn3d{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:14px;border:none;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px;color:#fff;border-radius:18px;padding:14px 20px;width:100%;margin-bottom:14px;text-shadow:0 2px 0 rgba(0,0,0,.22);background:linear-gradient(180deg,#8a90b8,#6a7098);box-shadow:0 6px 0 #4a5078,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.35);transition:transform .07s,box-shadow .07s}
-.btn3d::before{content:'';position:absolute;inset:0;pointer-events:none;
-background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.30),rgba(255,255,255,0) 56%)}
-.btn3d::after{content:'';position:absolute;left:12px;right:12px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;
-background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.42) 30%,rgba(255,255,255,.42) 70%,rgba(255,255,255,0))}
-.btn3d:active{transform:translateY(5px);box-shadow:0 1px 0 #4a5078,0 6px 12px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.35)}
+.btn3d{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:14px;border:none;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px;color:#fff;border-radius:18px;padding:14px 20px;width:100%;margin-bottom:14px;text-shadow:0 2px 0 rgba(0,0,0,.22);background:linear-gradient(180deg,#8a90b8,#6a7098);box-shadow:0 6px 0 #4a5078,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.35);transition:transform .07s,box-shadow .07s,filter .07s}
+.btn3d:active{transform:translateY(5px);filter:brightness(.8);box-shadow:0 1px 0 #4a5078,0 6px 12px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.35)}
+.btn3d::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.30),rgba(255,255,255,0) 56%)}
+.btn3d::after{content:'';position:absolute;left:12px;right:12px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.42) 30%,rgba(255,255,255,.42) 70%,rgba(255,255,255,0))}
 .btn3d .ico{width:28px;height:28px;flex:none;fill:#fff;filter:drop-shadow(0 2px 0 rgba(0,0,0,.20))}
 .btn3d.green{background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);box-shadow:0 6px 0 #1E8A12,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.42)}
 .btn3d.green:active{box-shadow:0 1px 0 #1E8A12,0 6px 12px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.42)}
 .btn3d.lav{background:linear-gradient(180deg,#A2A9CB,#7C84AC 55%,#6B739C);box-shadow:0 6px 0 #575E86,0 12px 18px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.30)}
 .btn3d.lav:active{box-shadow:0 1px 0 #575E86,0 5px 10px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.30)}
 .btn3d:disabled{opacity:.5;pointer-events:none}
-/* ---------- fallbacks : image présente → SVG masqué ---------- */
 .ok>svg{display:none!important}
-/* ================= HOME — réplique exacte de la référence ================= */
-#ovTitle{background:linear-gradient(180deg,#1A5EC8 0%,#1668CC 42%,#2AA0E5 100%);backdrop-filter:none;place-items:start center}
+/* ================= HOME ================= */
+#ovTitle{background:linear-gradient(180deg,#1D66D0 0%,#1E74D8 45%,#2F97E6 100%);backdrop-filter:none;place-items:start center}
 .titleCol{position:relative;width:100%;max-width:470px;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 0 18vh}
-/* — Médaille : GROSSE, collée au coin haut droit, texte collé dessous — */
-.medalBadge{position:absolute;top:calc(8px + env(safe-area-inset-top));right:8px;width:20vw;max-width:92px;cursor:pointer;text-align:center;z-index:5}
+.medalBadge{position:absolute;top:calc(8px + env(safe-area-inset-top));right:8px;width:20vw;max-width:92px;cursor:pointer;text-align:center;z-index:5;transition:filter .07s}
+.medalBadge:active{filter:brightness(.82)}
 .medalBadge .mSlot{position:relative;width:100%;aspect-ratio:1;margin:0 auto;filter:drop-shadow(0 4px 7px rgba(10,25,80,.55)) drop-shadow(0 0 16px rgba(130,200,255,.95))}
 .medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
+.medalBadge .mSlot::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;clip-path:circle(46% at 50% 50%);background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.85) 47%,rgba(255,255,255,.85) 53%,transparent 62%);background-size:250% 100%;background-position:130% 0;animation:mShine 2.8s ease-in-out infinite}
+@keyframes mShine{0%{background-position:130% 0}55%,100%{background-position:-130% 0}}
 .medalBadge span{display:block;color:#fff;font:800 clamp(14px,4.3vw,19px) 'Nunito Sans',sans-serif;margin-top:-15px;line-height:1.05;text-shadow:0 2px 4px rgba(10,20,70,.55)}
-/* — Logo : 66 % de l'écran, AUCUNE ombre derrière — */
+.mdot{position:absolute;top:-3px;right:-3px;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF8A7E,#F20F16 60%,#C40A10);box-shadow:0 2px 4px rgba(0,0,0,.4),inset 0 1px 1px rgba(255,255,255,.5);z-index:6;display:none}
+.msp{position:absolute;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(255,255,255,.8);opacity:0;z-index:4;pointer-events:none;animation:mTw 2.2s ease-in-out infinite}
+.msp.s1{top:2%;left:-8px;background:#FFF6C8;box-shadow:0 0 8px 3px rgba(255,230,150,.9)}
+.msp.s2{top:34%;right:-11px;animation-delay:.55s}
+.msp.s3{bottom:20%;left:-11px;animation-delay:1.1s;background:#CFE8FF;box-shadow:0 0 8px 3px rgba(160,210,255,.9)}
+.msp.s4{bottom:-4px;right:8%;animation-delay:1.65s;background:#FFF6C8;box-shadow:0 0 7px 3px rgba(255,230,150,.85)}
+@keyframes mTw{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
 .bigLogo{position:relative;margin-top:15vh;user-select:none;width:100%}
 .logoImg{display:none;width:min(63vw,286px);height:auto;margin:0 auto}
 .bigLogo.ok .logoImg{display:block}
@@ -104,53 +107,46 @@ background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.42) 30%,r
 .logoFb .lt{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(30px,8.8vw,45px);line-height:1.02;display:inline-block;padding:0 1px;transform:rotate(var(--r)) translateY(var(--y,0px));background:linear-gradient(180deg,#fff 0%,var(--c1) 15%,var(--c2) 55%,var(--c3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 var(--cd))}
 .logoFb .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(16px,4.4vw,23px);line-height:1;letter-spacing:8px;text-indent:8px;margin-top:6px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #0B78A8)}
 .logoSub{color:#BFD9F7;font:800 clamp(10px,2.7vw,12.5px) 'Nunito Sans',sans-serif;letter-spacing:5px;margin-top:8px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
-/* — Carte daily : 57 %, compacte, remontée (comme la référence) — */
 .dailyPanel{position:relative;width:57%;max-width:270px;margin-top:4.2vh;border-radius:14px;overflow:hidden;box-shadow:0 7px 16px rgba(15,40,110,.48),0 2px 5px rgba(15,40,110,.38);text-align:left}
-.dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:#2A3170;font:800 clamp(11px,3.2vw,15px) 'Nunito Sans',sans-serif;text-align:center;padding:5px 8px 6px;line-height:1.25}
+.dailyPanel::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse 130% 75% at 18% -35%,rgba(255,255,255,.48),rgba(255,255,255,0) 58%)}
+.dpHead{position:relative;background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:#2A3170;font:800 clamp(11px,3.2vw,15px) 'Nunito Sans',sans-serif;text-align:center;padding:5px 8px 6px;line-height:1.25}
+.dpHead::after{content:'';position:absolute;left:0;right:0;top:0;height:2px;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.6) 30%,rgba(255,255,255,.6) 70%,rgba(255,255,255,0))}
 .dpBody{background:#F1F0EE;display:flex;align-items:center;gap:8px;padding:5px 12px;height:71px;box-sizing:border-box}
-.winBadge{position:relative;width:52px;height:50px;flex:none}
-.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:43px;height:43px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);border:2.5px solid #6482E6;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 2px 5px rgba(10,20,70,.4)}
-.wbCirc .cSlot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:36px;height:32px}
+.winBadge{position:relative;width:56px;height:54px;flex:none}
+.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);border:2.5px solid #6482E6;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 2px 5px rgba(10,20,70,.4)}
+.wbCirc::before{content:'';position:absolute;left:16%;top:8%;width:46%;height:32%;border-radius:50%;pointer-events:none;background:radial-gradient(ellipse at 40% 35%,rgba(255,255,255,.55),rgba(255,255,255,0) 70%)}
+.wbCirc .cSlot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:38px;height:34px}
 .wbCirc .cSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .wbCirc .cSlot svg{position:absolute;inset:0;width:100%;height:100%;fill:#FFC919;filter:drop-shadow(0 2px 0 #B87F00)}
-.wTag{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 9px 'Nunito Sans';letter-spacing:1px;padding:1px 8px;border-radius:6px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3);white-space:nowrap}
+.wTag{position:absolute;bottom:1px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 9px 'Nunito Sans';letter-spacing:1px;padding:1px 8px;border-radius:6px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3);white-space:nowrap}
 .dpVal{font:800 20px 'Nunito Sans',sans-serif;color:#2A3170;flex:1;text-align:center}
-.dpMore{width:16px;height:16px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0}
-/* — Gloss (tache de lumière molle en haut-gauche) + liseré clair sur le haut — */
-.dailyPanel::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
-background:radial-gradient(ellipse 130% 75% at 18% -35%,rgba(255,255,255,.48),rgba(255,255,255,0) 58%)}
-.dpHead{position:relative}
-.dpHead::after{content:'';position:absolute;left:0;right:0;top:0;height:2px;pointer-events:none;
-background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.6) 30%,rgba(255,255,255,.6) 70%,rgba(255,255,255,0))}
-.homeBtn::before{content:'';position:absolute;left:1px;right:1px;top:1px;bottom:1px;border-radius:15px;pointer-events:none;
-background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.36),rgba(255,255,255,0) 56%)}
-.homeBtn::after{content:'';position:absolute;left:10px;right:10px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;
-background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.5) 30%,rgba(255,255,255,.5) 70%,rgba(255,255,255,0))}
-.wbCirc::before{content:'';position:absolute;left:16%;top:8%;width:46%;height:32%;border-radius:50%;pointer-events:none;
-background:radial-gradient(ellipse at 40% 35%,rgba(255,255,255,.55),rgba(255,255,255,0) 70%)}
-/* — Boutons : collés sous la carte (comme la référence), gap large avant Classic — */
+.dpMore{width:16px;height:16px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0;transition:filter .07s}
+.dpMore:active{filter:brightness(.8)}
 .titleBtns{margin-top:2vh;width:57%;max-width:270px;display:flex;flex-direction:column;gap:6vh}
-.homeBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;height:clamp(54px,6.2vh,62px);border-radius:16px;cursor:pointer;color:#fff;font:800 clamp(18px,5vw,25px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(30,20,0,.2);transition:transform .07s,box-shadow .07s}
+.homeBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;height:clamp(54px,6.2vh,62px);border-radius:16px;cursor:pointer;color:#fff;font:800 clamp(18px,5vw,25px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(30,20,0,.2);transition:transform .07s,box-shadow .07s,filter .07s}
+.homeBtn:active{transform:translateY(5px);filter:brightness(.8)}
+.homeBtn::before{content:'';position:absolute;left:1px;right:1px;top:1px;bottom:1px;border-radius:15px;pointer-events:none;background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.36),rgba(255,255,255,0) 56%)}
+.homeBtn::after{content:'';position:absolute;left:10px;right:10px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.5) 30%,rgba(255,255,255,.5) 70%,rgba(255,255,255,0))}
 .homeBtn .ico{width:clamp(24px,6.6vw,32px);height:clamp(24px,6.6vw,32px);flex:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
 #btnAdv{background:linear-gradient(180deg,#FFC13A 0%,#F6A81C 45%,#ED9713 100%);border:1px solid #D9850F;box-shadow:0 5px 0 #C7790E,0 12px 20px rgba(20,45,115,.45)}
-#btnAdv:active{transform:translateY(5px);box-shadow:0 0 0 #C7790E,0 4px 8px rgba(20,45,115,.3)}
+#btnAdv:active{box-shadow:0 0 0 #C7790E,0 4px 8px rgba(20,45,115,.3)}
 #btnPlay{background:linear-gradient(180deg,#43E6B5 0%,#24CFA3 45%,#17BD92 100%);border:1px solid #13A87F;box-shadow:0 5px 0 #0D9B74,0 12px 20px rgba(20,45,115,.45)}
-#btnPlay:active{transform:translateY(5px);box-shadow:0 0 0 #0D9B74,0 4px 8px rgba(20,45,115,.3)}
+#btnPlay:active{box-shadow:0 0 0 #0D9B74,0 4px 8px rgba(20,45,115,.3)}
 .dotRed{position:absolute;top:-7px;right:-6px;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF7A6E,#F20F16 60%,#C40A10);box-shadow:0 2px 3px rgba(0,0,0,.35),inset 0 1px 1px rgba(255,255,255,.45);pointer-events:none}
 .miniStats{color:var(--dim);font-size:12.5px;margin-top:2px;white-space:pre-line}
 #devPanel{margin-top:8px}
-/* ---------- bannière pub accueil (placeholder web / AdMob natif) ---------- */
 #ovLoad{z-index:150;background:linear-gradient(180deg,#163DB2 0%,#1596DA 100%);backdrop-filter:none}
 #ovLoad .panel{background:transparent;border:none;box-shadow:none;overflow:visible;max-height:none;padding:0}
 #ovLoad .bigLogo{margin-top:7vh}
 #ovLoad .logoImg{width:min(55vw,250px)}
 .loadBar{width:210px;height:14px;border-radius:99px;background:rgba(255,255,255,.22);margin:26px auto 0;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
 .loadBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD23D,#FFA53D);border-radius:99px;transition:width .18s}
-/* ---------- Pages pleine hauteur ---------- */
+/* ---------- pages pleine hauteur ---------- */
 .achWrap{width:min(100%,470px);height:100dvh;display:flex;flex-direction:column;background:linear-gradient(180deg,#33408A,#2C3778);transform:none;box-shadow:none;border-radius:0;overflow:hidden}
 .achHead{position:relative;display:flex;align-items:center;justify-content:space-between;padding:calc(8px + env(safe-area-inset-top)) 12px 10px;background:linear-gradient(180deg,#5B76DC,#465CD2);box-shadow:0 3px 7px rgba(0,0,0,.32);flex:none}
 .achTitle{position:absolute;left:0;right:0;text-align:center;font:800 27px 'Nunito Sans',sans-serif;color:#fff;text-shadow:0 2px 3px rgba(10,20,70,.4);pointer-events:none}
-.achBack{position:relative;z-index:2;background:none;border:none;color:#BBD2FF;font-size:38px;font-weight:800;cursor:pointer;line-height:1;padding:0 10px;text-shadow:0 2px 2px rgba(10,20,70,.4)}
+.achBack{position:relative;z-index:2;background:none;border:none;color:#BBD2FF;font-size:38px;font-weight:800;cursor:pointer;line-height:1;padding:0 10px;text-shadow:0 2px 2px rgba(10,20,70,.4);transition:filter .07s}
+.achBack:active{filter:brightness(.75)}
 .achHead .sp{width:44px;flex:none}
 .achBody{flex:1;overflow-y:auto;padding:14px 16px 30px}
 .achH{font:800 24px 'Nunito Sans',sans-serif;color:#fff;margin:4px 2px 12px;text-shadow:0 2px 2px rgba(10,20,70,.4)}
@@ -161,21 +157,25 @@ background:radial-gradient(ellipse at 40% 35%,rgba(255,255,255,.55),rgba(255,255
 .achSep{height:16px;background:rgba(12,18,54,.42);margin:18px -16px;box-shadow:inset 0 2px 5px rgba(0,0,0,.3)}
 .awGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 8px}
 .awItem{text-align:center}
-.awBadge{position:relative;width:86px;height:86px;max-width:26vw;max-height:26vw;margin:0 auto;clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%);display:grid;place-items:center;background:linear-gradient(180deg,#C2CEDE,#8494AC)}
+.awBadge{position:relative;width:86px;height:86px;max-width:26vw;max-height:26vw;margin:0 auto;clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%);display:grid;place-items:center;background:linear-gradient(180deg,#C2CEDE,#8494AC);cursor:pointer;transition:filter .07s}
+.awBadge:active{filter:brightness(.82)}
 .awBadge .awInner{width:64%;height:64%;border-radius:50%;background:radial-gradient(circle at 50% 34%,#E4EDF7,#9FB0C8 78%);display:grid;place-items:center;box-shadow:inset 0 -3px 5px rgba(0,0,0,.15)}
 .awBadge .awInner svg{width:58%;height:58%}
 .awBadge.gold{background:linear-gradient(180deg,#FFDD4D,#F0A81A)}
 .awBadge.gold .awInner{background:radial-gradient(circle at 50% 34%,#FFC93D,#E8870A 80%)}
 .awBadge.lock{background:linear-gradient(180deg,#454F76,#3A4468)}
 .awBadge.lock .awInner{background:radial-gradient(circle at 50% 34%,#535E88,#454F78 80%);filter:saturate(.3)}
+.awBadge.pop{animation:awPop .55s cubic-bezier(.34,1.56,.64,1)}
+@keyframes awPop{0%{transform:scale(1)}30%{transform:scale(1.22) rotate(-7deg)}60%{transform:scale(.95) rotate(5deg)}100%{transform:scale(1)}}
 .awName{font:800 15px 'Nunito Sans',sans-serif;color:#fff;margin-top:9px;line-height:1.15;text-shadow:0 1px 2px rgba(10,20,70,.4)}
 .awName.dim{color:#78849F}
 .awProg{font:700 15px 'Nunito Sans',sans-serif;color:#8B98BC;margin-top:3px}
 .awDot{position:absolute;top:1px;right:1px;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FF8A7E,#F0271C 60%,#C41608);box-shadow:0 2px 3px rgba(0,0,0,.4)}
-/* ---------- Adventure map ---------- */
-.trophyBlock{text-align:center;margin:6px 0 2px}
-.trophyBlock svg{width:44px;height:44px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}
-.trophyBlock p{font:700 13.5px 'Nunito Sans',sans-serif;color:#C7D2F5;line-height:1.4;margin-top:3px}
+/* ---------- MAP ADVENTURE (pyramide 96) ---------- */
+.trophyBlock{text-align:center;margin:8px 0 2px}
+.trophyBlock svg{width:104px;height:104px;filter:drop-shadow(0 5px 4px rgba(0,0,0,.35))}
+.mapWrapAlldone .trophyBlock svg{filter:sepia(1) saturate(3.2) hue-rotate(-12deg) brightness(1.35) drop-shadow(0 0 12px rgba(255,205,60,.65))}
+.trophyBlock p{font:700 13.5px 'Nunito Sans',sans-serif;color:#C7D2F5;line-height:1.4;margin-top:4px}
 .gemRow{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 2px}
 .gemChip{display:flex;align-items:center;gap:6px}
 .gemChip .gSlot{position:relative;width:23px;height:23px}
@@ -184,37 +184,75 @@ background:radial-gradient(ellipse at 40% 35%,rgba(255,255,255,.55),rgba(255,255
 .gemChip b{font:800 19px 'Nunito Sans',sans-serif;color:#fff;text-shadow:0 2px 2px rgba(10,20,70,.5)}
 .gemBar{flex:1;max-width:150px;height:12px;border-radius:99px;background:rgba(10,16,50,.6);overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.4)}
 .gemBar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#4FC8FF,#3FC8EE 55%,#FFA53D);transition:width .4s}
-.mapBoard{width:min(92vw,352px);margin:14px auto 4px;user-select:none}
-.mapRow{display:flex;justify-content:center;gap:3px;margin-bottom:3px}
-.mapLv{position:relative;border:none;border-radius:8px;cursor:pointer;font:800 15px 'Nunito Sans',sans-serif;color:#fff;background:linear-gradient(180deg,#5B6AD8,#4353C6);box-shadow:0 3px 0 #2E3AA0,inset 0 1px 0 rgba(255,255,255,.3);transition:transform .1s;text-shadow:0 1px 1px rgba(0,0,0,.3);padding:0;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.mapLv:active{transform:scale(.9)}
-.mapLv .mlSt{font-size:8px;letter-spacing:.5px;color:var(--gold)}
-.mapLv.locked{background:linear-gradient(180deg,#3E4470,#333A5E);box-shadow:0 3px 0 #262B48,inset 0 1px 0 rgba(255,255,255,.12);cursor:default;color:#78849F}
-.mapLv.next{background:linear-gradient(180deg,#FFC93D,#F0A01A);box-shadow:0 3px 0 #C77A10,inset 0 1px 0 rgba(255,255,255,.45);color:#5A3A00;animation:lvPulse 1.2s ease infinite}
-.mapLv.next .mlSt{color:#7A5200}
-@keyframes lvPulse{50%{transform:scale(1.08)}}
-.mapLv .flagIc{position:absolute;top:-9px;left:-9px;width:20px;height:20px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));z-index:2}
-.goLvlBtn{width:min(76%,250px);margin:12px auto 6px;display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border:none;border-radius:10px;cursor:pointer;color:#fff;font:800 23px 'Nunito Sans',sans-serif;background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);border:1px solid #229A16;box-shadow:0 6px 0 #1E8A12,0 3px 5px rgba(0,0,0,.22);text-shadow:0 2px 2px rgba(0,0,0,.2);transition:transform .07s}
-.goLvlBtn:active{transform:translateY(5px);box-shadow:0 1px 0 #1E8A12}
-.goLvlBtn{position:relative;overflow:hidden}
-.goLvlBtn::before{content:'';position:absolute;inset:0;pointer-events:none;
-background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.32),rgba(255,255,255,0) 56%)}
-.goLvlBtn::after{content:'';position:absolute;left:12px;right:12px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;
-background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45) 30%,rgba(255,255,255,.45) 70%,rgba(255,255,255,0))}
+.mapBoard{width:min(92vw,392px);margin:12px auto 8px;user-select:none}
+.mapRow{display:flex;justify-content:center;gap:2px;margin-bottom:2px}
+.mv{position:relative;border:none;border-radius:5px;cursor:pointer;font:800 14px 'Nunito Sans',sans-serif;color:#6B77B8;background:rgba(23,30,80,.55);border:1px solid rgba(255,255,255,.05);padding:0;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .1s,filter .07s;box-sizing:border-box}
+.mv:active{transform:scale(.92);filter:brightness(.85)}
+.mv.locked{cursor:default}
+.mv.done{background-color:#3D4FA8;background-size:100% 100%;border:1px solid rgba(0,0,0,.28);box-shadow:inset 0 2px 0 rgba(255,255,255,.28),inset 0 -2px 0 rgba(0,0,0,.28)}
+.mv.next{background:linear-gradient(180deg,#FFE066,#F5C11E);color:#7A5200;border:2px solid #E8A800;box-shadow:0 3px 7px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.5);text-shadow:none}
+.mv.next .num{color:#7A5200}
+.mv .dmd{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:20px;height:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));z-index:2;pointer-events:none}
+.mapFoot{width:100%;background:rgba(255,255,255,.13);padding:12px 0 14px;display:flex;justify-content:center}
+.goLvlBtn{position:relative;overflow:hidden;width:min(76%,250px);display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border:none;border-radius:10px;cursor:pointer;color:#fff;font:800 23px 'Nunito Sans',sans-serif;background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);border:1px solid #229A16;box-shadow:0 6px 0 #1E8A12,0 3px 5px rgba(0,0,0,.22);text-shadow:0 2px 2px rgba(0,0,0,.2);transition:transform .07s,filter .07s}
+.goLvlBtn:active{transform:translateY(5px);filter:brightness(.82);box-shadow:0 1px 0 #1E8A12}
+.goLvlBtn::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.32),rgba(255,255,255,0) 56%)}
+.goLvlBtn::after{content:'';position:absolute;left:12px;right:12px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45) 30%,rgba(255,255,255,.45) 70%,rgba(255,255,255,0))}
+/* ---------- écrans Victoire / Défaite aventure ---------- */
+#ovWin{background:linear-gradient(180deg,#0C1538 0%,#111C4A 60%,#0C1538 100%);place-items:start center}
+#ovFail{background:rgba(11,18,48,.78);place-items:start center}
+.endWrap{width:min(100%,470px);height:100dvh;display:flex;flex-direction:column;align-items:center;text-align:center;overflow-y:auto;padding:0 16px 30px}
+.endTop{width:100%;display:flex;justify-content:flex-start;padding:calc(10px + env(safe-area-inset-top)) 4px 0}
+.endBack{background:none;border:none;color:#BBD2FF;font-size:40px;font-weight:800;cursor:pointer;line-height:1;text-shadow:0 2px 3px rgba(0,0,0,.4);transition:filter .07s}
+.endBack:active{filter:brightness(.75)}
+.hangPanel{position:relative;width:min(72%,300px);margin-top:0;border-radius:16px;overflow:visible;box-shadow:0 10px 22px rgba(0,0,0,.45)}
+.hangPanel::before,.hangPanel::after{content:'';position:absolute;top:-72px;width:11px;height:72px;background:linear-gradient(180deg,#8FA6EC,#7C96E8);border-radius:0 0 4px 4px;box-shadow:inset -2px 0 0 rgba(0,0,0,.15)}
+.hangPanel::before{left:24%}
+.hangPanel::after{right:24%}
+.hpHead{position:relative;background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:#2A3170;font:800 19px 'Nunito Sans',sans-serif;text-align:center;padding:9px 8px;border-radius:14px 14px 0 0;line-height:1.2}
+.hpHead::after{content:'';position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.6) 30%,rgba(255,255,255,.6) 70%,rgba(255,255,255,0))}
+.hpBody{background:#F1F0EE;display:flex;align-items:center;justify-content:center;gap:20px;padding:12px 16px 16px;border-radius:0 0 14px 14px}
+.hpBody .winBadge{width:70px;height:66px}
+.hpBody .wbCirc{width:58px;height:58px;border-width:3px}
+.hpBody .wbCirc .cSlot{width:48px;height:42px}
+.hpBody .wTag{font-size:11px;padding:2px 11px;bottom:1px}
+.hpVal{font:800 27px 'Nunito Sans',sans-serif;color:#2A3170}
+.winStage{width:min(86vw,344px);background:rgba(18,26,70,.55);border-radius:14px;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:5vh}
+.wsRow{display:flex;gap:2px;margin-bottom:2px}
+.wsC{display:block;border-radius:3px;background:#232C5E}
+.wsC.on{background:linear-gradient(180deg,#5BC8F7,#2E9BE8);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 2px 3px rgba(0,0,0,.3)}
+.failMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;width:100%}
+.failGems{display:flex;gap:44px;margin-top:4vh}
+.fg{display:flex;flex-direction:column;align-items:center;gap:4px}
+.fg .gSlot{position:relative;width:44px;height:44px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.45))}
+.fg .gSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.fg .gSlot svg{position:absolute;inset:0;width:100%;height:100%}
+.fg b{font:800 25px 'Nunito Sans',sans-serif;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.5)}
+.failTitle{font-family:'Lilita One',Fredoka,sans-serif;font-weight:400;font-size:clamp(36px,10vw,50px);color:#fff;text-shadow:0 4px 0 #2738A0,0 6px 0 rgba(0,0,0,.28),0 10px 18px rgba(0,0,0,.4);line-height:1.05}
+.failGemsCont{display:flex;align-items:center;justify-content:center;gap:26px;margin:10px 0 6px}
+.fgc{display:flex;align-items:center;gap:8px}
+.fgc .gSlot{position:relative;width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+.fgc .gSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.fgc .gSlot svg{position:absolute;inset:0;width:100%;height:100%}
+.fgc b{font:800 22px 'Nunito Sans',sans-serif;color:#fff;text-shadow:0 2px 3px rgba(0,0,0,.45)}
+.failBtns{width:min(72%,270px);display:flex;flex-direction:column;gap:12px;margin-top:3vh}
+#foReason{color:rgba(255,255,255,.85);font:700 14px 'Nunito Sans',sans-serif;text-shadow:0 1px 2px rgba(0,0,0,.4)}
 /* ---------- Settings ---------- */
 #ovPause .panel{width:min(100%,392px)}
 .pTitle{font-family:'Lilita One',Fredoka,sans-serif;font-size:32px;font-weight:400;color:#fff;text-shadow:0 3px 0 rgba(15,25,80,.45);margin:2px 0 14px}
-.pClose{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;line-height:0;padding:4px;filter:drop-shadow(0 2px 2px rgba(10,20,70,.5));z-index:5}
+.pClose{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;line-height:0;padding:4px;filter:drop-shadow(0 2px 2px rgba(10,20,70,.5));z-index:5;transition:filter .07s}
+.pClose:active{filter:brightness(.7) drop-shadow(0 2px 2px rgba(10,20,70,.5))}
 .pClose svg{width:32px;height:32px}
 .tgRow{display:flex;justify-content:space-around;background:linear-gradient(180deg,#2E3BA8,#26318E);border-radius:18px;padding:18px 8px 12px;margin-bottom:14px;box-shadow:inset 0 4px 9px rgba(6,10,40,.55)}
-.tgl{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;color:#fff;font-size:15px;font-weight:700;flex:1;text-shadow:0 2px 2px rgba(10,15,50,.5)}
+.tgl{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;color:#fff;font-size:15px;font-weight:700;flex:1;text-shadow:0 2px 2px rgba(10,15,50,.5);transition:filter .07s}
+.tgl:active{filter:brightness(.8)}
 .tgl svg{width:46px;height:46px;fill:#fff;filter:drop-shadow(0 2px 1px rgba(10,15,50,.45))}
 .tgl .slash{display:none;position:absolute;top:19px;left:50%;width:52px;height:6px;margin-left:-26px;border-radius:3px;background:linear-gradient(180deg,#FF5A4E,#D91E12);transform:rotate(-38deg);box-shadow:0 2px 3px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.35);z-index:3}
 .tgl.off .slash{display:block}
 .vibSl{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:2px}
-.vibSl button{width:22px;height:22px;border:none;border-radius:6px;background:linear-gradient(180deg,#5B6AD8,#4353C6);color:#fff;font-size:14px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 0 #2E3AA0,inset 0 1px 0 rgba(255,255,255,.35);font-family:'Fredoka'}
-.vibSl button:active{transform:translateY(2px);box-shadow:0 0 0 #2E3AA0}
-.vTrack{position:relative;width:74px;height:6px;border-radius:99px;background:rgba(255,255,255,.28);box-shadow:inset 0 1px 2px rgba(0,0,0,.3)}
+.vibSl button{width:22px;height:22px;border:none;border-radius:6px;background:linear-gradient(180deg,#5B6AD8,#4353C6);color:#fff;font-size:14px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 0 #2E3AA0,inset 0 1px 0 rgba(255,255,255,.35);font-family:'Fredoka';transition:filter .07s}
+.vibSl button:active{transform:translateY(2px);filter:brightness(.8);box-shadow:0 0 0 #2E3AA0}
+.vTrack{position:relative;width:88px;height:6px;border-radius:99px;background:rgba(255,255,255,.28);box-shadow:inset 0 1px 2px rgba(0,0,0,.3)}
 .vTrack i{position:absolute;top:50%;left:50%;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#DCE2F5 70%);box-shadow:0 2px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%);transition:left .15s}
 .sepLine{height:3px;border-radius:99px;background:linear-gradient(180deg,#28339A,#1E2878);margin:2px 6px 16px;box-shadow:0 1px 0 rgba(255,255,255,.14)}
 #ovOver{background:rgba(18,25,44,.88)}
@@ -229,9 +267,6 @@ background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45) 30%,r
 #foBadge.on{display:block}
 @keyframes bump{50%{transform:scale(1.09)}}
 #foStats{color:rgba(255,255,255,.88);font-size:13.5px;margin:14px 0 18px;line-height:1.55;white-space:pre-line}
-.wstars{display:flex;justify-content:center;gap:10px;margin:10px 0 4px}
-.wstars svg{width:44px;height:44px;fill:rgba(255,255,255,.18);transform:scale(.5);opacity:.4;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
-.wstars svg.on{fill:var(--gold);transform:scale(1);opacity:1}
 .fo-score{font-size:52px;font-weight:700;line-height:1.1;font-family:'Nunito Sans',sans-serif}
 .fo-title{font-family:'Lilita One',Fredoka,sans-serif;font-weight:400;color:#fff;text-shadow:0 3px 0 rgba(15,25,80,.45)}
 .fo-stats{color:rgba(255,255,255,.88);font-size:14px;line-height:1.55}
@@ -312,6 +347,8 @@ background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45) 30%,r
           <path d="M24 11.5l1.9 3.9 4.3.6-3.1 3 .7 4.3-3.8-2-3.8 2 .7-4.3-3.1-3 4.3-.6z" fill="#FFF6D8"/>
           <circle cx="39" cy="8" r="5" fill="#F0271C"/>
         </svg>
+        <span class="mdot" id="medalDot"></span>
+        <span class="msp s1"></span><span class="msp s2"></span><span class="msp s3"></span><span class="msp s4"></span>
       </div>
       <span>Medal</span>
     </div>
@@ -390,7 +427,22 @@ background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45) 30%,r
     </div>
     <div class="achBody">
       <div class="trophyBlock">
-        <svg viewBox="0 0 24 24"><path fill="#3E4B8E" d="M6 3h12v2h3v3c0 2.6-1.9 4.7-4.4 5-.8 1.9-2.5 3.3-4.6 3.6V19h3.5c.6 0 1 .4 1 1v1c0 .6-.4 1-1 1h-9c-.6 0-1-.4-1-1v-1c0-.6.4-1 1-1H12v-2.4c-2.1-.3-3.8-1.7-4.6-3.6C4.9 12.7 3 10.6 3 8V5h3V3z"/></svg>
+        <svg viewBox="0 0 64 64">
+          <defs>
+            <linearGradient id="tgr" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#3D4A96"/><stop offset="1" stop-color="#232C5E"/>
+            </linearGradient>
+            <linearGradient id="tgr2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#34408A"/><stop offset="1" stop-color="#1E2756"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#tgr)" d="M17 6h30v5h9v6c0 6.6-4.9 11.7-11.2 12.6C43.3 34.6 39 38.4 34 39.5V46h6c1.3 0 2.4 1.1 2.4 2.4V51H21.6v-2.6c0-1.3 1.1-2.4 2.4-2.4h6v-6.5c-5-1.1-9.3-4.9-10.8-9.9C12.9 28.7 8 23.6 8 17v-6h9V6z"/>
+          <path fill="#151C46" d="M17 11h-5v6c0 4.1 2.6 7.6 6.3 8.9-1-2.8-1.3-5.8-1.3-8.9v-6zm35 0h-5v6c0 3.1-.3 6.1-1.3 8.9C49.4 24.6 52 21.1 52 17v-6z" opacity=".7"/>
+          <path fill="#141B45" d="M32 15.5l2.5 5 5.4.8-3.9 3.8.9 5.4L32 27.9l-4.9 2.6.9-5.4-3.9-3.8 5.4-.8z"/>
+          <path fill="rgba(255,255,255,.14)" d="M20 8h24v2.4H20z"/>
+          <rect x="20" y="52" width="24" height="4.5" rx="2" fill="url(#tgr2)"/>
+          <rect x="16" y="56.5" width="32" height="5.5" rx="2.4" fill="#1B2352"/>
+        </svg>
         <p>Take part in the Adventure<br/>and win the trophy.</p>
       </div>
       <div class="gemRow">
@@ -411,32 +463,78 @@ background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45) 30%,r
         </div>
       </div>
       <div class="mapBoard" id="mapBoard"></div>
-      <button class="goLvlBtn" id="btnGoLevel">Level 1</button>
+      <div class="mapFoot"><button class="goLvlBtn" id="btnGoLevel">Level 1</button></div>
     </div>
   </div>
 </div>
 <div class="overlay" id="ovWin">
-  <div class="panel"><div class="panelIn">
-    <h2 class="fo-title" id="winTitle" style="font-size:28px">Level cleared!</h2>
-    <div class="wstars">
-      <svg id="ws0" viewBox="0 0 24 24"><path d="M12 2.4l2.95 6 6.6.96-4.78 4.65 1.13 6.58L12 17.5l-5.9 3.1 1.13-6.58L2.45 9.36l6.6-.96z"/></svg>
-      <svg id="ws1" viewBox="0 0 24 24"><path d="M12 2.4l2.95 6 6.6.96-4.78 4.65 1.13 6.58L12 17.5l-5.9 3.1 1.13-6.58L2.45 9.36l6.6-.96z"/></svg>
-      <svg id="ws2" viewBox="0 0 24 24"><path d="M12 2.4l2.95 6 6.6.96-4.78 4.65 1.13 6.58L12 17.5l-5.9 3.1 1.13-6.58L2.45 9.36l6.6-.96z"/></svg>
+  <div class="endWrap">
+    <div class="endTop"><button class="endBack" id="btnWinBack">‹</button></div>
+    <div class="hangPanel">
+      <div class="hpHead">Consecutive Victories</div>
+      <div class="hpBody">
+        <div class="winBadge">
+          <div class="wbCirc">
+            <div class="cSlot">
+              <img src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
+              <svg viewBox="0 0 24 24"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+            </div>
+            <span class="wTag">WIN</span>
+          </div>
+        </div>
+        <span class="hpVal" id="winConsec">×1</span>
+      </div>
     </div>
-    <div class="fo-score" id="winScore" style="font-size:40px">0</div>
-    <p class="fo-stats" id="winStats"></p>
-    <button class="btn3d green" id="btnNext"><svg class="ico" viewBox="0 0 24 24"><path d="M8 5.2c0-1.1 1.2-1.8 2.1-1.2l10 6c.9.6.9 1.9 0 2.4l-10 6c-.9.6-2.1-.1-2.1-1.2z"/></svg>Next level</button>
-    <button class="btn3d green" id="btnReplay"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Replay</button>
-    <button class="btn3d lav" id="btnWinMap"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
-  </div></div>
+    <div class="winStage" id="winStage"></div>
+    <div class="failBtns">
+      <button class="btn3d green" id="btnNext"><svg class="ico" viewBox="0 0 24 24"><path d="M8 5.2c0-1.1 1.2-1.8 2.1-1.2l10 6c.9.6.9 1.9 0 2.4l-10 6c-.9.6-2.1-.1-2.1-1.2z"/></svg>Next Level</button>
+      <button class="btn3d lav" id="btnWinMap"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
+    </div>
+  </div>
 </div>
 <div class="overlay" id="ovFail">
-  <div class="panel"><div class="panelIn">
-    <h2 class="fo-title" style="font-size:30px">Failed…</h2>
-    <p class="fo-stats" id="failReason"></p>
-    <button class="btn3d green" id="btnRetry"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Retry</button>
-    <button class="btn3d lav" id="btnFailMap"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
-  </div></div>
+  <div class="endWrap">
+    <div class="endTop"><button class="endBack" id="btnFailBack">‹</button></div>
+    <div class="hangPanel">
+      <div class="hpHead">Consecutive Victories</div>
+      <div class="hpBody">
+        <div class="winBadge">
+          <div class="wbCirc">
+            <div class="cSlot">
+              <img src="assets/ui/crown.png" alt="" onerror="this.style.display='none'"/>
+              <svg viewBox="0 0 24 24"><path d="M3.4 8.2c.5-.5 1.3-.4 1.7.1l2.8 3.4 3-5.6c.4-.8 1.6-.8 2 0l3 5.6 2.8-3.4c.4-.5 1.2-.6 1.7-.1.4.3.5.9.4 1.4l-1.5 6.6c-.1.6-.6 1-1.2 1H5.7c-.6 0-1.1-.4-1.2-1L3 9.6c-.1-.5 0-1.1.4-1.4z"/></svg>
+            </div>
+            <span class="wTag">WIN</span>
+          </div>
+        </div>
+        <span class="hpVal" id="failConsec">×0</span>
+      </div>
+    </div>
+    <div class="failMid">
+      <div class="failGemsCont">
+        <div class="fgc">
+          <span class="gSlot">
+            <img src="assets/ui/gem_blue.png" alt="" onerror="this.style.display='none'"/>
+            <svg viewBox="0 0 24 24"><path fill="#3FC8EE" d="M12 3l7 6.2L12 21 5 9.2z"/><path fill="#BDEFFF" d="M12 3l3.4 6.2H8.6z"/></svg>
+          </span>
+          <b id="fGemB">0</b>
+        </div>
+        <div class="fgc">
+          <span class="gSlot">
+            <img src="assets/ui/gem_orange.png" alt="" onerror="this.style.display='none'"/>
+            <svg viewBox="0 0 24 24"><path fill="#FFA53D" d="M12 2l2.4 5 5.6.7-4 3.9.9 5.4L12 14.5 7.1 17l.9-5.4-4-3.9L9.6 7z"/></svg>
+          </span>
+          <b id="fGemO">0</b>
+        </div>
+      </div>
+      <div class="failTitle" id="failTitle">So Close!</div>
+      <p id="foReason"></p>
+      <div class="failBtns">
+        <button class="btn3d green" id="btnRetry"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Retry</button>
+        <button class="btn3d lav" id="btnFailMap"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="overlay" id="ovPause">
   <div class="panel">
@@ -518,7 +616,8 @@ window.addEventListener('unhandledrejection',function(e){if(!window.__bpBooted)s
 'use strict';
 var k = 0;
 /* ================================================================
-   BLOCK THUD! v49 — moteur v48 + home recalibrée + Ads manager
+   BLOCK THUD! v50 — moteur v49 + écrans fin aventure, map pyramide,
+   vibrations %, série de victoires, succès animés, pouces améliorés
    ================================================================ */
 const TUNE={bombChance:.10,bombMinScore:3000,advPityEarly:5,reviveClearRows:3,diffSpeed:3000,dangerRatio:.70,
 allClearCap:1500,guideLockLines:4,acAidAfter:5,presetMin:.30,presetMax:.45};
@@ -604,13 +703,11 @@ star(){[659,830,1046,1318].forEach((f,i)=>this.tone(f,.13,'triangle',.16,null,i*
 perfect(){[523,659,784,1047,1319].forEach((f,i)=>this.tone(f,.2,'triangle',.2,null,i*.09))},
 win(){[392,523,659,784].forEach((f,i)=>this.tone(f,.22,'triangle',.2,null,i*.13))},
 over(){[330,262,208,165].forEach((f,i)=>this.tone(f,.34,'sine',.18,null,i*.19))}};
-let vibLvl=(()=>{const s=store.get('bp_viblvl');
-if(s==='0'||s==='1'||s==='2')return parseInt(s);
-if(store.get('bp_vib')==='0')return 0;
-return 1})();
-const VIBPW=[0,1,1.6];
-const vib=p=>{if(!vibLvl)return;const pw=VIBPW[vibLvl];
-if(navigator.vibrate)try{navigator.vibrate(Array.isArray(p)?p.map(x=>Math.round(x*pw)):Math.round(p*pw))}catch(e){}};
+/* v50 : vibration 0-100 % par pas de 10 % */
+let vibLvl=(()=>{const s=parseInt(store.get('bp_viblvl'));
+return isNaN(s)?5:clamp(s,0,10)})();
+const vib=p=>{if(vibLvl<=0)return;const sc=vibLvl/10;
+if(navigator.vibrate)try{navigator.vibrate(Array.isArray(p)?p.map(x=>Math.max(1,Math.round(x*sc))):Math.max(1,Math.round(p*sc)))}catch(e){}};
 const customSfx={};
 const triedSfx={};
 function tryLoadSfx(name){
@@ -1874,6 +1971,8 @@ if(fresh.length)return fresh[Math.floor(Math.random()*fresh.length)];
 return Math.floor(Math.random()*STYLES.length)}
 let grid=[],tray=[null,null,null];
 let best=parseInt(store.get('bp_best'))||0;
+/* v50 : victoires consécutives aventure */
+let consec=parseInt(store.get('bp_consec'))||0;
 let stats=(()=>{let d={games:0,lines:0,pieces:0,bombs:0,gems:0,gemsB:0,gemsO:0,perfect:0,maxCombo:0};
 try{const s2=JSON.parse(store.get('bp_stats'));
 if(s2&&typeof s2.games==='number'){for(const k3 in d)if(typeof s2[k3]==='number')d[k3]=s2[k3]}}catch(e){}
@@ -2151,13 +2250,38 @@ c.strokeStyle=col||'#F5A818';c.lineWidth=s*.07;c.lineJoin='round';c.stroke()}
 thumbSpriteCache[key]=cv;
 pruneCache(thumbSpriteCache,24);
 return cv}
+/* v50 : pouce — rayons rotatifs derrière + geste arrière→avant fluide */
 function drawThumb(c,x,y,s,t,age,col){
 const kk=age/950;
+const lift=-20*kk;
+c.save();c.translate(x,y+lift);
+const fade=kk<.7?1:1-(kk-.7)/.3;
+c.globalAlpha=.9*fade;
+const rotR=t/850;
+for(let i=0;i<10;i++){
+const a=rotR+i*(Math.PI*2/10);
+c.save();c.rotate(a);
+const gR=c.createLinearGradient(0,0,s*1.15,0);
+gR.addColorStop(0,'rgba(255,235,150,.5)');
+gR.addColorStop(1,'rgba(255,235,150,0)');
+c.fillStyle=gR;
+c.beginPath();c.moveTo(s*.25,0);
+c.lineTo(s*1.15,-s*.12);c.lineTo(s*1.15,s*.12);c.closePath();c.fill();
+c.restore()}
+const halo=c.createRadialGradient(0,0,s*.15,0,0,s*.85);
+halo.addColorStop(0,'rgba(255,225,140,.5)');
+halo.addColorStop(1,'rgba(255,225,140,0)');
+c.fillStyle=halo;c.beginPath();c.arc(0,0,s*.85,0,6.3);c.fill();
+c.restore();
+let rot;
+const IN=200,FLK=380;
+if(age<IN)rot=-(age/IN)*.55;
+else if(age<IN+FLK){const q=(age-IN)/FLK;rot=-.55+1.02*.85*backOut(q)}
+else{const q=clamp((age-(IN+FLK))/370,0,1);rot=.32*(1-q)*.9}
 const pop=age<180?backOut(age/180):1;
-const spin=age/700;
 const al=kk<.7?1:1-(kk-.7)/.3;
 c.save();c.globalAlpha=al;
-c.translate(x,y-20*kk);c.rotate(spin);c.scale(pop,pop);
+c.translate(x,y+lift);c.rotate(rot);c.scale(pop,pop);
 const sp=thumbSprite(s,col);
 c.drawImage(sp,-sp.width/2,-sp.height/2);
 c.restore()}
@@ -2815,16 +2939,6 @@ score,stars,combo,grace,maxCombo,placedCount,linesTotal,
 theme,stylePts,styleLevel,themeOrder,reviveUsed,gameStart,bestAtStart};
 store.set('bp_save',JSON.stringify(data))}
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-/* ================================================================
-   v49 — SYSTÈME PUBLICITAIRE COMPLET (prêt pour AdMob)
-   Placements :
-   · BANNIÈRE bas de l'écran d'accueil (placeholder web, vrai banner natif)
-   · INTERSTITIEL tous les 3 game-over, à la sortie de partie
-     (simulation web skippable, vrai interstitial natif)
-   · REWARDED : bouton "Continue — watch an ad" du game-over (revive)
-   Tous les hooks sont isolés dans Ads.* → branchement AdMob sans retoucher
-   au gameplay. IDs de test Google fournis ; remplacer en production.
-   ================================================================ */
 const ADMOB_IDS={
 appId:'ca-app-pub-3940256099942544~3347511713',
 banner:'ca-app-pub-3940256099942544/6300978111',
@@ -2848,9 +2962,7 @@ console.log('AdMob ready (banner + interstitial + rewarded)')}
 catch(e){console.warn('AdMob unavailable (web or plugin missing)',e)}},
 showBannerHome(){},
 hideBanner(){
-if(this.nativeReady){try{this.plugin.hideBanner()}catch(e){}}
-const el=$('adBannerHome');if(el)el.style.display='none'},
-/* interstitial : appelé en quittant un game-over (Replay ou Home) */
+if(this.nativeReady){try{this.plugin.hideBanner()}catch(e){}}},
 maybeInterstitial(after){
 this.sinceInterstit++;
 if(this.sinceInterstit<this.INTERSTIT_EVERY){if(after)after();return}
@@ -2875,7 +2987,6 @@ const done=()=>{clearInterval(iv);ovInter.classList.remove('show');
 btn.removeEventListener('pointerdown',done);btn.removeEventListener('click',done);
 if(after)after()};
 btn.addEventListener('pointerdown',done);btn.addEventListener('click',done)},
-/* rewarded : cb(true) si la pub est vue jusqu'au bout */
 rewarded(cb){
 if(this.nativeReady){
 (async()=>{
@@ -2885,7 +2996,6 @@ await this.plugin.showRewardVideoAd();
 cb(true)}
 catch(e){console.warn('rewarded fail',e);cb(false)}})();
 return}
-/* simulation web : ovAd avec compte à rebours */
 adCb=cb;
 ovAd.classList.add('show');
 let n=3;$('adTxt').textContent='Rewarded ad… '+n;
@@ -3707,9 +3817,10 @@ d.style.background=COLORS[i%COLORS.length].b;
 d.style.animationDuration=(2.2+Math.random()*1.6)+'s';
 d.style.animationDelay=(Math.random()*.5)+'s';
 document.body.appendChild(d);setTimeout(()=>d.remove(),4600)}}
+/* v50 : vib auto sur chaque bouton lié */
 function bindTap(el,fn){let last=0;
 const go=e=>{const now=performance.now();
-if(now-last<400)return;last=now;fn(e)};
+if(now-last<400)return;last=now;vib(9);fn(e)};
 el.addEventListener('pointerdown',go);el.addEventListener('click',go)}
 function hideAllOv(){
 ovPause.classList.remove('show');ovOver.classList.remove('show');
@@ -3723,8 +3834,7 @@ dragLayer.style.display='none';
 state='title';mode='classic';lvl=null;
 hideAllOv();
 setHudMode();refreshTitle();
-ovTitle.classList.add('show');
-Ads.showBannerHome()}
+ovTitle.classList.add('show')}
 function openPause(){if(state!=='playing')return;
 state='paused';
  $('pauseInfo').textContent=mode==='adv'?('Level '+(advLevel+1)+' — '+lvl.name):('Score: '+score+' · Style: '+STYLES[theme].name);
@@ -3737,11 +3847,11 @@ function refreshPauseToggles(){
  $('tglSound').classList.toggle('off',!SFX.on);
  $('tglMusic').classList.toggle('off',!MUSIC.on);
  $('tglVib').classList.toggle('off',vibLvl===0)}
-function updateVibSlider(){const k=$('vKnob');if(k)k.style.left=(vibLvl*50)+'%'}
-function setVibLvl(v){vibLvl=clamp(v,0,2);
+function updateVibSlider(){const k=$('vKnob');if(k)k.style.left=(vibLvl*10)+'%'}
+function setVibLvl(v){vibLvl=clamp(v,0,10);
 store.set('bp_viblvl',''+vibLvl);
 refreshPauseToggles();updateVibSlider();
-if(vibLvl)vib(18)}
+if(vibLvl)vib(20)}
 const CHARMAP={'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'A':0,'B':1,'C':2,'D':3,'E':4,'F':5,'G':6,'H':7};
 const GEMCHARS={A:1,B:1,C:1,D:1,E:2,F:2,G:2,H:2};
 function startLevel(i){
@@ -3783,6 +3893,7 @@ function levelWin(){state='over';ovPause.classList.remove('show');
 const st=1+(score>=lvl.s2?1:0)+(score>=lvl.s3?1:0);
 if(st>advStars[advLevel]){advStars[advLevel]=st;
 store.set('bp_adv',JSON.stringify(advStars))}
+consec++;store.set('bp_consec',''+consec);
 stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
 saveStats();
 SFX.win();vib([20,40,20,40,20]);
@@ -3791,39 +3902,57 @@ for(let k2=0;k2<24;k2++)particles.push({
 x:cw/2,y:chh/2,vx:Math.cos(k2/24*6.3)*.6,vy:Math.sin(k2/24*6.3)*.6,
 sz:cell*.14,col:COLORS[k2%COLORS.length].b,
 t0:performance.now(),life:800,sh:1,g:.3,rot:0,vr:.15});
- $('winTitle').textContent='Level '+(advLevel+1)+' cleared!';
- $('winScore').textContent=score;
- $('winStats').textContent=advPlaced+' blocks · '+advLines+' lines · combo ×'+Math.max(maxCombo,1);
-for(let k2=0;k2<3;k2++){const el=$('ws'+k2);el.classList.remove('on');
-if(k2<st)setTimeout(()=>{el.classList.add('on');SFX.star();vib(15)},400+k2*350)}
+ $('winConsec').textContent='×'+consec;
+buildWinStage();
  $('btnNext').style.display=(advLevel<LEVELS.length-1)?'flex':'none';
-setTimeout(()=>ovWin.classList.add('show'),650)}
+setTimeout(()=>ovWin.classList.add('show'),450);
+updateMedalDot()}
 function levelFail(reason){state='over';ovPause.classList.remove('show');
+consec=0;store.set('bp_consec','0');
 stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
 saveStats();
 SFX.over();vib([70,50,70]);
- $('failReason').textContent=reason+' ('+lvl.hint+')';
-ovFail.classList.add('show')}
-const MAP_ROWS=[3,5,6,7,8,9,10,11,12,12,13];
-const FLAG_SVG='<svg class="flagIc" viewBox="0 0 24 24"><path fill="#FFC919" d="M6 2h3v20H6z"/><path fill="#FFC919" d="M9 3h10l-3 4 3 4H9z"/></svg>';
+ $('failConsec').textContent='×0';
+ $('fGemB').textContent=advGemsB;
+ $('fGemO').textContent=advGemsO;
+const o=lvl.obj;let close=false;
+if(o[0]==='lines')close=advLines>=Math.ceil(o[1]*.6);
+else if(o[0]==='gems')close=advGems>=Math.ceil(o[1]*.6);
+else if(o[0]==='score')close=score>=o[1]*.6;
+ $('failTitle').textContent=close?'So Close!':'Failed…';
+ $('foReason').textContent=reason;
+ovFail.classList.add('show');
+updateMedalDot()}
+/* v50 : MAP pyramide 96, cases = texture bloc gel teintée */
+const MAP_ROWS=[3,6,7,8,8,9,8,7,6,6,8,9,11];
+const DMD_SVG='<svg viewBox="0 0 24 24"><path fill="#FFD23D" stroke="#E8A400" stroke-width="1.5" d="M12 21 4.5 8.5 8 3h8l3.5 5.5z"/><path fill="#FFF3B0" d="M12 21 8.6 9.4 12 5.5l3.4 3.9z" opacity=".85"/></svg>';
+let mapTexURL=null,mapTexGoldURL=null;
+function ensureMapTex(){
+if(mapTexURL)return;
+const src=getTile('gel',5);if(!src)return;
+try{mapTexURL=toneTile(src,238,.30,false).toDataURL();
+mapTexGoldURL=toneTile(src,45,.15,false).toDataURL()}catch(e){}}
 function nextAdvLevel(){
 for(let i=0;i<LEVELS.length;i++){
 if(advStars[i]===0)return i}
 return LEVELS.length-1}
 function buildAdventureMap(){
+ensureMapTex();
 const bd=$('mapBoard');bd.innerHTML='';
+const allDone=advStars.every(s2=>s2>0);
+bd.classList.toggle('mapWrapAlldone',allDone);
 const maxC=MAP_ROWS[MAP_ROWS.length-1];
-const W=Math.min(window.innerWidth*.92,352);
-const gap=3;
-const cs=Math.max(20,Math.floor((W-(maxC-1)*gap)/maxC));
+const W=Math.min(window.innerWidth*.92,392);
+const gap=2;
+const cs=Math.floor((W-(maxC-1)*gap)/maxC);
 let num=1;
-const rowsBottom=[];
+const rowsB=[];
 MAP_ROWS.slice().reverse().forEach(cnt=>{
 const row=[];
 for(let j=0;j<cnt&&num<=LEVELS.length;j++,num++)row.push(num);
-rowsBottom.push(row)});
-const rowsDisp=rowsBottom.reverse();
-rowsDisp.forEach(row=>{
+rowsB.push(row)});
+const nxt=nextAdvLevel();
+rowsB.forEach(row=>{
 const div=document.createElement('div');
 div.className='mapRow';
 row.forEach(n=>{
@@ -3831,17 +3960,22 @@ const i=n-1;
 const b=document.createElement('button');
 const unlocked=i===0||advStars[i-1]>0;
 const done=advStars[i]>0;
-b.className='mapLv'+(unlocked?'':' locked')+(unlocked&&!done&&i===nextAdvLevel()?' next':'');
+b.className='mv'+(unlocked?'':' locked')+(done?' done':'')+(!done&&unlocked&&i===nxt?' next':'');
 b.style.width=cs+'px';b.style.height=cs+'px';
-b.style.fontSize=Math.round(cs*.42)+'px';
+b.style.fontSize=Math.round(cs*.36)+'px';
 if(unlocked){
-b.innerHTML=(i===0?FLAG_SVG:'')+'<span>'+n+'</span><span class="mlSt">'+(done?'★'.repeat(advStars[i]):'·')+'</span>';
+if(done){
+if(mapTexURL)b.style.backgroundImage='url('+((allDone&&mapTexGoldURL)||mapTexURL)+')';
 b.title=LEVELS[i].name;
 bindTap(b,()=>{SFX.init();startLevel(i)})}
-else b.innerHTML='<svg viewBox="0 0 24 24" fill="#8A94B8" style="width:55%;height:55%"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#8A94B8" stroke-width="2.4"/></svg>';
+else{
+b.innerHTML='<span class="num">'+n+'</span>';
+if(i===nxt)b.innerHTML='<span class="dmd">'+DMD_SVG+'</span><span class="num">'+n+'</span>';
+bindTap(b,()=>{SFX.init();startLevel(i)})}
+}else{
+b.innerHTML='<span class="num">'+n+'</span>'}
 div.appendChild(b)});
 bd.appendChild(div)});
-const nxt=nextAdvLevel();
  $('btnGoLevel').textContent='Level '+(nxt+1);
  $('gemBCnt').textContent=stats.gemsB;
  $('gemOCnt').textContent=stats.gemsO;
@@ -3852,6 +3986,28 @@ Ads.hideBanner();
 ovTitle.classList.remove('show');ovWin.classList.remove('show');ovFail.classList.remove('show');
 buildAdventureMap();
 ovMap.classList.add('show')}
+function buildWinStage(){
+const el=$('winStage');el.innerHTML='';
+const maxC=MAP_ROWS[MAP_ROWS.length-1];
+const W=Math.min(window.innerWidth*.8,320);
+const gap=2;
+const cs=Math.floor((W-(maxC-1)*gap)/maxC);
+let num=1;const rowsB=[];
+MAP_ROWS.slice().reverse().forEach(cnt=>{
+const row=[];
+for(let j=0;j<cnt&&num<=LEVELS.length;j++,num++)row.push(num);
+rowsB.push(row)});
+const done=advLevel+1;
+rowsB.forEach(row=>{
+const div=document.createElement('div');
+div.className='wsRow';
+row.forEach(n=>{
+const c=document.createElement('span');
+c.className='wsC'+(n<=done?' on':'');
+c.style.width=cs+'px';c.style.height=cs+'px';
+div.appendChild(c)});
+el.appendChild(div)})}
+/* v50 : succès — dot médaille + animation pop */
 const AW_ICONS={
 target:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="12" cy="12" r="7.6"/><circle cx="12" cy="12" r="3.2" fill="#fff" stroke="none"/><path d="M12 1.6v3.6M12 18.8v3.6M1.6 12h3.6M18.8 12h3.6" stroke-linecap="round"/></svg>',
 play:'<svg viewBox="0 0 24 24" fill="#fff"><path d="M7 4.8c0-1 1.1-1.7 2-1.1l11 6.3c.9.5.9 1.8 0 2.3L9 18.6c-.9.6-2-.1-2-1.1z"/></svg>',
@@ -3871,6 +4027,15 @@ const AWARDS=[
 {name:'Unwavering',ic:'play',max:5,fn:()=>[Math.min(5,stats.perfect),5]},
 {name:'Master Cleaner',ic:'broom',max:10,fn:()=>[Math.min(10,Math.floor(stats.lines/100)),10]},
 {name:'Adventurer',ic:'map',max:20,fn:()=>[advStars.filter(s2=>s2>0).length,20]}];
+function awardProgress(){return AWARDS.map(a=>a.fn()[0])}
+function updateMedalDot(){
+try{const seen=JSON.parse(store.get('bp_awseenMax'))||[];
+const cur=awardProgress();
+const hasNew=cur.some((v,i)=>v>0&&v>(seen[i]||0));
+ $('medalDot').style.display=hasNew?'block':'none'}catch(e){}}
+function markAwardsSeen(){
+try{store.set('bp_awseenMax',JSON.stringify(awardProgress()))}catch(e){}
+ $('medalDot').style.display='none'}
 function buildAchPage(){
  $('stCombo').textContent=stats.maxCombo;
  $('stBest').textContent=best;
@@ -3891,9 +4056,17 @@ it.innerHTML='<div class="awBadge'+(gold?' gold':(locked?' lock':''))+'">'+
 '<div class="awInner">'+AW_ICONS[aw.ic]+'</div></div>'+
 '<div class="awName'+(locked?' dim':'')+'">'+aw.name+'</div>'+
 '<div class="awProg">'+cur+'/'+max+'</div>';
+const badge=it.querySelector('.awBadge');
+badge.addEventListener('pointerdown',()=>{
+if(cur<=0)return;
+if(badge.classList.contains('pop'))return;
+vib(14);
+badge.classList.add('pop');
+badge.addEventListener('animationend',()=>badge.classList.remove('pop'),{once:true})});
 g.appendChild(it)});
 if(changed)store.set('bp_awseen',JSON.stringify(seen))}
 function openAch(){buildAchPage();
+markAwardsSeen();
 Ads.hideBanner();
 ovTitle.classList.remove('show');
 ovAch.classList.add('show')}
@@ -3963,21 +4136,22 @@ if(cur>score)cur=score;
  $('foScore').textContent=cur;
 vib(4);
 setTimeout(tick,28)};
-setTimeout(tick,350)}
+setTimeout(tick,350);
+updateMedalDot()}
 function refreshTitle(){
- $('titleBest').textContent='×'+best}
+ $('titleBest').textContent='×'+consec}
 bindTap($('btnPlay'),()=>{SFX.init();newGame()});
 bindTap($('btnAdv'),()=>{SFX.init();openMap()});
 bindTap($('btnMedal'),()=>{SFX.init();openAch()});
-bindTap($('btnAchBack'),()=>{SFX.init();ovAch.classList.remove('show');ovTitle.classList.add('show');Ads.showBannerHome()});
-bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.classList.add('show');Ads.showBannerHome()});
+bindTap($('btnAchBack'),()=>{SFX.init();ovAch.classList.remove('show');ovTitle.classList.add('show')});
+bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.classList.add('show')});
 bindTap($('btnGoLevel'),()=>{SFX.init();startLevel(nextAdvLevel())});
 bindTap($('btnNext'),()=>{SFX.init();startLevel(advLevel+1)});
-bindTap($('btnReplay'),()=>{SFX.init();startLevel(advLevel)});
 bindTap($('btnWinMap'),()=>{SFX.init();state='title';openMap()});
+bindTap($('btnWinBack'),()=>{SFX.init();goHome()});
+bindTap($('btnFailBack'),()=>{SFX.init();goHome()});
 bindTap($('btnRetry'),()=>{SFX.init();startLevel(advLevel)});
 bindTap($('btnFailMap'),()=>{SFX.init();state='title';openMap()});
-/* Replay / Home depuis un game-over → interstitiel tous les 3 game-over */
 bindTap($('btnAgain'),()=>{SFX.init();Ads.maybeInterstitial(()=>newGame())});
 bindTap($('btnMenu'),()=>{SFX.init();Ads.maybeInterstitial(()=>goHome())});
 bindTap($('btnRevive'),()=>{SFX.init();fakeAd()});
@@ -4001,7 +4175,7 @@ store.set('bp_music',MUSIC.on?'1':'0');
 if(MUSIC.on){MUSIC.init();MUSIC.start()}
 else MUSIC.stop();
 refreshPauseToggles()});
-bindTap($('tglVib'),()=>{setVibLvl(vibLvl?0:1)});
+bindTap($('tglVib'),()=>{setVibLvl(vibLvl?0:10)});
 bindTap($('vibMinus'),e=>{if(e){e.stopPropagation()}setVibLvl(vibLvl-1)});
 bindTap($('vibPlus'),e=>{if(e){e.stopPropagation()}setVibLvl(vibLvl+1)});
 let devTaps=0,devLastTap=0;
@@ -4045,6 +4219,7 @@ grid=Array.from({length:N},()=>Array(N).fill(null));
 genTray(false);setHudMode();
 resize();
 wireUiImgs();
+updateMedalDot();
 requestAnimationFrame(function(t){try{frame(t)}catch(e){console.error(e)}});
 function bootWait(){
 const start=performance.now();
@@ -4058,7 +4233,6 @@ clearInterval(iv);setLoading(1);
 setTimeout(()=>{
 ovLoad.classList.remove('show');
 refreshTitle();ovTitle.classList.add('show');
-Ads.showBannerHome();
 },180)}},100)}
 function setLoading(p){$('loadFill').style.width=Math.round(clamp(p,0,1)*100)+'%'}
 bootWait();
