@@ -72,7 +72,11 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .panel{position:relative;width:min(100%,368px);max-height:calc(100dvh - 32px);overflow:auto;background:linear-gradient(180deg,#7B97F2,#5B76DC);border:none;border-radius:26px;padding:10px;text-align:center;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 18px 42px rgba(4,8,32,.60),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(20,30,90,.35)}
 .overlay.show .panel{transform:none}
 .panelIn{background:linear-gradient(180deg,#4353C6,#32409E);border-radius:18px;padding:18px 14px 14px;box-shadow:inset 0 4px 10px rgba(8,12,45,.5)}
-.btn3d{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;border:none;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px;color:#fff;border-radius:18px;padding:14px 20px;width:100%;margin-bottom:14px;text-shadow:0 2px 0 rgba(0,0,0,.22);background:linear-gradient(180deg,#8a90b8,#6a7098);box-shadow:0 6px 0 #4a5078,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.35);transition:transform .07s,box-shadow .07s}
+.btn3d{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:14px;border:none;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px;color:#fff;border-radius:18px;padding:14px 20px;width:100%;margin-bottom:14px;text-shadow:0 2px 0 rgba(0,0,0,.22);background:linear-gradient(180deg,#8a90b8,#6a7098);box-shadow:0 6px 0 #4a5078,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.35);transition:transform .07s,box-shadow .07s}
+.btn3d::before{content:'';position:absolute;inset:0;pointer-events:none;
+background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.30),rgba(255,255,255,0) 56%)}
+.btn3d::after{content:'';position:absolute;left:12px;right:12px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;
+background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.42) 30%,rgba(255,255,255,.42) 70%,rgba(255,255,255,0))}
 .btn3d:active{transform:translateY(5px);box-shadow:0 1px 0 #4a5078,0 6px 12px rgba(10,20,64,.30),inset 0 2px 0 rgba(255,255,255,.35)}
 .btn3d .ico{width:28px;height:28px;flex:none;fill:#fff;filter:drop-shadow(0 2px 0 rgba(0,0,0,.20))}
 .btn3d.green{background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);box-shadow:0 6px 0 #1E8A12,0 14px 22px rgba(10,20,64,.35),inset 0 2px 0 rgba(255,255,255,.42)}
@@ -90,10 +94,10 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .medalBadge .mSlot{position:relative;width:100%;aspect-ratio:1;margin:0 auto;filter:drop-shadow(0 4px 7px rgba(10,25,80,.55)) drop-shadow(0 0 16px rgba(130,200,255,.95))}
 .medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
-.medalBadge span{display:block;color:#fff;font:800 clamp(14px,4.3vw,19px) 'Nunito Sans',sans-serif;margin-top:-9px;line-height:1.05;text-shadow:0 2px 4px rgba(10,20,70,.55)}
+.medalBadge span{display:block;color:#fff;font:800 clamp(14px,4.3vw,19px) 'Nunito Sans',sans-serif;margin-top:-15px;line-height:1.05;text-shadow:0 2px 4px rgba(10,20,70,.55)}
 /* — Logo : 66 % de l'écran, AUCUNE ombre derrière — */
-.bigLogo{position:relative;margin-top:13vh;user-select:none;width:100%}
-.logoImg{display:none;width:min(66vw,300px);height:auto;margin:0 auto}
+.bigLogo{position:relative;margin-top:15vh;user-select:none;width:100%}
+.logoImg{display:none;width:min(63vw,286px);height:auto;margin:0 auto}
 .bigLogo.ok .logoImg{display:block}
 .bigLogo.ok .logoFb{display:none}
 .logoFb .row{display:flex;justify-content:center;gap:1px;align-items:flex-end}
@@ -101,17 +105,29 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .logoFb .blast{font-family:'Lilita One',Fredoka,sans-serif;font-size:clamp(16px,4.4vw,23px);line-height:1;letter-spacing:8px;text-indent:8px;margin-top:6px;transform:skewX(-4deg);background:linear-gradient(180deg,#E2FCFF 0%,#54E4F7 16%,#1CBCEC 58%,#0E92C6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #0B78A8)}
 .logoSub{color:#BFD9F7;font:800 clamp(10px,2.7vw,12.5px) 'Nunito Sans',sans-serif;letter-spacing:5px;margin-top:8px;text-transform:uppercase;transform:skewX(-6deg);text-shadow:0 1px 0 rgba(10,20,70,.35)}
 /* — Carte daily : 57 %, compacte, remontée (comme la référence) — */
-.dailyPanel{width:57%;max-width:270px;margin-top:3.4vh;border-radius:14px;overflow:hidden;box-shadow:0 7px 16px rgba(15,40,110,.48),0 2px 5px rgba(15,40,110,.38);text-align:left}
-.dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:#2A3170;font:800 clamp(11px,3.2vw,15px) 'Nunito Sans',sans-serif;text-align:center;padding:6px 8px;line-height:1.2}
-.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:8px;padding:6px 12px;height:80px;box-sizing:border-box}
+.dailyPanel{position:relative;width:57%;max-width:270px;margin-top:4.2vh;border-radius:14px;overflow:hidden;box-shadow:0 7px 16px rgba(15,40,110,.48),0 2px 5px rgba(15,40,110,.38);text-align:left}
+.dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:#2A3170;font:800 clamp(11px,3.2vw,15px) 'Nunito Sans',sans-serif;text-align:center;padding:5px 8px 6px;line-height:1.25}
+.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:8px;padding:5px 12px;height:71px;box-sizing:border-box}
 .winBadge{position:relative;width:52px;height:50px;flex:none}
-.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 2px 4px rgba(10,20,70,.35)}
-.wbCirc .cSlot{position:absolute;top:1px;left:50%;transform:translateX(-50%);width:30px;height:26px}
+.wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:43px;height:43px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);border:2.5px solid #6482E6;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 2px 5px rgba(10,20,70,.4)}
+.wbCirc .cSlot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:36px;height:32px}
 .wbCirc .cSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .wbCirc .cSlot svg{position:absolute;inset:0;width:100%;height:100%;fill:#FFC919;filter:drop-shadow(0 2px 0 #B87F00)}
 .wTag{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#3ED455,#22A832);color:#fff;font:800 9px 'Nunito Sans';letter-spacing:1px;padding:1px 8px;border-radius:6px;box-shadow:0 1px 0 #157A20;text-shadow:0 1px 0 rgba(0,0,0,.3);white-space:nowrap}
 .dpVal{font:800 20px 'Nunito Sans',sans-serif;color:#2A3170;flex:1;text-align:center}
 .dpMore{width:16px;height:16px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0}
+/* — Gloss (tache de lumière molle en haut-gauche) + liseré clair sur le haut — */
+.dailyPanel::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
+background:radial-gradient(ellipse 130% 75% at 18% -35%,rgba(255,255,255,.48),rgba(255,255,255,0) 58%)}
+.dpHead{position:relative}
+.dpHead::after{content:'';position:absolute;left:0;right:0;top:0;height:2px;pointer-events:none;
+background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.6) 30%,rgba(255,255,255,.6) 70%,rgba(255,255,255,0))}
+.homeBtn::before{content:'';position:absolute;left:1px;right:1px;top:1px;bottom:1px;border-radius:15px;pointer-events:none;
+background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.36),rgba(255,255,255,0) 56%)}
+.homeBtn::after{content:'';position:absolute;left:10px;right:10px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;
+background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.5) 30%,rgba(255,255,255,.5) 70%,rgba(255,255,255,0))}
+.wbCirc::before{content:'';position:absolute;left:16%;top:8%;width:46%;height:32%;border-radius:50%;pointer-events:none;
+background:radial-gradient(ellipse at 40% 35%,rgba(255,255,255,.55),rgba(255,255,255,0) 70%)}
 /* — Boutons : collés sous la carte (comme la référence), gap large avant Classic — */
 .titleBtns{margin-top:2vh;width:57%;max-width:270px;display:flex;flex-direction:column;gap:6vh}
 .homeBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;height:clamp(54px,6.2vh,62px);border-radius:16px;cursor:pointer;color:#fff;font:800 clamp(18px,5vw,25px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(30,20,0,.2);transition:transform .07s,box-shadow .07s}
@@ -127,7 +143,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 #ovLoad{z-index:150;background:linear-gradient(180deg,#163DB2 0%,#1596DA 100%);backdrop-filter:none}
 #ovLoad .panel{background:transparent;border:none;box-shadow:none;overflow:visible;max-height:none;padding:0}
 #ovLoad .bigLogo{margin-top:7vh}
-#ovLoad .logoImg{width:min(58vw,262px)}
+#ovLoad .logoImg{width:min(55vw,250px)}
 .loadBar{width:210px;height:14px;border-radius:99px;background:rgba(255,255,255,.22);margin:26px auto 0;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
 .loadBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD23D,#FFA53D);border-radius:99px;transition:width .18s}
 /* ---------- Pages pleine hauteur ---------- */
@@ -180,6 +196,11 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .mapLv .flagIc{position:absolute;top:-9px;left:-9px;width:20px;height:20px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));z-index:2}
 .goLvlBtn{width:min(76%,250px);margin:12px auto 6px;display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border:none;border-radius:10px;cursor:pointer;color:#fff;font:800 23px 'Nunito Sans',sans-serif;background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);border:1px solid #229A16;box-shadow:0 6px 0 #1E8A12,0 3px 5px rgba(0,0,0,.22);text-shadow:0 2px 2px rgba(0,0,0,.2);transition:transform .07s}
 .goLvlBtn:active{transform:translateY(5px);box-shadow:0 1px 0 #1E8A12}
+.goLvlBtn{position:relative;overflow:hidden}
+.goLvlBtn::before{content:'';position:absolute;inset:0;pointer-events:none;
+background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.32),rgba(255,255,255,0) 56%)}
+.goLvlBtn::after{content:'';position:absolute;left:12px;right:12px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;
+background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45) 30%,rgba(255,255,255,.45) 70%,rgba(255,255,255,0))}
 /* ---------- Settings ---------- */
 #ovPause .panel{width:min(100%,392px)}
 .pTitle{font-family:'Lilita One',Fredoka,sans-serif;font-size:32px;font-weight:400;color:#fff;text-shadow:0 3px 0 rgba(15,25,80,.45);margin:2px 0 14px}
