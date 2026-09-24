@@ -90,9 +90,9 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .medalBadge .mSlot{position:relative;width:100%;aspect-ratio:1;margin:0 auto;filter:drop-shadow(0 4px 7px rgba(10,25,80,.55)) drop-shadow(0 0 16px rgba(130,200,255,.95))}
 .medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
-.medalBadge span{display:block;color:#fff;font:800 clamp(14px,4.3vw,19px) 'Nunito Sans',sans-serif;margin-top:-2px;line-height:1.05;text-shadow:0 2px 4px rgba(10,20,70,.55)}
+.medalBadge span{display:block;color:#fff;font:800 clamp(14px,4.3vw,19px) 'Nunito Sans',sans-serif;margin-top:-9px;line-height:1.05;text-shadow:0 2px 4px rgba(10,20,70,.55)}
 /* — Logo : 66 % de l'écran, AUCUNE ombre derrière — */
-.bigLogo{position:relative;margin-top:16vh;user-select:none;width:100%}
+.bigLogo{position:relative;margin-top:13vh;user-select:none;width:100%}
 .logoImg{display:none;width:min(66vw,300px);height:auto;margin:0 auto}
 .bigLogo.ok .logoImg{display:block}
 .bigLogo.ok .logoFb{display:none}
@@ -103,7 +103,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 /* — Carte daily : 57 %, compacte, remontée (comme la référence) — */
 .dailyPanel{width:57%;max-width:270px;margin-top:3.4vh;border-radius:14px;overflow:hidden;box-shadow:0 7px 16px rgba(15,40,110,.48),0 2px 5px rgba(15,40,110,.38);text-align:left}
 .dpHead{background:linear-gradient(180deg,#9FC0FC,#8EB5FA);color:#2A3170;font:800 clamp(11px,3.2vw,15px) 'Nunito Sans',sans-serif;text-align:center;padding:6px 8px;line-height:1.2}
-.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:8px;padding:6px 12px;height:76px;box-sizing:border-box}
+.dpBody{background:#F1F0EE;display:flex;align-items:center;gap:8px;padding:6px 12px;height:80px;box-sizing:border-box}
 .winBadge{position:relative;width:52px;height:50px;flex:none}
 .wbCirc{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 50% 36%,#4A6AE0 50%,#3A54C0 54%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 2px 4px rgba(10,20,70,.35)}
 .wbCirc .cSlot{position:absolute;top:1px;left:50%;transform:translateX(-50%);width:30px;height:26px}
@@ -113,8 +113,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .dpVal{font:800 20px 'Nunito Sans',sans-serif;color:#2A3170;flex:1;text-align:center}
 .dpMore{width:16px;height:16px;flex:none;border-radius:50%;border:none;background:#B9B9BD;color:#fff;font-size:10px;font-weight:800;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15),0 1px 2px rgba(0,0,0,.2);line-height:1;display:grid;place-items:center;padding:0}
 /* — Boutons : collés sous la carte (comme la référence), gap large avant Classic — */
-.titleBtns{margin-top:1.2vh;width:57%;max-width:270px;display:flex;flex-direction:column;gap:6.2vh}
-.homeBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;height:clamp(56px,6.6vh,66px);border-radius:16px;cursor:pointer;color:#fff;font:800 clamp(18px,5vw,25px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(30,20,0,.2);transition:transform .07s,box-shadow .07s}
+.titleBtns{margin-top:2vh;width:57%;max-width:270px;display:flex;flex-direction:column;gap:6vh}
+.homeBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;height:clamp(54px,6.2vh,62px);border-radius:16px;cursor:pointer;color:#fff;font:800 clamp(18px,5vw,25px) 'Nunito Sans',sans-serif;padding:0 9%;text-shadow:0 2px 2px rgba(30,20,0,.2);transition:transform .07s,box-shadow .07s}
 .homeBtn .ico{width:clamp(24px,6.6vw,32px);height:clamp(24px,6.6vw,32px);flex:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
 #btnAdv{background:linear-gradient(180deg,#FFC13A 0%,#F6A81C 45%,#ED9713 100%);border:1px solid #D9850F;box-shadow:0 5px 0 #C7790E,0 12px 20px rgba(20,45,115,.45)}
 #btnAdv:active{transform:translateY(5px);box-shadow:0 0 0 #C7790E,0 4px 8px rgba(20,45,115,.3)}
@@ -126,7 +126,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 /* ---------- bannière pub accueil (placeholder web / AdMob natif) ---------- */
 #ovLoad{z-index:150;background:linear-gradient(180deg,#163DB2 0%,#1596DA 100%);backdrop-filter:none}
 #ovLoad .panel{background:transparent;border:none;box-shadow:none;overflow:visible;max-height:none;padding:0}
-#ovLoad .bigLogo{margin-top:9vh}
+#ovLoad .bigLogo{margin-top:7vh}
 #ovLoad .logoImg{width:min(58vw,262px)}
 .loadBar{width:210px;height:14px;border-radius:99px;background:rgba(255,255,255,.22);margin:26px auto 0;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
 .loadBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD23D,#FFA53D);border-radius:99px;transition:width .18s}
