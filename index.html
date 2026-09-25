@@ -86,13 +86,12 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
 .medalBadge span{display:block;color:#fff;font:800 clamp(14px,4.3vw,19px) 'Nunito Sans',sans-serif;margin-top:-15px;line-height:1.05;text-shadow:0 2px 4px rgba(10,20,70,.55)}
-.mdot{position:absolute;top:-4px;right:-2px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF8A7E,#F20F16 60%,#C40A10);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.5);z-index:6;display:none}
-.medalBadge .mSlot{overflow:visible}
+.mdot{position:absolute;top:4%;right:3%;width:24%;height:24%;max-width:24px;max-height:24px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF8A7E,#F20F16 60%,#C40A10);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.5);z-index:6;display:none}
 .msp{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;opacity:0;z-index:4;pointer-events:none;animation:mTw 2.2s ease-in-out infinite}
-.msp.s1{top:5%;left:8%;background:#FFF6C8;box-shadow:0 0 6px 2px rgba(255,230,150,.9)}
-.msp.s2{top:36%;right:3%;animation-delay:.55s}
-.msp.s3{bottom:22%;left:2%;animation-delay:1.1s;background:#CFE8FF;box-shadow:0 0 6px 2px rgba(160,210,255,.9)}
-.msp.s4{bottom:6%;right:16%;animation-delay:1.65s;background:#FFF6C8;box-shadow:0 0 5px 2px rgba(255,230,150,.85)}
+.msp.s1{top:16%;left:16%;background:#FFF6C8;box-shadow:0 0 6px 2px rgba(255,230,150,.9)}
+.msp.s2{top:40%;right:13%;animation-delay:.55s}
+.msp.s3{bottom:26%;left:12%;animation-delay:1.1s;background:#CFE8FF;box-shadow:0 0 6px 2px rgba(160,210,255,.9)}
+.msp.s4{bottom:16%;right:22%;animation-delay:1.65s;background:#FFF6C8;box-shadow:0 0 5px 2px rgba(255,230,150,.85)}
 @keyframes mTw{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
 .bigLogo{position:relative;margin-top:15vh;user-select:none;width:100%}
 .logoImg{display:none;width:min(63vw,286px);height:auto;margin:0 auto}
@@ -239,7 +238,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .tgl .slash{display:none;position:absolute;top:19px;left:50%;width:52px;height:6px;margin-left:-26px;border-radius:3px;background:linear-gradient(180deg,#FF5A4E,#D91E12);transform:rotate(-38deg);box-shadow:0 2px 3px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.35);z-index:3}
 .tgl.off .slash{display:block}
 .vibSl{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:2px}
-.vibSl button{width:22px;height:22px;border:none;border-radius:6px;background:linear-gradient(180deg,#5B6AD8,#4353C6);color:#fff;font-size:14px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 0 #2E3AA0,inset 0 1px 0 rgba(255,255,255,.35);font-family:'Fredoka';transition:filter .07s}
+.vibSl button{width:34px;height:30px;border:none;border-radius:8px;background:linear-gradient(180deg,#5B6AD8,#4353C6);color:#fff;font-size:16px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 0 #2E3AA0,inset 0 1px 0 rgba(255,255,255,.35);font-family:'Fredoka';transition:filter .07s}
+.vibSl{gap:9px}
 .vibSl button:active{transform:translateY(2px);filter:brightness(.8);box-shadow:0 0 0 #2E3AA0}
 .vTrack{position:relative;width:88px;height:6px;border-radius:99px;background:rgba(255,255,255,.28);box-shadow:inset 0 1px 2px rgba(0,0,0,.3)}
 .vTrack i{position:absolute;top:50%;left:50%;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#DCE2F5 70%);box-shadow:0 2px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%);transition:left .15s}
@@ -4197,9 +4197,19 @@ if(MUSIC.on){MUSIC.init();MUSIC.start()}
 else MUSIC.stop();
 refreshPauseToggles()});
 /* toggle vibration : 0 % ↔ 50 % */
-bindTap($('tglVib'),()=>{setVibLvl(vibLvl?0:5)});
+bindTap($('tglVib'),e=>{
+/* ignore les taps sur les contrôles du slider (+/−/track) */
+if(e&&e.target&&e.target.closest&&e.target.closest('.vibSl'))return;
+setVibLvl(vibLvl?0:5)});
 bindTap($('vibMinus'),()=>setVibLvl(vibLvl-1));
 bindTap($('vibPlus'),()=>setVibLvl(vibLvl+1));
+/* v52 : tap sur la barre → niveau exact selon la position du doigt */
+(function(){const tr=document.querySelector('.vTrack');if(!tr)return;
+tr.style.cursor='pointer';
+tr.addEventListener('pointerdown',e=>{
+e.stopPropagation();
+const r=tr.getBoundingClientRect();
+setVibLvl(Math.round(clamp((e.clientX-r.left)/r.width,0,1)*10))})})();
 let devTaps=0,devLastTap=0;
  $('bestWrap').addEventListener('pointerdown',()=>{
 const now=performance.now();
