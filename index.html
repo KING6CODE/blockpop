@@ -4047,10 +4047,8 @@ function updateMedalDot(){}
 function markAwardsSeen(){
 awardsSeenMax=awardProgress();
 try{store.set('bp_awseenMax',JSON.stringify(awardsSeenMax))}catch(e){}}
- $('medalDot').style.display='none'}
 function markAwardsSeen(){
 try{store.set('bp_awseenMax',JSON.stringify(awardProgress()))}catch(e){}
- $('medalDot').style.display='none'}
 function buildAchPage(){
  $('stCombo').textContent=stats.maxCombo;
  $('stBest').textContent=best;
