@@ -335,7 +335,6 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
           <circle cx="24" cy="17.5" r="9.5" fill="#FF8A1D"/>
           <path d="M24 11.5l1.9 3.9 4.3.6-3.1 3 .7 4.3-3.8-2-3.8 2 .7-4.3-3.1-3 4.3-.6z" fill="#FFF6D8"/>
         </svg>
-        <span class="mdot" id="medalDot"></span>
         <span class="msp s1"></span><span class="msp s2"></span><span class="msp s3"></span><span class="msp s4"></span>
       </div>
       <span>Medal</span>
@@ -696,8 +695,8 @@ over(){[330,262,208,165].forEach((f,i)=>this.tone(f,.34,'sine',.18,null,i*.19))}
    100 % = 2× plus fort ; durée min 12 ms pour être TOUJOURS sentie */
 let vibLvl=(()=>{const s=parseInt(store.get('bp_viblvl'));
 return isNaN(s)?5:clamp(s,0,10)})();
-const vib=p=>{if(vibLvl<=0)return;const sc=vibLvl/10;
-if(navigator.vibrate)try{navigator.vibrate(Array.isArray(p)?p.map(x=>Math.max(12,Math.round(x*sc))):Math.max(12,Math.round(p*sc)))}catch(e){}};
+const vib=p=>{if(vibLvl<=0)return;const sc=.5+(vibLvl/10)*1.5;
+if(navigator.vibrate)try{navigator.vibrate(Array.isArray(p)?p.map(x=>Math.max(15,Math.round(x*sc))):Math.max(15,Math.round(p*sc)))}catch(e){}};
 const customSfx={};
 const triedSfx={};
 function tryLoadSfx(name){
@@ -4044,14 +4043,10 @@ function awardProgress(){return AWARDS.map(a=>a.fn()[0])}
    la page pour la dernière fois). Il disparaît dès qu'on ouvre la page. */
 let awardsSeenMax=null;
 function loadSeenMax(){try{awardsSeenMax=JSON.parse(store.get('bp_awseenMax'))||AWARDS.map(()=>0)}catch(e){awardsSeenMax=AWARDS.map(()=>0)}}
-function updateMedalDot(){
-if(!awardsSeenMax)loadSeenMax();
-const cur=awardProgress();
-const hasNew=cur.some((v,i)=>v>0&&v>(awardsSeenMax[i]||0));
- $('medalDot').style.display=hasNew?'block':'none'}
+function updateMedalDot(){}
 function markAwardsSeen(){
 awardsSeenMax=awardProgress();
-try{store.set('bp_awseenMax',JSON.stringify(awardsSeenMax))}catch(e){}
+try{store.set('bp_awseenMax',JSON.stringify(awardsSeenMax))}catch(e){}}
  $('medalDot').style.display='none'}
 function markAwardsSeen(){
 try{store.set('bp_awseenMax',JSON.stringify(awardProgress()))}catch(e){}
