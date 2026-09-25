@@ -85,10 +85,9 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .medalBadge .mSlot{position:relative;width:100%;aspect-ratio:1;margin:0 auto;filter:drop-shadow(0 4px 7px rgba(10,25,80,.55)) drop-shadow(0 0 16px rgba(130,200,255,.95))}
 .medalBadge .mSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
 .medalBadge .mSlot svg{position:absolute;inset:0;width:100%;height:100%}
-.medalBadge .mSlot::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;clip-path:circle(47% at 50% 50%);background:rgba(255,255,255,.30);opacity:0;animation:mGlow 2.8s ease-in-out infinite}
-@keyframes mGlow{0%,100%{opacity:0}50%{opacity:1}}
 .medalBadge span{display:block;color:#fff;font:800 clamp(14px,4.3vw,19px) 'Nunito Sans',sans-serif;margin-top:-15px;line-height:1.05;text-shadow:0 2px 4px rgba(10,20,70,.55)}
-.mdot{position:absolute;top:1px;right:1px;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF8A7E,#F20F16 60%,#C40A10);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.5);z-index:6;display:none}
+.mdot{position:absolute;top:-4px;right:-2px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FF8A7E,#F20F16 60%,#C40A10);box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.5);z-index:6;display:none}
+.medalBadge .mSlot{overflow:visible}
 .msp{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;opacity:0;z-index:4;pointer-events:none;animation:mTw 2.2s ease-in-out infinite}
 .msp.s1{top:5%;left:8%;background:#FFF6C8;box-shadow:0 0 6px 2px rgba(255,230,150,.9)}
 .msp.s2{top:36%;right:3%;animation-delay:.55s}
@@ -2069,7 +2068,12 @@ if(mono){c.fillStyle='rgba(40,42,60,.55)';c.fillRect(x,y,s,s)}
 if(!mono&&st.outline){
 const lw=Math.max(1,s*.022);
 c.globalAlpha=alpha;
-c.strokeStyle=(COLORS_D[ci]||'#1a1c30');
+/* contour = teinte du bloc affiché, assombrie (raccord avec tous les gels) */
+let edge=COLORS_D[ci]||'#1a1c30';
+const palEntry=st.pal&&st.pal[ci];
+if(st.gel&&palEntry&&palEntry.s!=null){
+edge=mixHex(COLORS[palEntry.s].b,'#000000',.50)}
+c.strokeStyle=edge;
 c.lineWidth=lw;
 c.strokeRect(x+lw*.5,y+lw*.5,s-lw,s-lw)}
 }else{dGel(c,x,y,s,ci,alpha,mono)}
@@ -2156,7 +2160,7 @@ rubis_vert:'#4CC26F',diamant:'#8FE0FF',or:'#FFD23D',
 neon:'#3DF0C0',robotique:'#9AA8C0',galaxie:'#B48CFF'};
 function styleAcc(){return ACC[STYLES[theme].id]||'#5B8CFF'}
 function addThumbsFor(p,r,c){
-if(Math.random()>.30)return;
+if(Math.random()>.12)return;
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(!v)return;
 if(thumbs.length>=14)thumbs.shift();
@@ -3829,7 +3833,7 @@ const go=e=>{const now=performance.now();
 if(now-last<400)return;last=now;
 if(e&&e.stopPropagation)e.stopPropagation();
 vib(45);fn(e)};
-el.addEventListener('pointerdown',go);el.addEventListener('click',go)}
+el.addEventListener('pointerdown',go)}
 function hideAllOv(){
 ovPause.classList.remove('show');ovOver.classList.remove('show');
 ovAch.classList.remove('show');ovMap.classList.remove('show');
@@ -4035,11 +4039,20 @@ const AWARDS=[
 {name:'Master Cleaner',ic:'broom',max:10,fn:()=>[Math.min(10,Math.floor(stats.lines/100)),10]},
 {name:'Adventurer',ic:'map',max:20,fn:()=>[advStars.filter(s2=>s2>0).length,20]}];
 function awardProgress(){return AWARDS.map(a=>a.fn()[0])}
+/* v52 : le dot rouge n'apparaît QU'après un nouveau succès franchi
+   (comparaison avec les progrès vus au moment où le joueur a consulté
+   la page pour la dernière fois). Il disparaît dès qu'on ouvre la page. */
+let awardsSeenMax=null;
+function loadSeenMax(){try{awardsSeenMax=JSON.parse(store.get('bp_awseenMax'))||AWARDS.map(()=>0)}catch(e){awardsSeenMax=AWARDS.map(()=>0)}}
 function updateMedalDot(){
-try{const seen=JSON.parse(store.get('bp_awseenMax'))||[];
+if(!awardsSeenMax)loadSeenMax();
 const cur=awardProgress();
-const hasNew=cur.some((v,i)=>v>0&&v>(seen[i]||0));
- $('medalDot').style.display=hasNew?'block':'none'}catch(e){}}
+const hasNew=cur.some((v,i)=>v>0&&v>(awardsSeenMax[i]||0));
+ $('medalDot').style.display=hasNew?'block':'none'}
+function markAwardsSeen(){
+awardsSeenMax=awardProgress();
+try{store.set('bp_awseenMax',JSON.stringify(awardsSeenMax))}catch(e){}
+ $('medalDot').style.display='none'}
 function markAwardsSeen(){
 try{store.set('bp_awseenMax',JSON.stringify(awardProgress()))}catch(e){}
  $('medalDot').style.display='none'}
