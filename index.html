@@ -1043,7 +1043,7 @@ let combo=0,grace=3,maxCombo=0,placedCount=0,linesTotal=0;
 let bestAtStart=0,newRecordShown=false;
 let mode='classic',lvl=null,advLevel=0;
 let advLines=0,advChain=0,advComboMax=0,advPlaced=0,advGems=0,advGemsB=0,advGemsO=0,advFixedIdx=0;
-let advStars=(()=>{try{const a=JSON.parse(store.get('bp_adv'));if(Array.isArray(a)&&a.length===LEVELS.length)return a}catch(e){}return LEVELS.map(()=>0)})();
+let advStars=null;
 let state='title';
 let animating=false,turnId=0;
 let stylePts=0,styleRingT=0,reviveUsed=false,gameStart=0;
@@ -2205,6 +2205,8 @@ const base=6000+i*800;
 L.push({name:'Level '+(i+1),hint:hintFor(obj),obj:obj,s2:base,s3:base*2,
 maxPieces:(k===0&&i>=8)?18+Math.floor(i/3):undefined})}
 return L})();
+(function(){try{const a=JSON.parse(store.get('bp_adv'));if(Array.isArray(a)&&a.length===LEVELS.length)advStars=a}catch(e){}
+if(!advStars)advStars=LEVELS.map(()=>0)})();
 function gemPreset(count){
 const G='ABCDEFGH';
 const rows=[];
