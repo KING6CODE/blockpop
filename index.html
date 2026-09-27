@@ -4259,7 +4259,6 @@ saveStats();
 SFX.over();vib([70,50,70]);
 if(reviveEligible()){showReviveOffer();return}
 Ads.forceInterstitial(function(){showDeathScreen()})}
-const rec=score>bestAtStart&&score>0;
  $('foTitle').textContent=rec?'New Record!':
 bestAtStart>0&&score>=bestAtStart*.9?'So Close!':
 score>=10000?'Great Game!':'Game Over';
