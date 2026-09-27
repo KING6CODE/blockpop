@@ -278,6 +278,9 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 #fatalMsg{display:none;position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#5a1620;color:#fff;border:1px solid #ff8a8a;border-radius:10px;padding:10px;font:12px/1.4 monospace;word-break:break-all;pointer-events:none}
 .cf{position:fixed;top:-20px;width:9px;height:14px;border-radius:2px;z-index:120;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{from{transform:translateY(-4vh) rotate(0)}to{transform:translateY(110vh) rotate(680deg)}}
+#btnPause{position:relative}
+#btnPause img{position:absolute;inset:0;margin:auto;width:44px;height:44px;object-fit:contain;z-index:2;filter:drop-shadow(0 2px 2px rgba(5,18,60,.4))}
+.gearBtn img{position:absolute;inset:0;margin:auto;width:38px;height:38px;object-fit:contain;z-index:2}
 </style>
 </head>
 <body>
@@ -298,7 +301,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
     <div class="score-wrap"><div id="score">0</div></div>
     <div class="hside right">
       <button id="btnPause" aria-label="Settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v2.7M12 18.7v2.7M2.6 12h2.7M18.7 12h2.7M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <img src="assets/blocks/gear.png" alt="" onerror="this.style.display='none'"/>
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.95a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84c-.24 0-.43.17-.47.4l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.95a.49.49 0 0 0-.59.22L2.63 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.95c.5.38 1.03.7 1.62.94l.36 2.54c.05.23.24.4.48.4h3.84c.24 0 .44-.17.48-.4l.36-2.54a7.03 7.03 0 0 0 1.62-.94l2.39.95c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>
       </button>
     </div>
   </header>
@@ -338,6 +342,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 <div class="overlay" id="ovTitle">
   <div class="titleCol">
     <button class="gearBtn" id="btnGear" aria-label="Settings">
+      <img src="assets/blocks/gear.png" alt="" onerror="this.style.display='none'"/>
       <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.95a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84c-.24 0-.43.17-.47.4l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.95a.49.49 0 0 0-.59.22L2.63 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.95c.5.38 1.03.7 1.62.94l.36 2.54c.05.23.24.4.48.4h3.84c.24 0 .44-.17.48-.4l.36-2.54a7.03 7.03 0 0 0 1.62-.94l2.39.95c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>
     </button>
     <div class="bigLogo">
@@ -686,7 +691,7 @@ const SHAPES=[
 {m:[[1,1,1],[0,1,0]],w:.7},{m:[[0,1,0],[1,1,1]],w:.7},
 {m:[[1,0],[1,0],[1,1]],w:.75},{m:[[0,1],[0,1],[1,1]],w:.75},
 {m:[[1,1],[1,0],[1,0]],w:.75},{m:[[1,1],[0,1],[0,1]],w:.75},
-{m:[[1,1,1],[1,1,1],[1,0,0]],w:.16},{m:[[1,1,1],[1,1,1],[0,1,1]],w:.16}];
+{m:[[1,1,1],[1,1,1],[1,0,0]],w:.16},{m:[[1,1,1],[1,1,1],[0,1,1]],w:.16},{m:[[0,1,1],[1,1,1],[1,1,1]],w:.16}];
 const TUNE={presetMin:.10,presetMax:.26,acAidAfter:5,guideLockLines:3,advPityEarly:6,
 allClearCap:2500,bombMinScore:8000,bombChance:.05,dangerRatio:.62,reviveClearRows:3};
 /* ---------- assets images ---------- */
@@ -984,7 +989,7 @@ const hsideL=document.querySelector('.hside');
 const hsideR=document.querySelector('.hside.right');
 window.addEventListener('error',e=>{try{toast(e.message||'Error',5000)}catch(_){}});
 function wireUiImgs(){
-document.querySelectorAll('.crownSlot,.cSlot,.gSlot,.fo-crown,.bigLogo').forEach(slot=>{
+document.querySelectorAll('.crownSlot,.cSlot,.gSlot,.fo-crown,.bigLogo,.gearBtn,#btnPause').forEach(slot=>{
 const im=slot.querySelector('img');
 if(!im)return;
 const ok=()=>slot.classList.add('ok');
@@ -2892,7 +2897,6 @@ try{
 const m=await import('/capacitor-modules/admob.js');
 this.plugin=m.Admob;
 await this.plugin.initialize({initializeForTesting:true});
-try{await this.plugin.prepareBanner({adId:{android:ADMOB_IDS.banner},position:'BOTTOM_CENTER'})}catch(e){}
 this.nativeReady=true;
 console.log('AdMob ready (banner + interstitial + rewarded)')}
 catch(e){console.warn('AdMob unavailable (web or plugin missing)',e)}},
@@ -3986,7 +3990,8 @@ stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
 saveStats();
 SFX.over();vib([70,50,70]);
 if(reviveEligible()){showReviveOffer();return}
-Ads.forceInterstitial(function(){showDeathScreen()})}
+if(score>=AD_REVIVE.minScore)Ads.forceInterstitial(function(){showDeathScreen()});
+else showDeathScreen()}
 function refreshTitle(){
  $('titleBest').textContent='×'+consec}
 /* ============ succès ============ */
