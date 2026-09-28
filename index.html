@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="icon" href="data:,"/>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#173fb3"/>
@@ -650,9 +651,11 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 <div id="fatalMsg"></div>
 <script>
 window.addEventListener('error',function(e){
+/* erreurs de ressources (img 404, etc.) : e.target est l'élément → on ignore */
+if(e&&e.target&&e.target.tagName)return;
 var f=document.getElementById('fatalMsg');
 if(!f)return;f.style.display='block';
-f.textContent='Boot error: '+(e.message||e.type)+' @'+(e.lineno||'?');
+f.textContent='Boot error: '+(e.message||'unknown')+' @'+(e.lineno||'?');
 },true);
 </script>
 <script>
@@ -942,13 +945,16 @@ return tileCache[stId+'_'+ci]||tileCache['gel_'+(ci%8)]||null}
 function loadStyleTiles(st){
 for(let ci=0;ci<8;ci++)if(!tileCache[st.id+'_'+ci])tileCache[st.id+'_'+ci]=buildTileFallback(st,ci);
 const sufs=['red','orange','yellow','green','cyan','blue','purple','pink'];
-for(let ci=0;ci<8;ci++){
+try{const base=new Image();
+base.addEventListener('load',()=>{
+/* base trouvée → on la généralise puis on sonde les variantes par couleur */
+for(let ci=0;ci<8;ci++)tileCache[st.id+'_'+ci]=copyTile(base);
+sufs.forEach((suf,ci)=>{
 try{const im=new Image();
 im.addEventListener('load',()=>{tileCache[st.id+'_'+ci]=copyTile(im)},{once:true});
-im.src='assets/blocks/'+st.tex+'_'+sufs[ci]+'.png'}catch(e){}}
-try{const im2=new Image();
-im2.addEventListener('load',()=>{for(let ci=0;ci<8;ci++)if(!tileCache[st.id+'_'+ci])tileCache[st.id+'_'+ci]=copyTile(im2)},{once:true});
-im2.src='assets/blocks/'+st.tex+'.png'}catch(e){}}
+im.src='assets/blocks/'+st.tex+'_'+sufs[ci]+'.png'}catch(e){}});
+},{once:true});
+base.src='assets/blocks/'+st.tex+'.png'}catch(e){}}
 function ensureTiles(idx){
 const st=STYLES[idx];if(!st)return;
 if(triedTiles[st.id])return;triedTiles[st.id]=true;
