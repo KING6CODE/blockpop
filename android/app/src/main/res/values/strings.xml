@@ -4,4 +4,9 @@
     <string name="title_activity_main">BlockPop</string>
     <string name="package_name">com.king6code.blockpop</string>
     <string name="custom_url_scheme">com.king6code.blockpop</string>
+    <!-- App ID AdMob réel de Block Thud! (non secret). Si vous en changez :
+         utiliser celui de la console AdMob
+         (format ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY) et mettre à jour ADMOB_IDS
+         dans index.html. -->
+    <string name="admob_app_id" translatable="false">ca-app-pub-8086962907043995~5160883756</string>
 </resources>

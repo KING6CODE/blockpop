@@ -33,10 +33,21 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- AdMob (plugin @capacitor-community/admob) : App ID OBLIGATOIRE, sinon
+             le SDK Google Mobile Ads fait planter l'app au démarrage.
+             Valeur actuelle = App ID OFFICIEL DE TEST de Google (voir strings.xml)
+             → à remplacer par l'App ID de votre console AdMob avant publication. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id"/>
     </application>
 
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
+    <!-- navigator.vibrate() dans la WebView Android exige cette permission
+         (sans elle, aucune vibration dans l'app ; permission "normale", sans dialogue) -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 </manifest>
