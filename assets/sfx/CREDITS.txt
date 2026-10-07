@@ -1,0 +1,12 @@
+Block THUD! — effets sonores
+================================
+pick.mp3 : son fourni par le projet (conservé tel quel).
+place.mp3 : son fourni par le projet (Nouveau_projet (43).mp3).
+tap, revive_tick : AUCUN fichier → sons d'ORIGINE du moteur
+(WebAudio interne du jeu, à ne pas remplacer).
+Les autres .wav sont synthétisés par le projet (tools/gen-sfx.js,
+style original — 100 % libres de droits) : land, bad, gem, up,
+combo9, win, perfect, revive_open, over.
+Alternatives archivées : tools/sfx-alternatives-kenney/ (packs CC0),
+tools/sfx-alternatives-synth-v1/ (1re passe de synthèse).
+boom, voix de praise et sons par style de bloc : synthèse WebAudio interne.

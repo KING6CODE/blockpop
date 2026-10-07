@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Couleurs de marque Block THUD! (dégradé accueil #173fb3 → #1486d8) -->
+    <color name="colorPrimary">#173FB3</color>
+    <color name="colorPrimaryDark">#0C2A80</color>
+    <color name="colorAccent">#FFD23D</color>
+</resources>

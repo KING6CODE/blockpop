@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Block THUD! — Test des sons</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;background:linear-gradient(180deg,#173fb3,#1486d8);color:#fff;font-family:'Nunito Sans','Segoe UI',sans-serif;padding:calc(14px + env(safe-area-inset-top)) 14px 40px}
+h1{font-size:22px;text-align:center;text-shadow:0 2px 0 rgba(10,20,70,.4)}
+.sub{color:#BFD9F7;font-size:13px;text-align:center;margin:8px auto 16px;max-width:480px;line-height:1.5}
+.ctrl{max-width:480px;margin:0 auto 14px;background:rgba(10,18,60,.35);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.ctrl label{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800}
+.ctrl input[type=range]{flex:1;accent-color:#FFD23D}
+.ctrl .row{display:flex;gap:8px}
+.ctrl button{flex:1;border:none;border-radius:12px;padding:12px 8px;font:800 15px 'Nunito Sans',sans-serif;color:#fff;cursor:pointer}
+#playAll{background:linear-gradient(180deg,#5FE84C,#25A415);box-shadow:0 4px 0 #1E8A12}
+#stopAll{background:linear-gradient(180deg,#FF7A6B,#E82E1E);box-shadow:0 4px 0 #B81C10}
+.card{max-width:480px;margin:0 auto 10px;background:linear-gradient(180deg,#7B97F2,#5B76DC);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 14px rgba(4,8,32,.35)}
+.card.now{outline:3px solid #FFD23D}
+.play{width:58px;height:58px;flex:none;border:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF6B0,#FFC93D 60%,#F5A818);box-shadow:0 4px 0 #C47F00,0 8px 14px rgba(5,20,70,.4);cursor:pointer;display:grid;place-items:center}
+.play:active{transform:translateY(3px);box-shadow:0 1px 0 #C47F00}
+.play svg{width:26px;height:26px;fill:#6A3A00;margin-left:3px}
+.meta{flex:1;min-width:0}
+.meta b{font-size:16.5px;display:flex;align-items:center;gap:8px}
+.meta .trig{font-size:13px;color:#EAF1FF;margin-top:3px;line-height:1.35}
+.meta .gain{font-size:11.5px;color:#CFE0FF;margin-top:3px}
+.dot{width:11px;height:11px;border-radius:50%;flex:none;background:#FFB53D}
+.dot.ok{background:#3ED455}.dot.err{background:#FF5A4E}
+code{background:rgba(10,18,60,.4);border-radius:6px;padding:1px 7px;font-size:11.5px;font-weight:800}
+.foot{max-width:480px;margin:18px auto 0;color:#BFD9F7;font-size:12.5px;text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+<h1>🔊 Block THUD! — Test des sons</h1>
+<p class="sub">Chaque bouton joue le <b>fichier réel du jeu</b> avec le <b>même volume qu'en partie</b>.
+Ta décision : « garde / trop fort / trop faible / pas le bon mood » par son.</p>
+<div class="ctrl">
+  <label>Volume global <input type="range" id="vol" min="0" max="150" value="100"/><b id="volv">100%</b></label>
+  <div class="row">
+    <button id="playAll">▶ Tout écouter (ordre d'une partie)</button>
+    <button id="stopAll">■ Stop</button>
+  </div>
+</div>
+<div id="cards"></div>
+<p class="foot">Ces 13 sons sont embarqués dans l'AAB. Les <b>booms de bombe</b>, les <b>voix</b> (Great! Amazing!…) et les
+<b>sons par style de bloc</b> (gel, bonbon, diamant…) restent synthétisés par le moteur : ils se testent en partie.
+— <code>boom.mp3</code>, <code>voice_*.mp3</code>, <code>clear_*.mp3</code> sont les emplacements libres pour plus tard.</p>
+<script>
+'use strict';
+const SOUNDS=[
+ {f:'tap',g:.70,t:'Bouton tapé',d:'Chaque bouton du jeu : accueil, réglages, Adventure, Replay…'},
+ {f:'pick',g:.50,t:'Pièce attrapée',d:'Tu prends une pièce dans la pioche. (ton fichier pick.mp3)'},
+ {f:'place',g:.52,t:'Pièce posée',d:'Une pièce atterrit sur le plateau. (ton fichier place.wav, adouci passe-bas 3,2 kHz)'},
+ {f:'land',g:.50,t:'Blocs retombés',d:'Après une ligne, les blocs du dessus retombent (avec rebond).'},
+ {f:'gem',g:.60,t:'Gemme ramassée',d:'Une gemme bleue/orange est récupérée en nettoyant (+200).'},
+ {f:'up',g:.50,t:'Style obtenu / Revive OK',d:'Nouveau style débloqué OU revive accepté (reprise).'},
+ {f:'combo9',g:.90,t:'Combo ×9 et +',d:'Gros combo : ponctue le texte COMBO ×9.'},
+ {f:'win',g:.80,t:'Victoire',d:'Niveau d\'Aventure réussi, nouveau record, style débloqué.'},
+ {f:'perfect',g:.80,t:'PERFECT CLEAR',d:'Plateau entièrement vidé : fanfare + pluie de blocs.'},
+ {f:'revive_open',g:.85,t:'Offre Revive ouverte',d:'Tu meurs en Classic (score ≥ 2000) : le cœur + l\'anneau apparaissent.'},
+ {f:'revive_tick',g:.70,t:'Décompte Revive',d:'Chaque seconde de l\'anneau Revive (5, 4, 3…).'},
+ {f:'bad',g:.50,t:'Coup refusé',d:'Pose invalide : pièce rendue à la pioche, combo perdu.'},
+ {f:'over',g:.80,t:'Game Over',d:'Défaite : écran Game Over (après le revive refusé/expiré).'}
+];
+const ORDER=['tap','pick','place','land','gem','up','combo9','win','perfect','revive_open','revive_tick','bad','over'];
+let ctx=null,bufs={},master=1,playing=null;
+function getCtx(){if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();
+if(ctx.state==='suspended')ctx.resume();return ctx}
+async function load(s){
+const dot=document.getElementById('dot_'+s.f);
+if(SYNTH[s.f]){dot.className='dot ok';dot.title='son d\'origine (synthèse moteur)';return}
+for(const ext of ['.mp3','.ogg','.wav']){
+try{
+const r=await fetch('assets/sfx/'+s.f+ext);
+if(!r.ok)continue;
+const ab=await r.arrayBuffer();
+bufs[s.f]=await getCtx().decodeAudioData(ab);
+dot.className='dot ok';dot.title='chargé ('+ext+')';
+return}catch(e){}}
+dot.className='dot err';dot.title='fichier introuvable'}
+function play(f){
+const s=SOUNDS.find(x=>x.f===f),b=bufs[f];if(!b)return;
+const c=getCtx(),src=c.createBufferSource(),g=c.createGain();
+let tail=src;
+if(f==='place'){const fl=c.createBiquadFilter();fl.type='lowpass';
+fl.frequency.value=3200;fl.Q.value=.6;src.connect(fl);tail=fl}
+tail.connect(g).connect(c.destination);
+g.gain.value=s.g*master;
+src.start();
+return b.duration*1000}
+/* Sons d'ORIGINE du moteur (tap, place, revive_tick) : reproduction exacte
+   des recettes WebAudio du jeu (SFX.tone / SFX.noise) — aucun fichier. */
+function toneSynth(c,f,dur,vol,slide,when){
+const t0=c.currentTime+(when||0);
+const o=c.createOscillator(),g=c.createGain();
+o.type='sine';o.frequency.setValueAtTime(f,t0);
+if(slide)o.frequency.exponentialRampToValueAtTime(slide,t0+dur);
+g.gain.setValueAtTime(.0001,t0);g.gain.linearRampToValueAtTime(vol,t0+.03);
+g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+o.connect(g).connect(c.destination);o.start(t0);o.stop(t0+dur+.05)}
+function noiseSynth(c,dur,vol,fq){
+const n=Math.floor(c.sampleRate*dur),b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0);
+for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+const s=c.createBufferSource();s.buffer=b;
+const fl=c.createBiquadFilter();fl.type='lowpass';fl.frequency.value=fq||900;
+const g=c.createGain();g.gain.value=vol;
+s.connect(fl).connect(g).connect(c.destination);s.start()}
+const SYNTH={
+tap(c){toneSynth(c,660,.05,.16*master);toneSynth(c,990,.07,.13*master,null,.05)},
+revive_tick(c){toneSynth(c,880,.05,.12*master)}};
+function playSound(f){
+if(SYNTH[f]){SYNTH[f](getCtx());return 400}
+return play(f)}
+function build(){
+const wrap=document.getElementById('cards');
+ORDER.forEach(f=>{
+const s=SOUNDS.find(x=>x.f===f);
+const d=document.createElement('div');d.className='card';d.id='card_'+f;
+d.innerHTML='<button class="play" data-f="'+f+'" aria-label="Jouer '+f+'"><svg viewBox="0 0 24 24"><path d="M8 5.1c0-1.2 1.3-1.9 2.3-1.3l10 6.4c.9.6.9 2 0 2.6l-10 6.4c-1 .6-2.3-.1-2.3-1.3z"/></svg></button>'+
+'<div class="meta"><b>'+s.t+'<span class="dot" id="dot_'+f+'"></span></b>'+
+'<div class="trig">'+s.d+'</div><div class="gain">'+(SYNTH[f]?'son d\'origine (moteur)':'<code>'+s.f+'</code>')+' · volume jeu '+Math.round(s.g*100)+' %</div></div>';
+wrap.appendChild(d);
+d.querySelector('.play').addEventListener('click',()=>{getCtx();playSound(f)})})}
+document.getElementById('vol').addEventListener('input',e=>{
+master=e.target.value/100;
+document.getElementById('volv').textContent=e.target.value+'%'});
+let seqTimer=null;
+document.getElementById('playAll').addEventListener('click',async()=>{
+getCtx();stopSeq();
+for(const f of ORDER){
+if(!bufs[f]&&!SYNTH[f])continue;
+const card=document.getElementById('card_'+f);
+document.querySelectorAll('.card').forEach(c=>c.classList.remove('now'));
+card.classList.add('now');
+const dur=playSound(f)||600;
+await new Promise(r=>{seqTimer=setTimeout(r,Math.max(900,dur+350))});
+}
+document.querySelectorAll('.card').forEach(c=>c.classList.remove('now'))});
+function stopSeq(){if(seqTimer){clearTimeout(seqTimer);seqTimer=null}
+document.querySelectorAll('.card').forEach(c=>c.classList.remove('now'))}
+document.getElementById('stopAll').addEventListener('click',stopSeq);
+build();
+SOUNDS.forEach(load);
+</script>
+</body>
+</html>
