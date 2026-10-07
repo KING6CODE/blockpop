@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#173fb3"/>
 <title>BLOCK THUD!</title>
+<!-- v61 : correction de la faute de syntaxe du fantôme de pose (l'aperçu de la pièce sous
+     le doigt ne s'affichait plus et levait une erreur à chaque image) ; tuiles réduites à
+     256 px et recolorisation HSL ~10× plus rapide (fini les gels de plusieurs secondes) ;
+     TOUT est chargé sous l'écran de chargement (31 styles, UI, polices) ; nouvelles images
+     dynamite (bomb.png) et cœur (heart.png). -->
 <!-- v59 (Ad Showcase) : scènes publicitaires scriptées tournées sur le VRAI
      moteur (?ad=fail1) — plateau sculpté, doigt synthétique, pop-textes,
      hook + end card DOM, boucle 15 s ; entrées humaines bloquées (isTrusted).
@@ -1115,27 +1120,44 @@ else if(key==='violet'){const h=hslOf(r,g,b);const o=rgbOf((h[0]+.3056)%1,h[1]*.
 px[i]=r>255?255:r;px[i+1]=g>255?255:g;px[i+2]=b>255?255:b}
 c.putImageData(d,0,0);
 return cv}
+/* v61 (anti-lag) : toneTile ne refait plus la conversion RGB→HSL pour chacune des
+   8 variantes — la saturation/luminosité de la tuile de base sont calculées UNE
+   fois (cache par canvas), puis chaque variante n'applique que la teinte cible
+   (formule HSL→RGB réduite à 3 coefficients par teinte). Même résultat visuel
+   qu'avant, ~10× moins de calcul par pixel. */
+const _slCache=new WeakMap();
+function _baseSL(src,px){
+let e=_slCache.get(src);if(e)return e;
+const n=px.length>>2,S=new Float32Array(n),L=new Float32Array(n);
+for(let i=0,j=0;i<px.length;i+=4,j++){
+if(px[i+3]===0){S[j]=-1;continue}
+const r=px[i]/255,g=px[i+1]/255,b=px[i+2]/255;
+const mx=r>g?(r>b?r:b):(g>b?g:b),mn=r<g?(r<b?r:b):(g<b?g:b);
+const l=(mx+mn)/2;S[j]=mx===mn?0:(l>.5?(mx-mn)/(2-mx-mn):(mx-mn)/(mx+mn));L[j]=l}
+e={S:S,L:L};_slCache.set(src,e);return e}
+function _hw(t){t=(t%1+1)%1;return t<1/6?6*t:t<1/2?1:t<2/3?(2/3-t)*6:0}
 function toneTile(src,hueDeg,soft,hs){
 const cv=document.createElement('canvas');
 cv.width=src.width;cv.height=src.height;
 const c=cv.getContext('2d');c.drawImage(src,0,0);
 let d=null;
 try{d=c.getImageData(0,0,cv.width,cv.height)}catch(e){return cv}
-const px=d.data;
-for(let i=0;i<px.length;i+=4){
-if(px[i+3]===0)continue;
-const h=hslOf(px[i],px[i+1],px[i+2]);
+const px=d.data,sl=_baseSL(src,px),S=sl.S,L=sl.L;
 if(hueDeg<0){
-const l2=clamp(.66+(h[2]-.52)*.5,.55,.82);
-const v=Math.round(l2*255);
-px[i]=v;px[i+1]=v;px[i+2]=v;continue}
-const th=((hueDeg%360)+360)%360/360;
-if(h[1]<.12)continue;
-let s=Math.max(h[1],.30),l=h[2];
-if(hs){s=clamp(h[1],.34,.58);l=clamp(.52+(h[2]-.52)*.62,.38,.66)}
-let o=rgbOf(th,s,l);
-if(soft){o=[o[0]+(255-o[0])*soft,o[1]+(255-o[1])*soft,o[2]+(255-o[2])*soft]}
-px[i]=Math.min(255,o[0]);px[i+1]=Math.min(255,o[1]);px[i+2]=Math.min(255,o[2])}
+for(let i=0,j=0;i<px.length;i+=4,j++){
+if(S[j]<0)continue;
+const l2=clamp(.66+(L[j]-.52)*.5,.55,.82),v=Math.round(l2*255);
+px[i]=v;px[i+1]=v;px[i+2]=v}
+c.putImageData(d,0,0);return cv}
+const th=((hueDeg%360)+360)%360/360,wR=_hw(th+1/3),wG=_hw(th),wB=_hw(th-1/3);
+for(let i=0,j=0;i<px.length;i+=4,j++){
+const s0=S[j];if(s0<0||s0<.12)continue;
+let s=s0<.30?.30:s0,l=L[j];
+if(hs){s=clamp(s0,.34,.58);l=clamp(.52+(l-.52)*.62,.38,.66)}
+const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q,k=q-p;
+let r=Math.round((p+k*wR)*255),g=Math.round((p+k*wG)*255),b=Math.round((p+k*wB)*255);
+if(soft){r=r+(255-r)*soft;g=g+(255-g)*soft;b=b+(255-b)*soft}
+px[i]=r>255?255:r;px[i+1]=g>255?255:g;px[i+2]=b>255?255:b}
 c.putImageData(d,0,0);
 return cv}
 const tileCache={};
@@ -2880,7 +2902,8 @@ if(v)rrPath(c,ox+dc*mini+mini*.30,oy+dr*mini+mini*.36,mini,mini,mini*.05)}));
 c.fill();
 p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
 if(!v)return;
-if(p.bomb)drawBomb(c,ox+dc*mini,oy+dr*mini,mini,performance.now());
+if(p.bomb){/* v61 : dynamite agrandie dans le plateau d'attente (1 cellule = trop petit pour lire l'image) */
+const bs2=mini*2.5;drawBomb(c,ox+dc*mini+(mini-bs2)/2,oy+dr*mini+(mini-bs2)/2,bs2,performance.now())}
 else{
 drawBlock(c,ox+dc*mini,oy+dr*mini,mini,effColor(p.ci,dr,dc),1,1,false);
 if(p.dead){c.fillStyle='rgba(92,96,116,.60)';
@@ -3854,8 +3877,8 @@ bctx.fillStyle='rgba(255,255,255,'+(.32*kk)+')';
 rr(bctx,gx+c*cell+1,gy+r*cell+oyF+1,cell-2,cell-2,cell*.06);bctx.fill()}}
 	if(drag&&ghost&&state==='playing'){
 	drawTutHint(t);
-	drag.p.m.forEach((row,dr)=>row.forEach((v,dc=>{
-	if(v)drawGhostCell(bctx,gx+(ghost.c+dc)*cell,gy+(ghost.r+dr)*cell,cell,effColor(drag.p.ci,dr,dc))})))}
+	drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{
+	if(v)drawGhostCell(bctx,gx+(ghost.c+dc)*cell,gy+(ghost.r+dr)*cell,cell,effColor(drag.p.ci,dr,dc))}))}
 	else if(state==='playing')drawTutHint(t);
 if(drag&&ghost&&ghost.hs1.length&&state==='playing'){
 const lh=drag.lh||'#FFD23D';
@@ -5047,24 +5070,38 @@ if(CapApp&&CapApp.addListener){
 		if(state==='title'){try{CapApp.exitApp()}catch(e){}}});
 	if(rb&&rb.catch)rb.catch(()=>{})}}catch(e){}
 function bootWait(){
+/* v61 (anti-lag) : TOUT est chargé et préparé SOUS l'écran de chargement —
+   les 31 styles de tuiles (décodage + teintes), les images d'interface, les
+   polices. Plus aucun décodage/recoloriage en cours de partie (c'était la
+   cause des gels de plusieurs centaines de ms). Barre = progression réelle. */
 const start=performance.now();
+for(let i=0;i<STYLES.length;i++)ensureTiles(i);
+const uiList=['assets/ui/logo.png','assets/ui/heart.png','assets/ui/crown.png','assets/ui/medal.png','assets/ui/gem_blue.png','assets/ui/gem_orange.png','assets/blocks/gear.png'];
+let uiDone=0;
+uiList.forEach(u=>{try{const im=new Image();const fin=()=>{uiDone++};im.onload=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(fin)};im.onerror=fin;im.src=u}catch(e){uiDone++}});
+let fontsDone=false;
+try{Promise.all([document.fonts.load('400 40px "Lilita One"'),document.fonts.load('700 20px "Fredoka"'),document.fonts.load('800 40px "Nunito Sans"')]).then(()=>{fontsDone=true},()=>{fontsDone=true})}catch(e){fontsDone=true}
+if(!(document.fonts&&document.fonts.load))fontsDone=true;
 const iv=setInterval(()=>{
+if(tileCache['gel_7']||tileCache['gel_0'])regenGelVariants();
 let got=0;
-for(let ci=0;ci<8;ci++)if(tileCache['gel_'+ci])got++;
+for(let i=0;i<STYLES.length;i++){if(tileCache[STYLES[i].id+'_7'])got++}
 const el=performance.now()-start;
-setLoading(clamp((got/8)*.85+Math.min(el/900,1)*.15,0,1));
-	if(got>=8||el>900){
-	clearInterval(iv);setLoading(1);
+const uiP=uiDone/uiList.length;
+setLoading(clamp((got/STYLES.length)*.80+uiP*.12+(fontsDone?.08:0),0,.99));
+const allReady=got>=STYLES.length&&uiDone>=uiList.length&&fontsDone&&Assets.get('bomb');
+if((allReady&&el>500)||el>9000){
+clearInterval(iv);setLoading(1);
 setTimeout(()=>{
 /* v60 : le coût de spawn (restore/newGame) est payé SOUS l'écran de chargement */
 if(AD.scenes[AD.fromURL]){AD.play(AD.fromURL);ovLoad.classList.remove('show')}
 else if(!tryRestoreGame()){newGame();ovLoad.classList.remove('show')}
 else ovLoad.classList.remove('show');
-},180)}},100)}
+},180)}},60)}
 function setLoading(p){$('loadFill').style.width=Math.round(clamp(p,0,1)*100)+'%'}
 bootWait();
 Ads.init();
-preheatAllStyles();
+/* v61 : preheatAllStyles() supprimé — tout est déjà chargé par bootWait() */
 bindTap($('devPreview'),()=>{
 const idx=styleIdxById($('devStyle').value);
 if(idx<0)return;
