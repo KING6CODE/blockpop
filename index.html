@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#173fb3"/>
 <title>BLOCK THUD!</title>
+<!-- v62 : monétisation — bouton « FREE » (bombe offerte contre une pub récompensée
+     volontaire, 1 par partie Classic, jamais à la 1re partie) ; offre de Revive dès 1000
+     points (au lieu de 2000). -->
 <!-- v61 : correction de la faute de syntaxe du fantôme de pose (l'aperçu de la pièce sous
      le doigt ne s'affichait plus et levait une erreur à chaque image) ; tuiles réduites à
      256 px et recolorisation HSL ~10× plus rapide (fini les gels de plusieurs secondes) ;
@@ -76,6 +79,12 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 #bestWrap .crownSlot svg{position:absolute;inset:0;width:100%;height:100%;fill:currentColor;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
 #btnPause{position:relative;width:52px;height:52px;background:none;border:none;padding:0;margin-top:0;cursor:pointer;line-height:0;color:#e8eeff;display:grid;place-items:center;transition:filter .07s,transform .07s}
 #btnPause:active{filter:brightness(.8);transform:scale(.92)}
+/* v62 : bombe offerte contre une pub récompensée (1 par partie Classic, volontaire) */
+#btnBonus{display:none;position:relative;width:52px;height:52px;margin-top:4px;background:none;border:none;padding:0;cursor:pointer;line-height:0;touch-action:manipulation}
+#btnBonus.on{display:block}
+#btnBonus img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(5,18,60,.45))}
+#btnBonus span{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);padding:1px 6px;border-radius:8px;background:#27c05a;color:#fff;font:900 10px 'Nunito Sans',sans-serif;letter-spacing:1px;line-height:1.3;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+#btnBonus:active{filter:brightness(.8);transform:scale(.92)}
 #btnPause svg{width:44px;height:44px}
 #btnPause img{position:absolute;inset:0;margin:auto;width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(5,18,60,.4))}
 #score{display:none}
@@ -411,6 +420,10 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
       <button id="btnPause" aria-label="Settings">
         <img src="assets/blocks/gear.png" alt="" onerror="this.style.display='none'"/>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v2.7M12 18.7v2.7M2.6 12h2.7M18.7 12h2.7M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+      </button>
+      <button id="btnBonus" aria-label="Free bomb: watch an ad">
+        <img src="assets/blocks/bomb.png" alt="" onerror="this.style.display='none'"/>
+        <span>FREE</span>
       </button>
     </div>
   </header>
@@ -3452,7 +3465,21 @@ if(Ads.busy||!adAllowed()||
 (Ads.lastEnd>0&&performance.now()-Ads.lastEnd<AD_CONFIG.restartCooldownMs)){done();return}
 Ads.showInterstitial(done)}
 function restartWithAd(go){showPlacedAd(go)}
-const REVIVE={minScore:2000,maxAds:3,seconds:5};
+const REVIVE={minScore:1000,maxAds:3,seconds:5};
+/* v62 : bombe offerte (pub récompensée VOLONTAIRE) — 1 par partie Classic, jamais
+   pendant la 1re partie ; le bouton n'apparaît que pendant le jeu */
+let bonusUsed=false;
+function updateBonusBtn(){const b=$('btnBonus');if(!b)return;
+b.classList.toggle('on',mode==='classic'&&state==='playing'&&!bonusUsed&&adAllowed()&&!Ads.busy)}
+setInterval(updateBonusBtn,400);
+function giveBonusBomb(){
+let i=tray.findIndex(p=>!p);
+if(i<0)i=tray.findIndex(p=>p&&p.dead&&!p.bomb);
+if(i<0)i=tray.findIndex(p=>p&&!p.bomb);
+if(i<0)i=0;
+tray[i]={bomb:true,m:[[1]],si:-1,ci:2,dead:false};
+renderTray(true);computeTutHint();SFX.up();vib([12,24,12]);
+toast('Free bomb added!',1800)}
 let reviveAds=0,rvTimers=[],rvAnim=null,goTok=0;
 /* revive si : score ≥ 2000 ET < 3 revives regardées dans CETTE partie.
    v58 : autorisé AUSSI pendant un run record — c'est le moment de plus
@@ -4669,7 +4696,7 @@ saveGame()}
 function newGame(){mode='classic';lvl=null;setHudMode();
 turnId++;animating=false;
 popQueue=[];popCur=null;
-clearRevive();reviveAds=0;pausedBySettings=false;turnEndPending=false;
+clearRevive();reviveAds=0;bonusUsed=false;pausedBySettings=false;turnEndPending=false;
 ovTitle.classList.remove('show');ovOver.classList.remove('show');ovPause.classList.remove('show');ovRevive.classList.remove('show');
 score=0;shownScore=0;
 combo=0;grace=3;maxCombo=0;placedCount=0;linesTotal=0;stars=0;
@@ -4768,6 +4795,14 @@ Ads.showRewarded(earned=>{
 if(earned){reviveAds++;doRevive()}
 else declineRevive()})});
 bindTap($('btnReviveNo'),()=>{declineRevive()});
+/* v62 : bombe offerte — la récompense seule décide ; pas de pub = rien ne se passe */
+bindTap($('btnBonus'),()=>{
+if(state!=='playing'||mode!=='classic'||bonusUsed||Ads.busy)return;
+state='bonusAd';$('btnBonus').classList.remove('on');
+Ads.showRewarded(earned=>{
+if(state==='bonusAd')state='playing';
+if(earned){bonusUsed=true;giveBonusBomb()}
+else toast('No ad available right now',1600)})});
 /* Settings (Home : ctx 'home' ; en partie : ctx 'game') */
 bindTap($('btnPause'),()=>{openPause('game')});
 bindTap($('btnPClose'),()=>{closePause()});
