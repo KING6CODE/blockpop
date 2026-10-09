@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#173fb3"/>
 <title>BLOCK THUD!</title>
+<!-- v63 : rétention + pubs plus sobres au début. Plus AUCUNE pub avant la 3e partie (le Game Over de la 1re partie en montrait une : stats.games était incrémenté
+     AVANT le test) ; le refus du revive passe par la même porte (showPlacedAd) ; pendant les 48 premières heures, une interstitielle sur deux. Bombe offerte (scriptée) à
+     700 points dans la toute première partie + message de gravité à la 1re chute ; rappels par NOTIFICATIONS LOCALES (J+1, J+3, J+7 à l'heure habituelle de jeu), permission
+     demandée une fois, après la 2e partie, avec un écran d'explication. -->
 <!-- v62 : monétisation — bouton « FREE » (bombe offerte contre une pub récompensée
      volontaire, 1 par partie Classic, jamais à la 1re partie) ; offre de Revive dès 1000
      points (au lieu de 2000). -->
@@ -332,6 +336,11 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .goHome:active{opacity:.6;transform:scale(.96)}
 /* ---------- v55 : REVIVE (anneau 136 px, 5 s) ---------- */
 #ovRevive{z-index:120;background:rgba(9,16,48,.84)}
+#ovNotif{z-index:125;background:rgba(9,16,48,.9)}
+.ntWrap{width:min(100%,380px);display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff;font-family:'Nunito Sans',sans-serif}
+.ntTitle{font:900 30px 'Nunito Sans',sans-serif;text-shadow:0 4px 0 rgba(8,30,100,.45)}
+.ntText{margin-top:12px;font:700 17px/1.35 'Nunito Sans',sans-serif;color:rgba(255,255,255,.92)}
+.ntBomb{width:84px;height:84px;margin-bottom:14px;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(5,18,60,.5))}
 .rvWrap{width:min(100%,420px);display:flex;flex-direction:column;align-items:center;text-align:center}
 .rvHeart{position:relative;width:118px;height:106px;filter:drop-shadow(0 8px 14px rgba(120,10,60,.45))}
 .rvHeart img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
@@ -716,6 +725,16 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
     <p id="foStats"></p>
     <button class="goPlay" id="btnAgain" aria-label="Play again"><svg viewBox="0 0 24 24"><path d="M8 5.1c0-1.2 1.3-1.9 2.3-1.3l10 6.4c.9.6.9 2 0 2.6l-10 6.4c-1 .6-2.3-.1-2.3-1.3z"/></svg></button>
     <button class="goHome" id="btnMenu">Home</button>
+  </div>
+</div>
+<!-- v63 : écran d'explication avant la demande d'autorisation des notifications -->
+<div class="overlay" id="ovNotif">
+  <div class="ntWrap">
+    <img class="ntBomb" src="assets/blocks/bomb.png" alt="" onerror="this.style.display='none'"/>
+    <div class="ntTitle">Beat your record!</div>
+    <div class="ntText">Want a friendly reminder to come back and beat your best score? Just a few, never at night. You can turn them off any time in your phone settings.</div>
+    <button class="rvGo" id="btnNotifYes"><span style="position:relative;color:#fff;font:900 22px 'Nunito Sans',sans-serif">Yes, remind me</span></button>
+    <button class="rvNo" id="btnNotifNo">Not now</button>
   </div>
 </div>
 <!-- v55 : offre Revive (Classic uniquement) -->
@@ -3103,6 +3122,7 @@ const s2=STYLES[th].snd;
 const f=semi(392,Math.min(c,9)-1);
 this.tone(f,.15,s2.w,.10,f*1.5);
 this.tone(f*1.5,.18,'triangle',.07,null,.05)};
+function gravityHint(moved){if(moved&&!store.get('bp_gv')){store.set('bp_gv','1');toast('Gravity! Blocks fall after every clear',2600)}}
 function applyGravity(){let moved=0;
 for(let c=0;c<N;c++){let write=N-1;
 for(let r=N-1;r>=0;r--){const b=grid[r][c];
@@ -3124,7 +3144,7 @@ chain++;advChain=Math.max(advChain,chain);
 doClear(fc.rows,fc.cols,chain>1);
 if(my!==turnId)return;
 await sleep(200);if(my!==turnId)return;
-const moved=applyGravity();if(moved)await waitSettled();
+const moved=applyGravity();gravityHint(moved);if(moved)await waitSettled();
 if(my!==turnId)return;
 await sleep(60);if(my!==turnId)return}
 if(chain>0&&gridEmpty()){
@@ -3303,6 +3323,8 @@ testing:false,            /* vrais IDs : les appareils de test se déclarent dan
 fakeFallback:false,       /* production : jamais de fausse pub si AdMob échoue (pas de pub = le jeu continue) */
 interstitialSec:3,
 rewardedSec:5,
+firstAdAfterGames:2,      /* v63 : aucune pub tant que 2 parties n'ont pas été terminées (la 3e est la première avec pub) */
+youngHours:48,            /* v63 : pendant les 48 premières heures, une interstitielle sur deux seulement */
 restartCooldownMs:30000,  /* pas d'interstitielle de Restart < 30 s après la fermeture d'une pub */
 bannerInAdventure:true    /* bannière aussi pendant les niveaux Aventure (gameplay) */
 };
@@ -3457,12 +3479,19 @@ paint();ovAdFake.classList.add('show')}};
    Situation 3 (v58) : affichage du Game Over (interstitielle avant l'écran).
    Jamais pendant la TOUTE PREMIÈRE partie (rétention) ni à < 30 s d'une pub.
    Nulle part ailleurs (accueil, carte, victoire, succès, Next Level…). */
-function adAllowed(){return stats.games>0}
+/* v63 : parties terminées AVANT la partie en cours (finishGameOver incrémente stats.games : gameCounted compense) */
+let gameCounted=false;
+function gamesBefore(){return stats.games-(gameCounted?1:0)}
+function adAllowed(){return gamesBefore()>=AD_CONFIG.firstAdAfterGames}
+function rewardAllowed(){return gamesBefore()>=1}   /* la bombe offerte (pub VOLONTAIRE) arrive dès la 2e partie */
+if(!store.get('bp_fs'))store.set('bp_fs',String(Date.now()));
+function isYoung(){const t=parseInt(store.get('bp_fs'))||Date.now();return Date.now()-t<AD_CONFIG.youngHours*3600000}
 /* unique porte d'entrée des interstitielles : jamais à la 1re partie,
    jamais pendant une autre pub, jamais à < 30 s de la précédente */
 function showPlacedAd(done){
 if(Ads.busy||!adAllowed()||
 (Ads.lastEnd>0&&performance.now()-Ads.lastEnd<AD_CONFIG.restartCooldownMs)){done();return}
+if(isYoung()){const n=parseInt(store.get('bp_io'))||0;store.set('bp_io',String(n+1));if(n%2===1){done();return}}   /* nouveaux joueurs : une occasion sur deux */
 Ads.showInterstitial(done)}
 function restartWithAd(go){showPlacedAd(go)}
 const REVIVE={minScore:1000,maxAds:3,seconds:5};
@@ -3470,16 +3499,18 @@ const REVIVE={minScore:1000,maxAds:3,seconds:5};
    pendant la 1re partie ; le bouton n'apparaît que pendant le jeu */
 let bonusUsed=false;
 function updateBonusBtn(){const b=$('btnBonus');if(!b)return;
-b.classList.toggle('on',mode==='classic'&&state==='playing'&&!bonusUsed&&adAllowed()&&!Ads.busy)}
+b.classList.toggle('on',mode==='classic'&&state==='playing'&&!bonusUsed&&rewardAllowed()&&!Ads.busy);
+/* v63 : cadeau de la toute première partie — une bombe offerte à 700 points (on découvre le différenciant du jeu) */
+if(mode==='classic'&&state==='playing'&&stats.games===0&&!animating&&score>=700&&!store.get('bp_gift')){store.set('bp_gift','1');giveBonusBomb('Free bomb! Drop it to blast a 3×3 area',3600)}}
 setInterval(updateBonusBtn,400);
-function giveBonusBomb(){
+function giveBonusBomb(msg,dur){
 let i=tray.findIndex(p=>!p);
 if(i<0)i=tray.findIndex(p=>p&&p.dead&&!p.bomb);
 if(i<0)i=tray.findIndex(p=>p&&!p.bomb);
 if(i<0)i=0;
 tray[i]={bomb:true,m:[[1]],si:-1,ci:2,dead:false};
 renderTray(true);computeTutHint();SFX.up();vib([12,24,12]);
-toast('Free bomb added!',1800)}
+toast(msg||'Free bomb added!',dur||1800)}
 let reviveAds=0,rvTimers=[],rvAnim=null,goTok=0;
 /* revive si : score ≥ 2000 ET < 3 revives regardées dans CETTE partie.
    v58 : autorisé AUSSI pendant un run record — c'est le moment de plus
@@ -3509,7 +3540,7 @@ rvTimers.push(setTimeout(()=>declineRevive(),S*1000))}
 function declineRevive(){
 if(state!=='revive'&&state!=='reviveAd')return;
 clearRevive();ovRevive.classList.remove('show');state='over';
-Ads.showInterstitial(finishGameOver)}
+showPlacedAd(finishGameOver)}   /* v63 : même porte que les autres pubs (3e partie, cooldown, nouveaux joueurs) */
 const OFFS=[[0,0],[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
 [0,2],[0,-2],[2,0],[-2,0],[1,2],[2,1],[-1,-2],[-2,-1],[1,-2],[-1,2],[2,-1],[-2,1],
 [2,2],[-2,-2],[2,-2],[-2,2]];
@@ -4430,7 +4461,7 @@ if(vibLvl)vib(20+vibLvl*4)}
 const CHARMAP={'0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'A':0,'B':1,'C':2,'D':3,'E':4,'F':5,'G':6,'H':7};
 const GEMCHARS={A:1,B:1,C:1,D:1,E:2,F:2,G:2,H:2};
 function startLevel(i){
-if(i<0||i>=LEVELS.length)return;
+if(i<0||i>=LEVELS.length)return;gameCounted=false;
 advLevel=i;lvl=LEVELS[i];mode='adv';
 turnId++;animating=false;
 popQueue=[];popCur=null;
@@ -4693,7 +4724,7 @@ Ads.showBanner();
 SFX.up();vib([15,30,15]);flash();
 toast('Bottom cleared — go on!');
 saveGame()}
-function newGame(){mode='classic';lvl=null;setHudMode();
+function newGame(){gameCounted=false;mode='classic';lvl=null;setHudMode();
 turnId++;animating=false;
 popQueue=[];popCur=null;
 clearRevive();reviveAds=0;bonusUsed=false;pausedBySettings=false;turnEndPending=false;
@@ -4728,7 +4759,7 @@ function finishGameOver(){
 state='over';clearRevive();
 ovPause.classList.remove('show');ovRevive.classList.remove('show');Ads.hideBanner();
 store.del('bp_save');
-stats.games++;stats.lines+=linesTotal;
+stats.games++;gameCounted=true;stats.lines+=linesTotal;store.set('bp_hr',String(new Date().getHours()));
 stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
 saveStats();
 SFX.over();vib([70,50,70]);
@@ -4764,7 +4795,8 @@ if(cur>tgt)cur=tgt;
 if(++n%3===0)vib(4);
 setTimeout(tick,28)};
 setTimeout(tick,350);
-updateMedalDot()})}
+updateMedalDot();
+setTimeout(()=>Notif.ask(),1400)})}
 function refreshTitle(){
  $('titleBest').textContent='×'+consec}
 /* v55 : liaisons — les pubs ne passent QUE par restartWithAd (Restart) et
@@ -5094,10 +5126,43 @@ requestAnimationFrame(frameLoop);
 /* v55 : cycle de vie — app en arrière-plan : musique et WebAudio en pause
    (sans toucher aux réglages), reprise au retour. Web : visibilitychange ;
    Android : + @capacitor/app (appStateChange) si présent. */
+
+/* ---------- v63 : NOTIFICATIONS LOCALES (@capacitor/local-notifications) ----------
+   Rappels programmés par le téléphone (aucun serveur, bon fuseau horaire d'office) : J+1, J+3 et J+7 après la dernière partie, à l'heure
+   habituelle du joueur (9 h – 21 h). Annulés dès qu'il rouvre le jeu ; reprogrammés quand il le quitte. Permission demandée UNE fois (une 2e
+   fois après 7 jours au plus), après la 2e partie, derrière un écran d'explication. Refus = on n'insiste pas. Hors Android : rien ne se passe. */
+const Notif=(()=>{
+const LN=()=>{const C=window.Capacitor;return C&&C.Plugins&&C.Plugins.LocalNotifications};
+const ovNotif=$('ovNotif'),IDS=[41,42,43];
+const st=()=>{try{return JSON.parse(store.get('bp_np')||'{}')}catch(e){return {}}};
+const save=o=>store.set('bp_np',JSON.stringify(o));
+function cancel(){const p=LN();if(!p)return;try{p.cancel({notifications:IDS.map(id=>({id}))}).catch(()=>{})}catch(e){}}
+function schedule(){
+const p=LN(),s=st();if(!p||s.state!=='granted')return;
+const hr=Math.min(21,Math.max(9,parseInt(store.get('bp_hr'))||18)),now=new Date(),bst=best>0;
+const msgs=[[1,bst?'Your best is '+best+'. Ready to beat it? Gravity is waiting.':'Ready for a new game? Gravity is waiting.'],
+[3,'A new day, a new high score? Come back and blast some blocks!'],[7,'Your blocks miss you! Come back and beat your record.']];
+const list=msgs.map((m,i)=>{const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+m[0],hr,Math.floor(Math.random()*20),0);
+return {id:IDS[i],title:'Block Thud!',body:m[1],schedule:{at:d,allowWhileIdle:false},smallIcon:'ic_stat_blockthud'}});
+try{p.cancel({notifications:IDS.map(id=>({id}))}).catch(()=>{}).then(()=>p.schedule({notifications:list})).catch(e=>console.warn('Notif schedule',e))}catch(e){}}
+function ask(){
+const p=LN(),s=st();if(!p||s.state==='granted'||s.state==='denied')return;
+if(s.asks>=2||(s.at&&Date.now()-s.at<7*86400000))return;
+if(stats.games<2||state!=='over')return;
+ovNotif.classList.add('show')}
+function answer(yes){
+ovNotif.classList.remove('show');const s=st();s.asks=(s.asks||0)+1;s.at=Date.now();
+if(!yes){s.state='later';save(s);return}
+const p=LN();if(!p){save(s);return}
+p.requestPermissions().then(r=>{s.state=(r&&r.display==='granted')?'granted':'denied';save(s);if(s.state==='granted')schedule()}).catch(()=>{save(s)})}
+bindTap($('btnNotifYes'),()=>answer(true));
+bindTap($('btnNotifNo'),()=>answer(false));
+return {schedule,cancel,ask,visible:()=>ovNotif.classList.contains('show'),dismiss:()=>answer(false)}})();
 function onAppHidden(h){
 	/* v55.1 : en arrière-plan → sauvegarde de la partie Classic en cours
 	   (best effort ; l'état 'playing' est vérifié par saveGame) */
 	if(h){try{saveGame()}catch(e){}}
+	if(h)Notif.schedule();else Notif.cancel();
 	MUSIC.hold('bg',h);
 	if(SFX.ctx){try{const p=h?SFX.ctx.suspend():SFX.ctx.resume();if(p&&p.catch)p.catch(()=>{})}catch(e){}}}
 document.addEventListener('visibilitychange',()=>onAppHidden(document.hidden));
@@ -5109,6 +5174,7 @@ if(CapApp&&CapApp.addListener){
 	   par écran (Achievements → retour, Map → accueil, Win/Fail/Over → accueil,
 	   Revive → refus), sortie de l'app UNIQUEMENT depuis l'accueil */
 	const rb=CapApp.addListener('backButton',()=>{
+		if(Notif.visible()){Notif.dismiss();return}
 		if(state==='playing'){openPause('game');return}
 		if(state==='paused'){closePause();return}
 		if(state==='revive'||state==='reviveAd'){declineRevive();return}

@@ -51,4 +51,5 @@
     <!-- navigator.vibrate() dans la WebView Android exige cette permission
          (sans elle, aucune vibration dans l'app ; permission "normale", sans dialogue) -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>
