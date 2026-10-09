@@ -3897,7 +3897,7 @@ fbctx.fill();
 fbctx.restore()}
 function drawScoreHUD(t){if(Tut.on||mode==='adv')return;
 const dx=boardRect.left+gx+cell*N/2;
-const dy=boardRect.top+gy-34-((mode==='classic'&&Goal.val>0)?42:0);
+const dy=boardRect.top+gy-34-((mode==='classic'&&Goal.val>0)?52:0);
 const pulse=1+.08*Math.max(0,1-(t-scorePulseT)/280);
 const size=Math.round(48*pulse);
 const key=size+'|'+shownScore;
@@ -5390,7 +5390,7 @@ gpProg.style.strokeDasharray='100 100';
 function icon(){const c=gpIc.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,40,40);try{drawBlock(c,2,2,36,1)}catch(e){}}
 function place(){
 if(!pill||!boardRect)return;
-pill.style.top=Math.round(boardRect.top+gy-42)+'px'}
+pill.style.top=Math.round(boardRect.top+gy-52)+'px'}
 function hud(){
 const show=mode==='classic'&&val>0&&!Tut.on&&state!=='title';
 pill.classList.toggle('on',show);
@@ -5406,11 +5406,19 @@ hit=true;pill.classList.add('hit');pill.classList.remove('pop');void pill.offset
 SFX.win();vib([20,40,20]);confetti();
 Fx.log('goal_reached',{goal:val});
 setTimeout(()=>{if(mode==='classic'&&state==='playing'){grantCollect();evilLeft=0;evilWarn=false;icon()}},900)}}
+/* ESTIMATION (pas une mesure) : part des joueurs qui atteignent l'objectif, interpolée sur la courbe observée dans un jeu comparable ;
+   à remplacer par les vraies parts calculées avec les événements game_over (Firebase). Deux décimales pseudo-aléatoires mais stables par objectif. */
+const PCT=[[0,99.6],[200,93.84],[400,80.26],[600,64.08],[750,52.37],[1000,38.2],[1500,19.6],[2500,6.9],[4000,2.1],[8000,.4],[20000,.05]];
+function pctFor(g){let i=1;while(i<PCT.length-1&&g>PCT[i][0])i++;const a=PCT[i-1],b=PCT[i],t=clamp((g-a[0])/(b[0]-a[0]),0,1);
+let p=a[1]+(b[1]-a[1])*t;const j=((Math.sin(g*12.9898)*43758.5453)%1+1)%1;p+=(j-.5)*(p>5?1.1:.1);return Math.max(.01,Math.min(99.9,p))}
+function pctText(g){const p=pctFor(g),fr=/^fr/i.test(navigator.language||'');
+const n=p>=10?p.toFixed(2):p.toFixed(2);const str=fr?n.replace('.',','):n;
+return fr?('Seulement '+str+' % des joueurs peuvent le faire. Essayez d\'en obtenir plus !'):('Only '+str+'% of players can do it. Try to get more!')}
 function begin(){
 if(!store.get('bp_tut2')&&!store.get('bp_tut')&&stats.games===0){val=0;hit=false;Tut.start();return}
 val=pick();hit=false;state='intro';Ads.hideBanner();setHudMode();icon();hud();Fx.log('game_goal',{goal:val,best:best});
 $('gcTitle').textContent='Reach '+val+' points';
-$('gcSub').textContent=best>0?'Your best: '+best:'Clear lines, use gravity and bombs!';
+$('gcSub').textContent=pctText(val);
 ovGoal.classList.add('show')}
 function go(){
 ovGoal.classList.remove('show');if(state!=='intro')return;
