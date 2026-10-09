@@ -441,8 +441,8 @@ header{position:absolute;left:14px;right:14px;top:calc(10px + env(safe-area-inse
 linear-gradient(180deg,#1536C4 0%,#1B5BDC 42%,#1788E8 100%)}
 #ovTitle .logoImg{width:min(74vw,340px);filter:drop-shadow(0 8px 14px rgba(0,20,90,.45))}
 #ovTitle .logoSub{color:#CFE6FF;font-size:clamp(11px,3vw,14px);letter-spacing:6px;margin-top:10px}
-#ovTitle .dailyPanel{width:63%;max-width:300px;border:none;border-radius:16px;box-shadow:0 6px 0 #2F54B8,0 12px 18px rgba(15,40,110,.5),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(60,90,180,.25)}
-#ovTitle .dpHead{background:linear-gradient(180deg,#6F9BFF,#4C78F0);color:#fff;text-shadow:0 2px 0 rgba(20,30,110,.5);font-size:clamp(12px,3.4vw,16px)}
+#ovTitle .dailyPanel{width:63%;max-width:300px;border:none;border-radius:16px;box-shadow:0 8px 0 #1C3A9C,0 16px 22px rgba(8,25,95,.55),inset 0 3px 0 rgba(255,255,255,.9),inset 0 -5px 0 rgba(70,100,200,.38),inset 3px 0 0 rgba(255,255,255,.45),inset -3px 0 0 rgba(90,120,210,.28)}
+#ovTitle .dpHead{background:linear-gradient(180deg,#86AEFF,#4C78F0);box-shadow:inset 0 3px 0 rgba(255,255,255,.55),0 3px 0 rgba(35,65,170,.55);z-index:2;color:#fff;text-shadow:0 2px 0 rgba(20,30,110,.5);font-size:clamp(12px,3.4vw,16px)}
 #ovTitle .dpBody{background:linear-gradient(180deg,#F4F7FF,#DDE6FA)}
 #ovTitle .titleBtns{width:63%;max-width:300px;gap:6vh}
 #ovTitle .homeBtn{border-radius:11px;border:none;font-size:clamp(19px,5.4vw,26px)}
@@ -4687,7 +4687,7 @@ resize();genTray(true);
 state='playing';
 if(AD_CONFIG.bannerInAdventure)Ads.showBanner();else Ads.hideBanner();
 toast('Level '+(i+1)+' — '+lvl.hint,3800)}
-function levelWin(){state='over';ovPause.classList.remove('show');
+function levelWin(){state='over';ovPause.classList.remove('show');stats.games++;gameCounted=true;
 Ads.hideBanner();
 const st=1+(score>=lvl.s2?1:0)+(score>=lvl.s3?1:0);
 if(st>advStars[advLevel]){advStars[advLevel]=st;
@@ -4706,7 +4706,7 @@ buildWinStage();
  $('btnNext').style.display=(advLevel<LEVELS.length-1&&!dailyDay)?'flex':'none';
 setTimeout(()=>ovWin.classList.add('show'),450);
 updateMedalDot()}
-function levelFail(reason){state='over';ovPause.classList.remove('show');
+function levelFail(reason){state='over';ovPause.classList.remove('show');stats.games++;gameCounted=true;
 Ads.hideBanner();
 consec=0;store.set('bp_consec','0');
 stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
