@@ -5409,7 +5409,7 @@ setTimeout(()=>{if(mode==='classic'&&state==='playing'){grantCollect();evilLeft=
 /* ESTIMATION (pas une mesure) : part des joueurs qui atteignent l'objectif, interpolée sur la courbe observée dans un jeu comparable ;
    à remplacer par les vraies parts calculées avec les événements game_over (Firebase). Deux décimales pseudo-aléatoires mais stables par objectif. */
 const PCT=[[0,99.6],[200,93.84],[400,80.26],[600,64.08],[750,52.37],[1000,38.2],[1500,19.6],[2500,6.9],[4000,2.1],[8000,.4],[20000,.05]];
-function pctFor(g){let i=1;while(i<PCT.length-1&&g>PCT[i][0])i++;const a=PCT[i-1],b=PCT[i],t=clamp((g-a[0])/(b[0]-a[0]),0,1);
+function pctFor(g){g=g/5;/* notre barème de points est ~5x plus généreux que celui du jeu de référence */let i=1;while(i<PCT.length-1&&g>PCT[i][0])i++;const a=PCT[i-1],b=PCT[i],t=clamp((g-a[0])/(b[0]-a[0]),0,1);
 let p=a[1]+(b[1]-a[1])*t;const j=((Math.sin(g*12.9898)*43758.5453)%1+1)%1;p+=(j-.5)*(p>5?1.1:.1);return Math.max(.01,Math.min(99.9,p))}
 function pctText(g){const p=pctFor(g),fr=/^fr/i.test(navigator.language||'');
 const n=p>=10?p.toFixed(2):p.toFixed(2);const str=fr?n.replace('.',','):n;
