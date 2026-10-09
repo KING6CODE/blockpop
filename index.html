@@ -439,23 +439,17 @@ header{position:absolute;left:14px;right:14px;top:calc(10px + env(safe-area-inse
 /* v66 : accueil rafraîchi — fond lumineux + halo + rayons, boutons plus nets */
 #ovTitle{background:
 radial-gradient(ellipse 70% 34% at 50% 24%,rgba(120,200,255,.55),rgba(60,140,255,0) 70%),
-repeating-conic-gradient(from 0deg at 50% 24%,rgba(255,255,255,.07) 0 7deg,rgba(255,255,255,0) 7deg 18deg),
-radial-gradient(circle at 12% 18%,rgba(255,255,255,.9) 0 1.5px,transparent 2.5px),
-radial-gradient(circle at 90% 30%,rgba(255,255,255,.8) 0 2px,transparent 3px),
-radial-gradient(circle at 80% 14%,rgba(255,255,255,.7) 0 1.5px,transparent 2.5px),
-radial-gradient(circle at 20% 34%,rgba(255,255,255,.7) 0 1.5px,transparent 2.5px),
 linear-gradient(180deg,#1536C4 0%,#1B5BDC 42%,#1788E8 100%)}
 #ovTitle .logoImg{width:min(74vw,340px);filter:drop-shadow(0 8px 14px rgba(0,20,90,.45))}
 #ovTitle .logoSub{color:#CFE6FF;font-size:clamp(11px,3vw,14px);letter-spacing:6px;margin-top:10px}
-#ovTitle .dailyPanel{width:63%;max-width:300px;border:3px solid #5E8DFF;border-radius:16px;box-shadow:0 8px 0 rgba(10,30,120,.55),0 14px 22px rgba(5,20,90,.45),0 0 0 1px rgba(255,255,255,.25) inset}
+#ovTitle .dailyPanel{width:63%;max-width:300px;border:none;border-radius:16px;box-shadow:0 7px 16px rgba(15,40,110,.48),0 2px 5px rgba(15,40,110,.38)}
 #ovTitle .dpHead{background:linear-gradient(180deg,#6F9BFF,#4C78F0);color:#fff;text-shadow:0 2px 0 rgba(20,30,110,.5);font-size:clamp(12px,3.4vw,16px)}
 #ovTitle .dpBody{background:linear-gradient(180deg,#F4F7FF,#DDE6FA)}
 #ovTitle .titleBtns{width:63%;max-width:300px;gap:6vh}
-#ovTitle .homeBtn{border-radius:11px;border:2px solid rgba(255,255,255,.35);box-shadow:0 4px 0 rgba(0,0,0,.28),0 10px 16px rgba(5,20,90,.35);font-size:clamp(19px,5.4vw,26px)}
+#ovTitle .homeBtn{border-radius:11px;border:none;font-size:clamp(19px,5.4vw,26px)}
 #ovTitle .homeBtn::before{border-radius:9px;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0) 52%)}
-#ovTitle .homeBtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
 #tabBar{background:linear-gradient(180deg,#2F4BC8,#1E2A86 60%,#24208A);border-top:2px solid rgba(160,200,255,.9);box-shadow:0 -2px 14px rgba(110,170,255,.55),0 -6px 14px rgba(4,10,50,.4)}
-#ovTitle #btnAdv{border-color:#FFE29A;box-shadow:0 4px 0 #C7790E,0 10px 16px rgba(5,20,90,.35)}#ovTitle #btnPlay{border-color:#9FF5DC;box-shadow:0 4px 0 #0D9B74,0 10px 16px rgba(5,20,90,.35)}
+#ovTitle #btnAdv,#ovTitle #btnPlay{border:none}
 @keyframes dpPop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
 #titleBest.pop{animation:dpPop .7s ease-out;display:inline-block}
 
