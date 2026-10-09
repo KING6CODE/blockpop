@@ -254,7 +254,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .goLvlBtn::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.32),rgba(255,255,255,0) 56%)}
 .goLvlBtn::after{content:'';position:absolute;left:12px;right:12px;top:2px;height:2.5px;border-radius:99px;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.45) 30%,rgba(255,255,255,.45) 70%,rgba(255,255,255,0))}
 /* ---------- écrans Victoire / Défaite aventure ---------- */
-#ovWin{background:linear-gradient(180deg,#0C1538 0%,#111C4A 60%,#0C1538 100%);place-items:start center}
+#ovWin .endWrap{overflow:hidden;padding-bottom:calc(14px + env(safe-area-inset-bottom))}#ovWin .failBtns{margin-top:2.5vh}#ovWin{background:linear-gradient(180deg,#0C1538 0%,#111C4A 60%,#0C1538 100%);place-items:start center}
 #ovFail{background:rgba(11,18,48,.78);place-items:start center}
 .endWrap{width:min(100%,470px);height:100dvh;display:flex;flex-direction:column;align-items:center;text-align:center;overflow-y:auto;padding:0 16px 30px}
 .endTop{width:100%;display:flex;justify-content:flex-start;padding:calc(10px + env(safe-area-inset-top)) 4px 0}
@@ -272,7 +272,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .hpBody .wbCirc .cSlot{width:48px;height:42px}
 .hpBody .wTag{font-size:11px;padding:2px 11px;bottom:1px}
 .hpVal{font:800 27px 'Nunito Sans',sans-serif;color:#2A3170}
-.winStage{width:min(86vw,344px);background:rgba(18,26,70,.55);border-radius:14px;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:5vh}
+.winStage{width:min(86vw,344px);background:rgba(18,26,70,.55);border-radius:14px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:3vh}
 .wsRow{display:flex;gap:2px;margin-bottom:2px}
 .wsC{display:block;border-radius:3px;background:#232C5E}
 .wsC.on{background:linear-gradient(180deg,#5BC8F7,#2E9BE8);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 2px 3px rgba(0,0,0,.3)}
@@ -316,7 +316,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .btn3d .icoSlot{position:relative;width:30px;height:30px;flex:none}
 .btn3d .icoSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
 .btn3d .icoSlot svg{position:absolute;inset:0;width:100%;height:100%;fill:#fff}
-#btnSetMedal .icoSlot img{transform:scale(1.9)} /* medal.png a ~50 % de marges transparentes */
+#btnSetMedal .icoSlot img,#meAch .icoSlot img{transform:scale(1.9)}#meSet .ico{fill:#fff} /* medal.png a ~50 % de marges transparentes */
 .sepLine{height:3px;border-radius:99px;background:linear-gradient(180deg,#28339A,#1E2878);margin:2px 6px 16px;box-shadow:0 1px 0 rgba(255,255,255,.14)}
 /* ---------- v55 : GAME OVER (même dégradé que l'accueil) ---------- */
 #ovOver{background:linear-gradient(180deg,#173fb3 0%,#1486d8 100%);padding:0}
@@ -438,6 +438,26 @@ header{position:absolute;left:14px;right:14px;top:calc(10px + env(safe-area-inse
 #ovTitle .bigLogo{margin-top:7vh}
 .titleCol .dailyPanel{margin-top:3.2vh}
 .titleCol .titleBtns{margin-top:2.4vh;gap:4vh}
+/* v66 : accueil rafraîchi — fond lumineux + halo + rayons, boutons plus nets */
+#ovTitle{background:
+radial-gradient(ellipse 70% 34% at 50% 24%,rgba(120,200,255,.55),rgba(60,140,255,0) 70%),
+repeating-conic-gradient(from 0deg at 50% 24%,rgba(255,255,255,.07) 0 7deg,rgba(255,255,255,0) 7deg 18deg),
+radial-gradient(circle at 12% 18%,rgba(255,255,255,.9) 0 1.5px,transparent 2.5px),
+radial-gradient(circle at 90% 30%,rgba(255,255,255,.8) 0 2px,transparent 3px),
+radial-gradient(circle at 80% 14%,rgba(255,255,255,.7) 0 1.5px,transparent 2.5px),
+radial-gradient(circle at 20% 34%,rgba(255,255,255,.7) 0 1.5px,transparent 2.5px),
+linear-gradient(180deg,#1536C4 0%,#1B5BDC 42%,#1788E8 100%)}
+#ovTitle .logoImg{width:min(74vw,340px);filter:drop-shadow(0 8px 14px rgba(0,20,90,.45))}
+#ovTitle .logoSub{color:#CFE6FF;font-size:clamp(11px,3vw,14px);letter-spacing:6px;margin-top:10px}
+#ovTitle .dailyPanel{width:63%;max-width:300px;border:3px solid #5E8DFF;border-radius:16px;box-shadow:0 8px 0 rgba(10,30,120,.55),0 14px 22px rgba(5,20,90,.45),0 0 0 1px rgba(255,255,255,.25) inset}
+#ovTitle .dpHead{background:linear-gradient(180deg,#6F9BFF,#4C78F0);color:#fff;text-shadow:0 2px 0 rgba(20,30,110,.5);font-size:clamp(12px,3.4vw,16px)}
+#ovTitle .dpBody{background:linear-gradient(180deg,#F4F7FF,#DDE6FA)}
+#ovTitle .titleBtns{width:63%;max-width:300px;gap:3.4vh}
+#ovTitle .homeBtn{border-radius:11px;border:2px solid rgba(255,255,255,.35);box-shadow:0 4px 0 rgba(0,0,0,.28),0 10px 16px rgba(5,20,90,.35);font-size:clamp(19px,5.4vw,26px)}
+#ovTitle .homeBtn::before{border-radius:9px;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0) 52%)}
+#ovTitle .homeBtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+#tabBar{background:linear-gradient(180deg,#2F4BC8,#1E2A86 60%,#24208A);border-top:2px solid rgba(160,200,255,.9);box-shadow:0 -2px 14px rgba(110,170,255,.55),0 -6px 14px rgba(4,10,50,.4)}
+#ovTitle #btnAdv{border-color:#FFE29A;box-shadow:0 4px 0 #C7790E,0 10px 16px rgba(5,20,90,.35)}#ovTitle #btnPlay{border-color:#9FF5DC;box-shadow:0 4px 0 #0D9B74,0 10px 16px rgba(5,20,90,.35)}
 @keyframes dpPop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
 #titleBest.pop{animation:dpPop .7s ease-out;display:inline-block}
 
@@ -646,9 +666,9 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
         <div class="statBox"><div class="sv" id="meStreak">0</div><div class="sl">Day Streak</div></div>
       </div>
       <div class="meRows" style="margin-top:22px">
-        <button class="btn3d lav" id="meAch"><span class="meCupIc goldCup" id="meCup"></span>Achievements<em>›</em></button>
+        <button class="btn3d green" id="meAch" style="--k:1"><span class="icoSlot"><img src="assets/ui/medal.png" alt="" onerror="this.style.display='none'"/><svg viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="5.6"/><path d="M8.6 12.9 6.8 21l5.2-2.6 5.2 2.6-1.8-8.1A7.4 7.4 0 0 1 12 14a7.4 7.4 0 0 1-3.4-1.1z"/></svg></span>Medal<em>›</em></button>
         <button class="btn3d lav" id="meAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure<em>›</em></button>
-        <button class="btn3d lav" id="meSet"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1" fill="none" stroke="#fff" stroke-width="2.6"/><path d="M12 2.6v2.7M12 18.7v2.7M2.6 12h2.7M18.7 12h2.7M5.4 5.4l1.9 1.9M16.7 16.7l1.9 1.9M18.6 5.4l-1.9 1.9M7.3 16.7l-1.9 1.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Settings<em>›</em></button>
+        <button class="btn3d lav" id="meSet"><svg class="ico" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.95a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84c-.24 0-.43.17-.47.4l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.95a.49.49 0 0 0-.59.22L2.63 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.95c.5.38 1.03.7 1.62.94l.36 2.54c.05.23.24.4.48.4h3.84c.24 0 .44-.17.48-.4l.36-2.54a7.03 7.03 0 0 0 1.62-.94l2.39.95c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>Settings<em>›</em></button>
       </div>
     </div>
   </div>
@@ -749,8 +769,8 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
     <div class="winStage" id="winStage"></div>
     <div class="failBtns">
       <button class="btn3d green" id="btnNext"><svg class="ico" viewBox="0 0 24 24"><path d="M8 5.2c0-1.1 1.2-1.8 2.1-1.2l10 6c.9.6.9 1.9 0 2.4l-10 6c-.9.6-2.1-.1-2.1-1.2z"/></svg>Next Level</button>
-      <button class="btn3d green" id="btnReplay"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Replay</button>
-      <button class="btn3d lav" id="btnWinMap"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
+      <button class="btn3d green" id="btnReplay" style="display:none"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Replay</button>
+      <button class="btn3d lav" id="btnWinMap" style="display:none"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
     </div>
   </div>
 </div>
@@ -793,7 +813,7 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
       <p id="foReason"></p>
       <div class="failBtns">
         <button class="btn3d green" id="btnRetry"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Retry</button>
-        <button class="btn3d lav" id="btnFailMap"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
+        <button class="btn3d lav" id="btnFailMap" style="display:none"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff" stroke-width="2.2"/></svg>Map</button>
       </div>
     </div>
   </div>
@@ -3381,6 +3401,7 @@ updateObjHUD();
 if(mode==='adv'){
 if(checkObjective()){levelWin();return}
 if(lvl.maxPieces&&advPlaced>=lvl.maxPieces){levelFail('Out of pieces — objective missed.');return}
+tray.forEach(p=>{if(p)p.dead=!p.bomb&&!canAnywhere(p.m)});renderTray(false);
 const alive=tray.filter(Boolean);
 if((alive.length&&alive.every(x=>x.dead))||
 (lvl.fixed&&advFixedIdx>=lvl.fixed.length&&!alive.length)){
@@ -4739,7 +4760,7 @@ const maxC=MAP_ROWS[MAP_ROWS.length-1];
 /* v56 : largeur réduite (86vw) — 11 tuiles ne sont plus rognées par la scrollbar */
 const W=Math.min(window.innerWidth*.86,360);
 const gap=2;
-const cs=Math.floor((W-(maxC-1)*gap)/maxC);
+const cs=Math.max(8,Math.min(Math.floor((W-(maxC-1)*gap)/maxC),Math.floor((window.innerHeight-430-MAP_ROWS.length*(gap+2))/MAP_ROWS.length)));
 let num=1;
 const rowsB=[];
 MAP_ROWS.slice().reverse().forEach(cnt=>{
@@ -4787,7 +4808,7 @@ const el=$('winStage');el.innerHTML='';
 const maxC=MAP_ROWS[MAP_ROWS.length-1];
 const W=Math.min(window.innerWidth*.8,320);
 const gap=2;
-const cs=Math.floor((W-(maxC-1)*gap)/maxC);
+const cs=Math.max(8,Math.min(Math.floor((W-(maxC-1)*gap)/maxC),Math.floor((window.innerHeight-430-MAP_ROWS.length*(gap+2))/MAP_ROWS.length)));
 let num=1;const rowsB=[];
 MAP_ROWS.slice().reverse().forEach(cnt=>{
 const row=[];
@@ -4988,7 +5009,7 @@ bindTap($('btnGear'),()=>{openPause('home')});
 bindTap($('btnAchBack'),()=>{closeAch()});
 bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.classList.add('show')});
 bindTap($('btnGoLevel'),()=>{SFX.init();startLevel(nextAdvLevel())});
-bindTap($('btnNext'),()=>{SFX.init();startLevel(advLevel+1)});
+bindTap($('btnNext'),()=>{SFX.init();restartWithAd(()=>startLevel(advLevel+1))});
 bindTap($('btnReplay'),()=>{SFX.init();startLevel(advLevel)});
 bindTap($('btnWinMap'),()=>{SFX.init();state='title';if(dailyDay){dailyDay=null;hideAllOv();Tabs.show('daily')}else openMap()});
 bindTap($('btnWinBack'),()=>{SFX.init();goHome()});
