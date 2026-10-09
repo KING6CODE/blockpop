@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#173fb3"/>
 <title>BLOCK THUD!</title>
+<!-- v65 : interface alignée sur le style du jeu (panneaux bleu-violet, boutons 3D verts/lavande, Lilita One, couronne et coupe d'origine) ; accueil épuré (compteur « Daily Challenges
+     Done » qui s'incrémente en animation) ; pastille d'objectif sous le score dont le contour se remplit, style qui change à l'objectif ; grille centrée (pioche et bannière descendues) ;
+     score masqué dans les défis Aventure ; mesure Firebase Analytics (@capacitor-firebase/analytics, silencieuse si absente). -->
 <!-- v64 : parcours « Blockudoku » — tuto guidé sans texte (écran assombri, main qui glisse : gravité puis bombe), popup d'objectif à chaque partie (record +25/35 %, jamais
      deux fois la même valeur ; 1000 la 1re fois) avec barre de progression, séquence de mort (« No free space », les trous se remplissent, tout tombe), écran de record 2 s
      puis stats, pub au Nouvelle partie, défis quotidiens (calendrier, étoiles), série de connexion (bombe offerte aux jours 3/7/14/30), barre d'onglets Home / Daily / Me,
@@ -345,79 +348,98 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .ntTitle{font:900 30px 'Nunito Sans',sans-serif;text-shadow:0 4px 0 rgba(8,30,100,.45)}
 .ntText{margin-top:12px;font:700 17px/1.35 'Nunito Sans',sans-serif;color:rgba(255,255,255,.92)}
 .ntBomb{width:84px;height:84px;margin-bottom:14px;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(5,18,60,.5))}
-/* ---------- v64 ---------- */
-body.tutMode #score,body.tutMode #bestWrap,body.tutMode #objBar,body.tutMode #btnBonus,body.tutMode #btnPause{visibility:hidden!important}
+/* ---------- v64/v65 : interface alignée sur le jeu (panneaux bleu-violet, boutons 3D, Lilita One / Nunito Sans) ---------- */
+body.tutMode #score,body.tutMode #bestWrap,body.tutMode #objBar,body.tutMode #btnBonus,body.tutMode #btnPause,body.tutMode #goalPill{visibility:hidden!important}
+body.advMode #bestWrap{visibility:hidden}
 #tutDim{position:fixed;inset:0;width:100%;height:100%;z-index:45;pointer-events:none;display:none}
 #tutHand{position:fixed;left:0;top:0;width:68px;height:78px;z-index:65;pointer-events:none;display:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));will-change:transform}
-#tutSkip{position:fixed;right:14px;top:calc(12px + env(safe-area-inset-top));z-index:66;display:none;background:none;border:none;color:#fff;font:900 17px 'Nunito Sans',sans-serif;padding:10px 12px;text-shadow:0 2px 4px rgba(0,0,0,.55)}
+#tutSkip{position:fixed;right:14px;top:calc(12px + env(safe-area-inset-top));z-index:66;display:none;background:none;border:none;color:#fff;font:800 17px 'Nunito Sans',sans-serif;padding:10px 12px;text-shadow:0 2px 4px rgba(0,0,0,.55)}
 body.tutMode #tutDim,body.tutMode #tutHand,body.tutMode #tutSkip{display:block}
-#noSpace{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.9);z-index:90;padding:10px 22px;border-radius:14px;background:rgba(255,255,255,.92);color:#e8883a;font:900 24px 'Nunito Sans',sans-serif;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap}
+#noSpace{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.9);z-index:90;padding:10px 24px;border-radius:16px;background:linear-gradient(180deg,#FFE680,#FFC93D 50%,#F5A818);color:#6A3A00;font:400 26px 'Lilita One',Fredoka,sans-serif;box-shadow:0 5px 0 #C47F00,0 12px 20px rgba(5,20,70,.4),inset 0 2px 0 rgba(255,255,255,.6);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap}
 #noSpace.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-#ovGoal,#ovRate,#ovDcIntro{z-index:118;background:rgba(9,16,48,.78)}
-.gcCard{width:min(86%,340px);background:#fff;border-radius:22px;padding:26px 22px 22px;text-align:center;color:#101828;box-shadow:0 14px 40px rgba(0,0,20,.4);font-family:'Nunito Sans',sans-serif}
-.gcT{font:900 28px 'Nunito Sans',sans-serif}
-.gcS{margin-top:12px;font:700 16px/1.35 'Nunito Sans',sans-serif;color:#6a7488}
-.gcB{margin-top:22px;width:100%;height:56px;border:none;border-radius:28px;background:#2f86ea;color:#fff;font:900 20px 'Nunito Sans',sans-serif;cursor:pointer;box-shadow:0 8px 18px rgba(47,134,234,.35)}
-.gcB:active{transform:translateY(2px);filter:brightness(.92)}
-.gcB2{margin-top:10px;width:100%;height:50px;border:none;border-radius:25px;background:#eef2f9;color:#2f86ea;font:900 17px 'Nunito Sans',sans-serif;cursor:pointer}
-.gcStars{display:flex;justify-content:center;gap:8px;margin:14px 0 4px}
-.gcStars svg{width:44px;height:44px}
-.gcIco{display:grid;place-items:center;height:130px}
-.gcIco svg{width:120px;height:120px}
-.gcDots{display:flex;justify-content:center;gap:8px;margin-top:14px}
-.gcDots i{width:9px;height:9px;border-radius:50%;background:#cfd6e4}
-.gcDots i.on{background:#2f86ea}
-#ovRecord{z-index:55;background:radial-gradient(ellipse at 50% 40%,rgba(40,120,230,.88),rgba(14,40,120,.94))}
-.rcWrap{display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff;font-family:'Nunito Sans',sans-serif}
-.rcWrap svg{width:150px;height:150px;filter:drop-shadow(0 10px 16px rgba(0,0,40,.4))}
-.rcT{margin-top:10px;font:900 34px 'Nunito Sans',sans-serif;text-shadow:0 4px 0 rgba(8,30,100,.45)}
-.rcS{margin-top:6px;font:900 52px 'Nunito Sans',sans-serif}
-#ovDaily,#ovMe{background:#f4f7fc;place-items:start center;padding:0;color:#101828;font-family:'Nunito Sans',sans-serif}
-.dcWrap{position:relative;width:100%;max-width:470px;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;padding:0 0 calc(86px + env(safe-area-inset-bottom))}
-.dcHead{background:linear-gradient(180deg,#1a73e0,#52b4ff);height:34vh;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;color:#fff;padding-bottom:10px}
-.dcHead svg{width:36%;max-width:150px;height:auto;flex:none;margin-bottom:6px;filter:drop-shadow(0 8px 12px rgba(0,30,100,.35))}
-.dcHT{font:900 21px 'Nunito Sans',sans-serif;margin-bottom:6px}
-.dcMonth{display:flex;justify-content:space-between;align-items:center;padding:16px 22px 6px;font:900 21px 'Nunito Sans',sans-serif}
-.dcStars{display:flex;align-items:center;gap:8px;font:900 19px 'Nunito Sans',sans-serif}
-.dcStars i{width:26px;height:26px;border-radius:50%;background:#ffb81c;display:grid;place-items:center}
-.dcStars i svg{width:15px;height:15px}
-.dcWk,.dcGrid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 14px;text-align:center}
-.dcWk span{padding:8px 0;font:800 13px 'Nunito Sans',sans-serif;color:#9aa5ba}
-.dcGrid span{height:46px;margin:3px 0;display:grid;place-items:center;font:800 18px 'Nunito Sans',sans-serif;color:#6a7488}
-.dcGrid span b{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800}
-.dcGrid .fut{color:#c3cad9}
-.dcGrid .past{color:#101828}
-.dcGrid .today b{background:#2f86ea;color:#fff}
-.dcGrid .done b{background:#ffb81c;color:#fff}
-#btnDcPlay{width:calc(100% - 44px);margin:18px 22px 0}
-#btnDcPlay.done{background:#9aa5ba;box-shadow:none}
-.meTitle{padding:calc(18px + env(safe-area-inset-top)) 0 14px;text-align:center;font:900 22px 'Nunito Sans',sans-serif;background:#fff;border-bottom:1px solid #e2e8f3}
-.meRow{display:flex;align-items:center;gap:14px;margin:12px 16px 0;padding:18px 18px;background:#fff;border-radius:16px;font:800 19px 'Nunito Sans',sans-serif;color:#101828;border:none;width:calc(100% - 32px);text-align:left;cursor:pointer;box-shadow:0 2px 6px rgba(20,40,90,.06)}
-.meRow svg{width:30px;height:30px;flex:none}
-.meRow em{margin-left:auto;font-style:normal;color:#9aa5ba;font-size:22px}
-.meStat{margin:16px 16px 0;padding:16px;background:#fff;border-radius:16px;display:flex;justify-content:space-around;text-align:center}
-.meStat b{display:block;font:900 24px 'Nunito Sans',sans-serif}
-.meStat span{font:700 12px 'Nunito Sans',sans-serif;color:#8a95ab}
-#tabBar{position:fixed;left:0;right:0;bottom:0;z-index:100;display:none;justify-content:center;background:#fff;border-top:1px solid #dfe5f1;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+/* objectif de partie : pastille sous le score, contour qui se remplit */
+#goalPill{position:fixed;left:50%;top:0;width:124px;height:36px;margin-left:-62px;z-index:20;pointer-events:none;display:none}
+#goalPill.on{display:block}
+#goalPill svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#goalPill .gpBg{fill:rgba(18,26,92,.34)}
+#goalPill .gpTrack{fill:none;stroke:rgba(255,255,255,.26);stroke-width:3.5}
+#goalPill .gpProg{fill:none;stroke:#FFD23D;stroke-width:3.5;stroke-linecap:round;filter:drop-shadow(0 0 4px rgba(255,200,40,.55));transition:stroke-dashoffset .45s}
+#goalPill .gpIn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px}
+#goalPill canvas{width:20px;height:20px;flex:none;filter:drop-shadow(0 2px 0 rgba(0,0,40,.3))}
+#goalPill b{font:800 22px 'Nunito Sans',sans-serif;color:#fff;text-shadow:0 2px 0 rgba(8,20,90,.5);font-variant-numeric:tabular-nums}
+#goalPill.hit .gpBg{fill:rgba(255,200,40,.28)}
+#goalPill.pop{animation:gpPop .6s ease-out}
+@keyframes gpPop{0%{transform:scale(1)}35%{transform:scale(1.22)}100%{transform:scale(1)}}
+/* mise en page : la grille est centrée, la pioche et la bannière descendent */
+#app{display:grid;grid-template-columns:100%;grid-template-rows:minmax(0,1fr) auto minmax(max-content,1fr)}
+header{position:absolute;left:14px;right:14px;top:calc(10px + env(safe-area-inset-top));z-index:6}
+#objBar{grid-row:1;align-self:end;margin-bottom:10px}
+#topSpacer,#botSpacer{display:none}
+#boardWrap{grid-row:2;margin-top:0}
+#botGroup{grid-row:3;display:flex;flex-direction:column;min-height:0}
+#tray{margin-top:30px}
+#bannerBox{margin-top:auto}
+/* panneaux et popups (même matière que les réglages) */
+#ovGoal,#ovRate,#ovDcIntro{z-index:118;background:rgba(9,16,48,.72)}
+.gpanel{position:relative;width:min(88%,350px);padding:24px 20px 18px;text-align:center;color:#fff;background:linear-gradient(180deg,#7B97F2,#5B76DC);border-radius:26px;box-shadow:0 18px 42px rgba(4,12,60,.5),inset 0 2px 0 rgba(255,255,255,.35)}
+.gpanel .gT{font:400 clamp(28px,8vw,34px)/1.1 'Lilita One',Fredoka,sans-serif;text-shadow:0 3px 0 rgba(30,50,150,.55),0 7px 14px rgba(5,20,70,.3)}
+.gpanel .gS{margin-top:10px;font:800 16px/1.35 'Nunito Sans',sans-serif;color:rgba(255,255,255,.92);text-shadow:0 2px 3px rgba(10,20,90,.35)}
+.gpanel .btn3d{margin:20px 0 0}
+.gpanel .btn3d.lav{margin-top:10px}
+.gpanel .gIco{display:grid;place-items:center;height:118px;margin-top:6px}
+.gpanel .gIco svg,.gpanel .gIco img{height:110px;width:auto;filter:drop-shadow(0 6px 6px rgba(10,20,90,.4))}
+.gpanel .gStars{display:flex;justify-content:center;gap:6px;margin-top:14px}
+.gpanel .gStars svg{width:42px;height:42px;filter:drop-shadow(0 3px 0 rgba(130,80,0,.45))}
+.gpanel .gDots{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.gpanel .gDots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.4)}
+.gpanel .gDots i.on{background:#fff}
+.goldCup svg{filter:sepia(1) saturate(4.2) hue-rotate(-14deg) brightness(2.1) drop-shadow(0 0 12px rgba(255,205,60,.65))}
+#ovRecord{z-index:55;background:linear-gradient(180deg,#173fb3 0%,#1486d8 100%)}
+.rcWrap{display:flex;flex-direction:column;align-items:center;text-align:center}
+.rcWrap .goldCup svg{width:150px;height:150px}
+.rcWrap .rcT{margin-top:8px;font-family:'Lilita One',Fredoka,sans-serif;font-weight:400;font-size:clamp(38px,11vw,50px);line-height:1.08;color:#35C3F2;text-shadow:0 3px 0 #0C3890,0 7px 16px rgba(5,20,70,.45)}
+.rcWrap .rcS{margin-top:6px;color:#fff;font:900 clamp(56px,17vw,78px) 'Nunito Sans',sans-serif;line-height:1.05;text-shadow:0 4px 0 rgba(8,30,100,.35),0 10px 22px rgba(5,20,70,.35)}
+/* pages Daily / Me (même structure que Achievement et Adventure) */
+#ovDaily,#ovMe{padding:0;place-items:start center}
+.achBody.pgBody{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.dcCup{text-align:center;margin:2px 0 4px}
+.dcCup svg{width:96px;height:96px}
+.dcMonthRow{display:flex;justify-content:space-between;align-items:center;margin:4px 4px 10px}
+.dcMonthRow b{font:400 25px 'Lilita One',Fredoka,sans-serif;color:#fff;text-shadow:0 2px 2px rgba(10,20,70,.4)}
+.dcCrowns{display:flex;align-items:center;gap:6px;font:800 20px 'Nunito Sans',sans-serif;color:#FFD23D}
+.dcCrowns img{width:30px;height:24px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.dcWk,.dcGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.dcWk span{padding:2px 0 6px;font:800 13px 'Nunito Sans',sans-serif;color:#9FB0F0}
+.dcGrid span{aspect-ratio:1;border-radius:11px;display:grid;place-items:center;position:relative;font:800 16px 'Nunito Sans',sans-serif;color:#8E9DE0;background:#262F6E;box-shadow:inset 0 2px 3px rgba(0,0,0,.28)}
+.dcGrid span.blank{background:none;box-shadow:none}
+.dcGrid span.past{color:#C7D2F5}
+.dcGrid span.fut{opacity:.45}
+.dcGrid span.today{background:linear-gradient(180deg,#5B76DC,#465CD2);color:#fff;box-shadow:0 3px 0 #34408A,inset 0 2px 0 rgba(255,255,255,.35)}
+.dcGrid span.done{background:linear-gradient(180deg,#FFE680,#FFC93D 50%,#F5A818);color:#6A3A00;box-shadow:0 3px 0 #C47F00,inset 0 2px 0 rgba(255,255,255,.55)}
+.dcGrid span.done img{width:70%;height:70%;object-fit:contain;filter:drop-shadow(0 2px 1px rgba(110,55,0,.4))}
+#btnDcPlay{margin:18px 0 0}
+#btnDcPlay.done{filter:grayscale(.85) brightness(.85);box-shadow:0 6px 0 #4a5078,0 12px 18px rgba(10,20,64,.3)}
+.meRows{margin-top:14px;display:flex;flex-direction:column}
+.meRows .btn3d{justify-content:flex-start;margin-bottom:14px}
+.meCupIc{width:30px;height:30px;flex:none;display:block}
+.meCupIc svg{width:100%;height:100%}
+.meRows .btn3d .ico{fill:none}
+.meRows .btn3d em{margin-left:auto;font-style:normal;opacity:.8;font-size:24px}
+/* barre d'onglets */
+#tabBar{position:fixed;left:0;right:0;bottom:0;z-index:100;display:none;justify-content:center;background:linear-gradient(180deg,#3E4DB0,#2C3778);border-top:3px solid #5B76DC;box-shadow:0 -5px 14px rgba(4,10,50,.5);padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
 #tabBar.show{display:flex}
 #tabBar .tabIn{display:flex;width:100%;max-width:470px}
-#tabBar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;padding:6px 0;color:#8a95ab;font:800 13px 'Nunito Sans',sans-serif;cursor:pointer}
-#tabBar button svg{width:30px;height:30px}
-#tabBar button.on{color:#2f86ea}
-.dcCard{display:flex;align-items:center;gap:12px;width:57%;max-width:270px;margin-top:2.6vh;padding:10px 14px;border:none;border-radius:16px;background:linear-gradient(180deg,#ffd24d,#f79200);color:#fff;font-family:'Nunito Sans',sans-serif;cursor:pointer;box-shadow:0 7px 16px rgba(10,20,80,.32),inset 0 2px 0 rgba(255,255,255,.4);text-align:left}
-.dcCard svg{width:34px;height:34px;flex:none}
-.dcCard .dcL{flex:1;line-height:1.1}
-.dcCard .dcTag{font:900 12px 'Nunito Sans',sans-serif;letter-spacing:.5px;opacity:.95}
-.dcCard .dcSub{font:900 17px 'Nunito Sans',sans-serif}
-.dcCard .dcGo{background:#fff;color:#e8883a;border-radius:14px;padding:5px 12px;font:900 14px 'Nunito Sans',sans-serif}
-.dcCard.done{background:linear-gradient(180deg,#8fa0bd,#6a7a98)}
-.dcCard.done .dcGo{color:#6a7a98}
+#tabBar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;background:none;border:none;padding:4px 0 2px;color:#B7C5FF;font:800 13px 'Nunito Sans',sans-serif;cursor:pointer;text-shadow:0 2px 0 rgba(0,0,40,.45);transition:transform .08s,filter .08s}
+#tabBar button:active{transform:translateY(2px);filter:brightness(.8)}
+#tabBar button svg{width:32px;height:32px;filter:drop-shadow(0 3px 0 rgba(0,0,40,.5))}
+#tabBar button.on{color:#fff}
+#tabBar button.on svg{color:#FFD23D;transform:translateY(-3px) scale(1.12);filter:drop-shadow(0 4px 0 rgba(150,95,0,.6)) drop-shadow(0 0 8px rgba(255,210,61,.55))}
 .titleCol>*{flex:none}
 #ovTitle .bigLogo{margin-top:7vh}
-.titleCol .dailyPanel{margin-top:2.2vh}
-.titleCol .titleBtns{margin-top:1.4vh;gap:3vh}
-.titleCol .dcCard{margin-top:1.8vh}
-#stkLine{margin-top:1.2vh;font:800 14px 'Nunito Sans',sans-serif;color:rgba(255,255,255,.9);text-shadow:0 2px 3px rgba(0,0,40,.35)}
+.titleCol .dailyPanel{margin-top:3.2vh}
+.titleCol .titleBtns{margin-top:2.4vh;gap:4vh}
+@keyframes dpPop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+#titleBest.pop{animation:dpPop .7s ease-out;display:inline-block}
 
 .rvWrap{width:min(100%,420px);display:flex;flex-direction:column;align-items:center;text-align:center}
 .rvHeart{position:relative;width:118px;height:106px;filter:drop-shadow(0 8px 14px rgba(120,10,60,.45))}
@@ -521,12 +543,14 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
   </div>
   <div id="topSpacer"></div>
   <main id="boardWrap"><canvas id="board"></canvas></main>
+  <div id="botGroup">
   <footer id="tray">
     <div class="slot"><canvas></canvas></div>
     <div class="slot"><canvas></canvas></div>
     <div class="slot"><canvas></canvas></div>
   </footer>
   <div id="bannerBox" aria-hidden="true"></div>
+  </div>
   <div id="botSpacer"></div>
 </div>
 <canvas id="fxBack"></canvas>
@@ -564,7 +588,7 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
       <div class="logoSub">Adventure Master</div>
     </div>
     <div class="dailyPanel">
-      <div class="dpHead">Consecutive Daily Victories</div>
+      <div class="dpHead">Daily Challenges Done</div>
       <div class="dpBody">
         <div class="winBadge">
           <div class="wbCirc">
@@ -579,8 +603,6 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
         <button class="dpMore" id="btnStats" aria-label="Stats"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></button>
       </div>
     </div>
-    <button class="dcCard" id="cardDaily"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="#fff"/><path d="M8 3v4M16 3v4" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M12 9.6l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#f79200"/></svg><span class="dcL"><div class="dcTag">DAILY CHALLENGE</div><div class="dcSub" id="dcSub">Today</div></span><span class="dcGo" id="dcGo">Play</span></button>
-    <div id="stkLine"></div>
     <div class="titleBtns">
       <button class="homeBtn" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure</button>
       <button class="homeBtn" id="btnPlay"><svg class="ico" viewBox="0 0 24 24"><path d="M3.6 12C3.6 9.8 5.4 8 7.6 8c3.2 0 5.6 8 8.8 8 2.2 0 4-1.8 4-4s-1.8-4-4-4c-3.2 0-5.6 8-8.8 8-2.2 0-4-1.8-4-4z" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg>Classic</button>
@@ -601,26 +623,39 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
   </div>
 </div>
 <div class="overlay" id="ovDaily">
-  <div class="dcWrap">
-    <div class="dcHead"><svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="2.5"/><path d="M20 10h-8c0 10 3 16 9 17M44 10h8c0 10-3 16-9 17" fill="none" stroke="#e8a400" stroke-width="3" stroke-linecap="round"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/><path d="M32 12l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fff"/></svg><div class="dcHT">Daily Challenges</div></div>
-    <div class="dcMonth"><span id="dcMonth">October</span><span class="dcStars"><i><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#fff"/></svg></i><span id="dcCount">0/31</span></span></div>
-    <div class="dcWk"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-    <div class="dcGrid" id="dcGrid"></div>
-    <button class="gcB" id="btnDcPlay">Play</button>
+  <div class="achWrap">
+    <div class="achHead"><button class="achBack" style="visibility:hidden" tabindex="-1">‹</button><div class="achTitle">Daily Challenges</div><span class="sp"></span></div>
+    <div class="achBody pgBody">
+      <div class="dcCup goldCup" id="dcCup"></div>
+      <div class="dcMonthRow"><b id="dcMonth">October</b><span class="dcCrowns"><img src="assets/ui/crown.png" alt=""/><span id="dcCount">0/31</span></span></div>
+      <div class="dcWk"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+      <div class="dcGrid" id="dcGrid"></div>
+      <button class="btn3d green" id="btnDcPlay">Play</button>
+    </div>
   </div>
 </div>
 <div class="overlay" id="ovMe">
-  <div class="dcWrap">
-    <div class="meTitle">Me</div>
-    <div class="meStat"><div><b id="meBest">0</b><span>Best score</span></div><div><b id="meGames">0</b><span>Rounds</span></div><div><b id="meStreak">0</b><span>Day streak</span></div></div>
-    <button class="meRow" id="meAch"><svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="3"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/></svg>Achievements<em>›</em></button>
-    <button class="meRow" id="meAdv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#2f86ea"/><path d="M12 6.5V12l3.8 2.2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure<em>›</em></button>
-    <button class="meRow" id="meSet"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#8a95ab"/><circle cx="12" cy="12" r="3.4" fill="#fff"/></svg>Settings<em>›</em></button>
+  <div class="achWrap">
+    <div class="achHead"><button class="achBack" style="visibility:hidden" tabindex="-1">‹</button><div class="achTitle">Me</div><span class="sp"></span></div>
+    <div class="achBody pgBody">
+      <h2 class="achH">Statistics</h2>
+      <div class="statGrid">
+        <div class="statBox"><div class="sv" id="meBest">0</div><div class="sl">Best Score</div></div>
+        <div class="statBox"><div class="sv" id="meGames">0</div><div class="sl">Rounds</div></div>
+        <div class="statBox"><div class="sv" id="meDays">0</div><div class="sl">Daily Challenges</div></div>
+        <div class="statBox"><div class="sv" id="meStreak">0</div><div class="sl">Day Streak</div></div>
+      </div>
+      <div class="meRows" style="margin-top:22px">
+        <button class="btn3d lav" id="meAch"><span class="meCupIc goldCup" id="meCup"></span>Achievements<em>›</em></button>
+        <button class="btn3d lav" id="meAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure<em>›</em></button>
+        <button class="btn3d lav" id="meSet"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1" fill="none" stroke="#fff" stroke-width="2.6"/><path d="M12 2.6v2.7M12 18.7v2.7M2.6 12h2.7M18.7 12h2.7M5.4 5.4l1.9 1.9M16.7 16.7l1.9 1.9M18.6 5.4l-1.9 1.9M7.3 16.7l-1.9 1.9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Settings<em>›</em></button>
+      </div>
+    </div>
   </div>
 </div>
 <div id="tabBar"><div class="tabIn">
   <button id="tabHome" class="on"><svg viewBox="0 0 24 24"><path d="M3.5 11 12 3.8l8.5 7.2v9a1 1 0 0 1-1 1H15v-6h-6v6H4.5a1 1 0 0 1-1-1z" fill="currentColor"/></svg>Home</button>
-  <button id="tabDaily"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="currentColor"/><path d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M12 9.6l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff"/></svg>Daily</button>
+  <button id="tabDaily"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.4" fill="currentColor"/><path d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M12 9.2l1.4 2.9 3.2.4-2.3 2.2.6 3.1-2.9-1.5-2.9 1.5.6-3.1-2.3-2.2 3.2-.4z" fill="#2C3778"/></svg>Daily</button>
   <button id="tabMe"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.4" fill="currentColor"/><path d="M3.8 21c.6-4.4 4-6.6 8.2-6.6s7.6 2.2 8.2 6.6z" fill="currentColor"/></svg>Me</button>
 </div></div>
 <div class="overlay" id="ovAch">
@@ -835,32 +870,33 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
 <div id="tutHand"><svg viewBox="0 0 64 72"><path d="M22 6c-3 0-5 2-5 5v28l-5-5c-2-2-6-1-7 2-1 2 0 4 1 5l16 22c2 3 5 4 8 4h12c6 0 10-4 10-10V34c0-3-2-5-5-5-1 0-2 0-3 1 0-3-2-5-5-5-2 0-3 1-4 2-1-2-3-3-5-3-1 0-2 0-3 1V11c0-3-2-5-5-5z" fill="#fff" stroke="#1b2a4a" stroke-width="3" stroke-linejoin="round"/></svg></div>
 <button id="tutSkip">Skip</button>
 <div id="noSpace">No free space</div>
+<div id="goalPill"><svg><rect class="gpBg" x="0" y="0" width="124" height="36" rx="11"/><path class="gpTrack" id="gpTrack"/><path class="gpProg" id="gpProg" pathLength="100"/></svg><div class="gpIn"><canvas id="gpIc" width="40" height="40"></canvas><b id="gpNum">1000</b></div></div>
 <div class="overlay" id="ovGoal">
-  <div class="gcCard">
-    <div class="gcT" id="gcTitle">Reach 1000 points</div>
-    <div class="gcS" id="gcSub"></div>
-    <button class="gcB" id="btnGoalGo">Start</button>
+  <div class="gpanel">
+    <div class="gT" id="gcTitle">Reach 1000 points</div>
+    <div class="gS" id="gcSub"></div>
+    <button class="btn3d green" id="btnGoalGo">Start</button>
   </div>
 </div>
 <div class="overlay" id="ovRecord">
-  <div class="rcWrap"><svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="2.5"/><path d="M20 10h-8c0 10 3 16 9 17M44 10h8c0 10-3 16-9 17" fill="none" stroke="#e8a400" stroke-width="3" stroke-linecap="round"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/><path d="M32 12l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fff"/></svg><div class="rcT">New record!</div><div class="rcS" id="rcScore">0</div></div>
+  <div class="rcWrap"><span class="goldCup" id="rcCup"></span><div class="rcT">New Record!</div><div class="rcS" id="rcScore">0</div></div>
 </div>
 <div class="overlay" id="ovRate">
-  <div class="gcCard">
-    <div class="gcT">Rate the game</div>
-    <div class="gcStars"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg></div>
-    <div class="gcS">If you like Block Thud!, take a moment to rate it. Thank you for your support!</div>
-    <button class="gcB" id="btnRate5">5 stars</button>
-    <button class="gcB2" id="btnRateLow">1 - 4 stars</button>
+  <div class="gpanel">
+    <div class="gT">Rate the game</div>
+    <div class="gStars"><svg viewBox="0 0 24 24"><defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE680"/><stop offset=".55" stop-color="#FFC93D"/><stop offset="1" stop-color="#F5A818"/></linearGradient></defs><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="url(#stg)" stroke="#C47F00" stroke-width="1" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE680"/><stop offset=".55" stop-color="#FFC93D"/><stop offset="1" stop-color="#F5A818"/></linearGradient></defs><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="url(#stg)" stroke="#C47F00" stroke-width="1" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE680"/><stop offset=".55" stop-color="#FFC93D"/><stop offset="1" stop-color="#F5A818"/></linearGradient></defs><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="url(#stg)" stroke="#C47F00" stroke-width="1" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE680"/><stop offset=".55" stop-color="#FFC93D"/><stop offset="1" stop-color="#F5A818"/></linearGradient></defs><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="url(#stg)" stroke="#C47F00" stroke-width="1" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE680"/><stop offset=".55" stop-color="#FFC93D"/><stop offset="1" stop-color="#F5A818"/></linearGradient></defs><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="url(#stg)" stroke="#C47F00" stroke-width="1" stroke-linejoin="round"/></svg></div>
+    <div class="gS">If you like Block Thud!, take a moment to rate it. Thank you for your support!</div>
+    <button class="btn3d green" id="btnRate5">5 stars</button>
+    <button class="btn3d lav" id="btnRateLow">1 - 4 stars</button>
   </div>
 </div>
 <div class="overlay" id="ovDcIntro">
-  <div class="gcCard">
-    <div class="gcT">Welcome to the daily challenges</div>
-    <div class="gcIco" id="dcIntroIco"></div>
-    <div class="gcS" id="dcIntroTxt"></div>
-    <div class="gcDots"><i class="on" id="dcDot0"></i><i id="dcDot1"></i></div>
-    <button class="gcB" id="btnDcIntro">Continue</button>
+  <div class="gpanel">
+    <div class="gT">Daily Challenges</div>
+    <div class="gIco" id="dcIntroIco"></div>
+    <div class="gS" id="dcIntroTxt"></div>
+    <div class="gDots"><i class="on" id="dcDot0"></i><i id="dcDot1"></i></div>
+    <button class="btn3d green" id="btnDcIntro">Continue</button>
   </div>
 </div>
 <!-- v63 : écran d'explication avant la demande d'autorisation des notifications -->
@@ -2430,7 +2466,7 @@ const r=boardWrap.getBoundingClientRect();cw=r.width;
 /* v55 : hauteur réservée = HUD + pioche (250) + emplacement bannière (64)
    + barre d'objectif Aventure (26) : la grille ne rétrécit que si l'écran
    manque réellement de hauteur (sur la plupart des téléphones, la largeur décide) */
-const reserve=250+64+(mode==='adv'?26:0);
+const reserve=250+64+(mode==='adv'?26:44);
 cell=clamp(Math.floor(Math.min((cw-12)/N,(window.innerHeight-reserve)/N)),24,66);
 mini=clamp(Math.round(cell*.52),14,20);
 gx=Math.round((cw-cell*N)/2);gy=4;
@@ -2448,7 +2484,7 @@ fxBack.width=window.innerWidth*dpr;fxBack.height=window.innerHeight*dpr;
 fxBack.style.width=window.innerWidth+'px';fxBack.style.height=window.innerHeight+'px';
 fbctx.setTransform(dpr,0,0,dpr,0,0);
 boardBGKey='';
-updateBoardRect();renderTray(false);Ads.relayout()}
+updateBoardRect();renderTray(false);Ads.relayout();try{Goal.place()}catch(e){}}
 window.addEventListener('resize',resize,{passive:true});
 function drawBlock(c,x,y,s,ci,alpha,scale,mono,sx,sy,th){
 alpha=alpha==null?1:alpha;scale=scale==null?1:scale;mono=!!mono;
@@ -3139,7 +3175,7 @@ for(let r=0;r<N;r++)if(!g[r][c]){f=false;break}
 if(f)cols.push(c)}
 return{rows,cols}}
 function bumpScore(){scorePulseT=performance.now();Goal.hud()}
-function setHudMode(){objBar.style.display=(mode==='adv'||(mode==='classic'&&Goal.val>0&&!Tut.on))?'flex':'none'}
+function setHudMode(){objBar.style.display=(mode==='adv')?'flex':'none';document.body.classList.toggle('advMode',mode==='adv');try{Goal.hud()}catch(e){}}
 function updateObjHUD(){if(mode==='classic'){Goal.hud();return}if(mode!=='adv'||!lvl)return;
 const o=lvl.obj;let txt='',pct=0;
 if(o[0]==='lines'){txt='Lines '+advLines+' / '+o[1];pct=advLines/o[1]}
@@ -3859,9 +3895,9 @@ else{
 fbctx.rect(-size*.68,-size*.68,size*1.36,size*1.36)}
 fbctx.fill();
 fbctx.restore()}
-function drawScoreHUD(t){if(Tut.on)return;
+function drawScoreHUD(t){if(Tut.on||mode==='adv')return;
 const dx=boardRect.left+gx+cell*N/2;
-const dy=boardRect.top+gy-34;
+const dy=boardRect.top+gy-34-((mode==='classic'&&Goal.val>0)?42:0);
 const pulse=1+.08*Math.max(0,1-(t-scorePulseT)/280);
 const size=Math.round(48*pulse);
 const key=size+'|'+shownScore;
@@ -4905,7 +4941,7 @@ if(mode==='classic'&&!seqBusy&&state!=='over'){seqBusy=true;state='ending2';deat
 state='over';clearRevive();Goal.settle();
 ovPause.classList.remove('show');ovRevive.classList.remove('show');Ads.hideBanner();
 store.del('bp_save');
-stats.games++;gameCounted=true;stats.lines+=linesTotal;store.set('bp_hr',String(new Date().getHours()));
+stats.games++;gameCounted=true;stats.lines+=linesTotal;Fx.log('game_over',{score:score,goal:Goal.val,record:score>bestAtStart?1:0,games:stats.games});store.set('bp_hr',String(new Date().getHours()));
 stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
 saveStats();
 SFX.over();vib([70,50,70]);
@@ -4943,8 +4979,7 @@ setTimeout(tick,350);
 updateMedalDot();
 setTimeout(()=>{if(rec&&Rate.maybe())return;Notif.ask()},1400)};
 if(rec)Rec.show(showStats);else showPlacedAd(showStats)}
-function refreshTitle(){
- $('titleBest').textContent='×'+consec}
+function refreshTitle(){Daily.refreshCount()}
 /* v55 : liaisons — les pubs ne passent QUE par restartWithAd (Restart) et
    l'offre Revive ; Home, Classic, carte, Next Level, victoire : aucune pub */
 bindTap($('btnPlay'),()=>{SFX.init();newGame()});
@@ -5313,11 +5348,11 @@ hand.style.opacity=al;hand.style.transform='translate('+(hx-23)+'px,'+(hy-6)+'px
 else hand.style.opacity=0;
 raf=requestAnimationFrame(loop)}
 function start(){
-on=true;step=1;tutHint=null;slotEls.forEach(el=>el.classList.remove('hintSlot'));
+Fx.log('tutorial_start');on=true;step=1;tutHint=null;slotEls.forEach(el=>el.classList.remove('hintSlot'));
 document.body.classList.add('tutMode');Ads.hideBanner();setHudMode();
 t0=performance.now();setup1();cancelAnimationFrame(raf);loop()}
 function finish(){
-on=false;cancelAnimationFrame(raf);document.body.classList.remove('tutMode');
+Fx.log('tutorial_end',{step:step});on=false;cancelAnimationFrame(raf);document.body.classList.remove('tutMode');
 store.set('bp_tut2','1');store.set('bp_tut','1');store.set('bp_gift','1');store.set('bp_gv','1');
 best=0;store.set('bp_best','0');bestVal.textContent='0';stats.games=0;saveStats();
 cx.clearRect(0,0,cv.width,cv.height);hand.style.opacity=0;
@@ -5333,6 +5368,9 @@ return Math.abs(r-6)<=1&&Math.abs(c-4)<=1}
 bindTap($('tutSkip'),()=>{if(on){SFX.init();finish()}});
 return{get on(){return on},start,onTurnEnd,accept}})();
 
+/* ---------- Mesure (Firebase Analytics via @capacitor-firebase/analytics ; sans effet si le plugin est absent) ---------- */
+const Fx={log(name,params){try{const C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.FirebaseAnalytics;if(P&&P.logEvent){const r=P.logEvent({name:name,params:params||{}});if(r&&r.catch)r.catch(()=>{})}}catch(e){}}};
+
 /* ---------- Objectif de partie (Classic) ---------- */
 const Goal=(()=>{
 let val=0,hit=false;
@@ -5346,31 +5384,47 @@ if(h.fail&&h.ratio){const lr=h.ratio;order=[lr-.08,lr-.16,lr-.04,lr+.06,lr-.12]}
 else order=[1.28,1.33,1.23,1.38,1.18];
 for(const r of order){const g=r50(R*Math.max(1.08,r));if(g>R&&recent.indexOf(g)<0)return g}
 let g=r50(R*1.25);while(recent.indexOf(g)>=0||g<=R)g+=50;return g}
+const pill=$('goalPill'),gpNum=$('gpNum'),gpProg=$('gpProg'),gpTrack=$('gpTrack'),gpIc=$('gpIc');
+(function(){const w=124,h=36,r=11,d='M'+w/2+' 0H'+(w-r)+'A'+r+' '+r+' 0 0 1 '+w+' '+r+'V'+(h-r)+'A'+r+' '+r+' 0 0 1 '+(w-r)+' '+h+'H'+r+'A'+r+' '+r+' 0 0 1 0 '+(h-r)+'V'+r+'A'+r+' '+r+' 0 0 1 '+r+' 0H'+w/2;gpTrack.setAttribute('d',d);gpProg.setAttribute('d',d)})();
+gpProg.style.strokeDasharray='100 100';
+function icon(){const c=gpIc.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,40,40);try{drawBlock(c,2,2,36,1)}catch(e){}}
+function place(){
+if(!pill||!boardRect)return;
+pill.style.top=Math.round(boardRect.top+gy-42)+'px'}
 function hud(){
-if(mode!=='classic'||val<=0||Tut.on){if(mode==='classic')objBar.style.display='none';return}
-objBar.style.display='flex';
-objTxt.textContent='Goal '+val;objPieces.textContent='';
-objFill.style.width=clamp(score/val*100,0,100)+'%';objFill.style.background=hit?'#ffb81c':'';
-if(!hit&&score>=val&&state==='playing'){hit=true;objFill.style.background='#ffb81c';toast('Goal reached! Keep going!',2400);SFX.win();vib([20,40,20]);confetti()}}
+const show=mode==='classic'&&val>0&&!Tut.on&&state!=='title';
+pill.classList.toggle('on',show);
+if(mode==='classic')objBar.style.display='none';
+if(!show)return;
+place();
+gpNum.textContent=val;
+const k=clamp(score/val,0,1);
+gpProg.style.strokeDashoffset=String(100-k*100);
+pill.classList.toggle('hit',hit);
+if(!hit&&score>=val&&state==='playing'){
+hit=true;pill.classList.add('hit');pill.classList.remove('pop');void pill.offsetWidth;pill.classList.add('pop');
+SFX.win();vib([20,40,20]);confetti();
+Fx.log('goal_reached',{goal:val});
+setTimeout(()=>{if(mode==='classic'&&state==='playing'){grantCollect();evilLeft=0;evilWarn=false;icon()}},900)}}
 function begin(){
 if(!store.get('bp_tut2')&&!store.get('bp_tut')&&stats.games===0){val=0;hit=false;Tut.start();return}
-val=pick();hit=false;state='intro';Ads.hideBanner();setHudMode();hud();
+val=pick();hit=false;state='intro';Ads.hideBanner();setHudMode();icon();hud();Fx.log('game_goal',{goal:val,best:best});
 $('gcTitle').textContent='Reach '+val+' points';
 $('gcSub').textContent=best>0?'Your best: '+best:'Clear lines, use gravity and bombs!';
 ovGoal.classList.add('show')}
 function go(){
 ovGoal.classList.remove('show');if(state!=='intro')return;
-state='playing';gameStart=performance.now();Ads.showBanner();
+state='playing';gameStart=performance.now();Ads.showBanner();hud();Fx.log('game_start',{goal:val});
 const cr=parseInt(store.get('bp_bombcr'))||0;
 if(cr>0){store.set('bp_bombcr',''+(cr-1));giveBonusBomb('Streak reward: free bomb!',2800)}
 computeTutHint()}
 function settle(){
 if(mode!=='classic'||val<=0)return;
 const h=H();h.fail=!hit;h.ratio=bestAtStart>0?val/bestAtStart:1.3;
-h.recent=(h.recent||[]).concat(val).slice(-3);store.set('bp_goalh',JSON.stringify(h));val=0}
+h.recent=(h.recent||[]).concat(val).slice(-3);store.set('bp_goalh',JSON.stringify(h));val=0;hud()}
 function restore(d){val=(d&&d.goal)|0;hit=!!(d&&d.ghit);setHudMode();hud()}
 bindTap($('btnGoalGo'),()=>{SFX.init();go()});
-return{get val(){return val},get hit(){return hit},begin,hud,settle,restore}})();
+return{get val(){return val},get hit(){return hit},begin,hud,settle,restore,place}})();
 
 /* ---------- Séquence de mort : « No free space », les trous se remplissent, tout tombe ---------- */
 function deathSeq(cb){
@@ -5407,10 +5461,7 @@ n=0;const d=new Date();while(a.indexOf(dayKey(d))>=0){n++;d.setDate(d.getDate()-
 const R=[3,7,14,30];
 if(R.indexOf(n)>=0&&store.get('bp_srw')!==today){store.set('bp_srw',today);store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+1));setTimeout(()=>toast('Day '+n+' streak! Free bomb in your next game',3600),1500)}
 refresh()}
-function refresh(){
-const R=[3,7,14,30],nx=R.find(x=>x>n);
-$('stkLine').textContent=n>=1?('Day '+n+' streak'+(nx?' · free bomb on day '+nx:'')):'';
-$('meStreak').textContent=n}
+function refresh(){$('meStreak').textContent=n}
 return{update,refresh,get n(){return n}}})();
 
 /* ---------- Défis quotidiens ---------- */
@@ -5422,32 +5473,39 @@ const MN=['January','February','March','April','May','June','July','August','Sep
 function render(){
 const d=new Date(),y=d.getFullYear(),m=d.getMonth(),dim=new Date(y,m+1,0).getDate(),off=(new Date(y,m,1).getDay()+6)%7,dn=done(),td=d.getDate();
 let html='',cnt=0;
-for(let i=0;i<off;i++)html+='<span></span>';
+for(let i=0;i<off;i++)html+='<span class="blank"></span>';
 for(let day=1;day<=dim;day++){
 const k=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+day).slice(-2),isDone=!!dn[k];if(isDone)cnt++;
 const cls=isDone?'done':day===td?'today':day<td?'past':'fut';
-html+='<span class="'+cls+'"><b>'+day+'</b></span>'}
+html+='<span class="'+cls+'">'+(isDone?'<img src="assets/ui/crown.png" alt=""/>':day)+'</span>'}
 $('dcGrid').innerHTML=html;$('dcMonth').textContent=MN[m]+' '+y;$('dcCount').textContent=cnt+'/'+dim;
-const isD=!!dn[dayKey()],b=$('btnDcPlay');b.textContent=isD?'Completed ✓':'Play';b.classList.toggle('done',isD);
-$('dcSub').textContent=MN[m].slice(0,3)+' '+td;$('dcGo').textContent=isD?'Done':'Play';$('cardDaily').classList.toggle('done',isD)}
+const isD=!!dn[dayKey()],b=$('btnDcPlay');b.textContent=isD?'Completed':'Play';b.classList.toggle('done',isD)}
+function days(){return Object.keys(done()).length}
+function refreshCount(){
+const n=days(),el=$('titleBest');let shown=parseInt(store.get('bp_dcshown'));
+if(isNaN(shown)){shown=n;store.set('bp_dcshown',''+n)}
+el.classList.remove('pop');
+if(shown<n){el.textContent='×'+shown;
+setTimeout(()=>{if(!ovTitle.classList.contains('show'))return;el.textContent='×'+n;store.set('bp_dcshown',''+n);void el.offsetWidth;el.classList.add('pop');try{SFX.up();vib([10,30,10])}catch(e){}},900)}
+else{el.textContent='×'+n}}
 function play(){
 const k=dayKey();if(done()[k]){toast('Come back tomorrow for a new challenge!',2200);return}
-const go=()=>{dailyDay=k;startLevel(idx(k))};
+const go=()=>{dailyDay=k;Fx.log('daily_start',{day:k});startLevel(idx(k))};
 if(seen[k]){go();return}
 seen[k]=true;showPlacedAd(go)}
 let pg=0;
 function intro(){pg=0;paintIntro();ovDcIntro.classList.add('show')}
 function paintIntro(){
-$('dcIntroIco').innerHTML=pg===0?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#ffb81c"/><path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z" fill="#f08a00"/></svg>':'<svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="2.5"/><path d="M20 10h-8c0 10 3 16 9 17M44 10h8c0 10-3 16-9 17" fill="none" stroke="#e8a400" stroke-width="3" stroke-linecap="round"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/><path d="M32 12l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fff"/></svg>';
-$('dcIntroTxt').textContent=pg===0?'Complete a daily challenge every day and earn gold stars!':'Earn every star in a month to win a unique monthly trophy!';
+$('dcIntroIco').innerHTML=pg===0?'<img src="assets/ui/crown.png" alt=""/>':'<span class="goldCup">'+CUPSVG+'</span>';
+void 0;var __unused='<svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="2.5"/><path d="M20 10h-8c0 10 3 16 9 17M44 10h8c0 10-3 16-9 17" fill="none" stroke="#e8a400" stroke-width="3" stroke-linecap="round"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/><path d="M32 12l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fff"/></svg>';
+$('dcIntroTxt').textContent=pg===0?'Complete a daily challenge every day and earn crowns!':'Earn every crown of the month to win a unique monthly trophy!';
 $('dcDot0').classList.toggle('on',pg===0);$('dcDot1').classList.toggle('on',pg===1);
 $('btnDcIntro').textContent=pg===0?'Continue':'OK'}
 bindTap($('btnDcIntro'),()=>{if(pg===0){pg=1;paintIntro()}else{ovDcIntro.classList.remove('show');store.set('bp_dcintro','1')}});
 function complete(){
-if(!dailyDay)return;const dn=done();if(!dn[dailyDay]){dn[dailyDay]=1;store.set('bp_dc',JSON.stringify(dn));setTimeout(()=>toast('Daily challenge complete! Star earned',2800),900)}render()}
+if(!dailyDay)return;const dn=done();if(!dn[dailyDay]){dn[dailyDay]=1;store.set('bp_dc',JSON.stringify(dn));Fx.log('daily_complete',{day:dailyDay});setTimeout(()=>toast('Daily challenge complete! Crown earned',2800),900)}render()}
 bindTap($('btnDcPlay'),()=>{SFX.init();play()});
-bindTap($('cardDaily'),()=>{SFX.init();Tabs.show('daily');})
-return{render,play,intro,complete}})();
+return{render,play,intro,complete,days,refreshCount,done}})();
 
 /* ---------- Barre d'onglets Home / Daily / Me ---------- */
 const Tabs=(()=>{
@@ -5456,8 +5514,8 @@ function show(n){
 cur=n;state='title';
 ovTitle.classList.toggle('show',n==='home');ovDaily.classList.toggle('show',n==='daily');ovMe.classList.toggle('show',n==='me');
 if(n==='daily'){Daily.render();if(!store.get('bp_dcintro'))Daily.intro()}
-if(n==='me'){$('meBest').textContent=best;$('meGames').textContent=stats.games;Streak.refresh()}
-if(n==='home'){refreshTitle();Streak.refresh();Daily.render()}
+if(n==='me'){$('meBest').textContent=best;$('meGames').textContent=stats.games;$('meDays').textContent=Daily.days();Streak.refresh()}
+if(n==='home'){refreshTitle();Daily.render()}
 sync()}
 function sync(){
 const vis=ovTitle.classList.contains('show')||ovDaily.classList.contains('show')||ovMe.classList.contains('show');
@@ -5473,7 +5531,9 @@ bindTap($('meAch'),()=>{SFX.init();ovMe.classList.remove('show');openAch('home')
 bindTap($('meAdv'),()=>{SFX.init();ovMe.classList.remove('show');openMap()});
 bindTap($('meSet'),()=>{SFX.init();openPause('home')});
 return{show,sync,get cur(){return cur}}})();
-Streak.update();Daily.render();
+const CUPSVG=(document.querySelector('.trophyBlock svg')||{outerHTML:''}).outerHTML.replace(/id="tgr2?"/g,function(m){return m.replace('"tgr','"tgc')}).replace(/url\(#tgr2\)/g,'url(#tgc2)').replace(/url\(#tgr\)/g,'url(#tgc)');
+['rcCup','dcCup','meCup'].forEach(id=>{const el=$(id);if(el)el.innerHTML=CUPSVG});
+Streak.update();Daily.render();Daily.refreshCount();
 
 grid=Array.from({length:N},()=>Array(N).fill(null));
 genTray(false);setHudMode();
