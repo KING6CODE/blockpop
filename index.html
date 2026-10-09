@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="theme-color" content="#173fb3"/>
 <title>BLOCK THUD!</title>
+<!-- v64 : parcours « Blockudoku » — tuto guidé sans texte (écran assombri, main qui glisse : gravité puis bombe), popup d'objectif à chaque partie (record +25/35 %, jamais
+     deux fois la même valeur ; 1000 la 1re fois) avec barre de progression, séquence de mort (« No free space », les trous se remplissent, tout tombe), écran de record 2 s
+     puis stats, pub au Nouvelle partie, défis quotidiens (calendrier, étoiles), série de connexion (bombe offerte aux jours 3/7/14/30), barre d'onglets Home / Daily / Me,
+     popup de note (5 étoiles) au 4e record. -->
 <!-- v63 : rétention + pubs plus sobres au début. Plus AUCUNE pub avant la 3e partie (le Game Over de la 1re partie en montrait une : stats.games était incrémenté
      AVANT le test) ; le refus du revive passe par la même porte (showPlacedAd) ; pendant les 48 premières heures, une interstitielle sur deux. Bombe offerte (scriptée) à
      700 points dans la toute première partie + message de gravité à la 1re chute ; rappels par NOTIFICATIONS LOCALES (J+1, J+3, J+7 à l'heure habituelle de jeu), permission
@@ -341,6 +345,80 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .ntTitle{font:900 30px 'Nunito Sans',sans-serif;text-shadow:0 4px 0 rgba(8,30,100,.45)}
 .ntText{margin-top:12px;font:700 17px/1.35 'Nunito Sans',sans-serif;color:rgba(255,255,255,.92)}
 .ntBomb{width:84px;height:84px;margin-bottom:14px;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(5,18,60,.5))}
+/* ---------- v64 ---------- */
+body.tutMode #score,body.tutMode #bestWrap,body.tutMode #objBar,body.tutMode #btnBonus,body.tutMode #btnPause{visibility:hidden!important}
+#tutDim{position:fixed;inset:0;width:100%;height:100%;z-index:45;pointer-events:none;display:none}
+#tutHand{position:fixed;left:0;top:0;width:68px;height:78px;z-index:65;pointer-events:none;display:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));will-change:transform}
+#tutSkip{position:fixed;right:14px;top:calc(12px + env(safe-area-inset-top));z-index:66;display:none;background:none;border:none;color:#fff;font:900 17px 'Nunito Sans',sans-serif;padding:10px 12px;text-shadow:0 2px 4px rgba(0,0,0,.55)}
+body.tutMode #tutDim,body.tutMode #tutHand,body.tutMode #tutSkip{display:block}
+#noSpace{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.9);z-index:90;padding:10px 22px;border-radius:14px;background:rgba(255,255,255,.92);color:#e8883a;font:900 24px 'Nunito Sans',sans-serif;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap}
+#noSpace.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#ovGoal,#ovRate,#ovDcIntro{z-index:118;background:rgba(9,16,48,.78)}
+.gcCard{width:min(86%,340px);background:#fff;border-radius:22px;padding:26px 22px 22px;text-align:center;color:#101828;box-shadow:0 14px 40px rgba(0,0,20,.4);font-family:'Nunito Sans',sans-serif}
+.gcT{font:900 28px 'Nunito Sans',sans-serif}
+.gcS{margin-top:12px;font:700 16px/1.35 'Nunito Sans',sans-serif;color:#6a7488}
+.gcB{margin-top:22px;width:100%;height:56px;border:none;border-radius:28px;background:#2f86ea;color:#fff;font:900 20px 'Nunito Sans',sans-serif;cursor:pointer;box-shadow:0 8px 18px rgba(47,134,234,.35)}
+.gcB:active{transform:translateY(2px);filter:brightness(.92)}
+.gcB2{margin-top:10px;width:100%;height:50px;border:none;border-radius:25px;background:#eef2f9;color:#2f86ea;font:900 17px 'Nunito Sans',sans-serif;cursor:pointer}
+.gcStars{display:flex;justify-content:center;gap:8px;margin:14px 0 4px}
+.gcStars svg{width:44px;height:44px}
+.gcIco{display:grid;place-items:center;height:130px}
+.gcIco svg{width:120px;height:120px}
+.gcDots{display:flex;justify-content:center;gap:8px;margin-top:14px}
+.gcDots i{width:9px;height:9px;border-radius:50%;background:#cfd6e4}
+.gcDots i.on{background:#2f86ea}
+#ovRecord{z-index:55;background:radial-gradient(ellipse at 50% 40%,rgba(40,120,230,.88),rgba(14,40,120,.94))}
+.rcWrap{display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff;font-family:'Nunito Sans',sans-serif}
+.rcWrap svg{width:150px;height:150px;filter:drop-shadow(0 10px 16px rgba(0,0,40,.4))}
+.rcT{margin-top:10px;font:900 34px 'Nunito Sans',sans-serif;text-shadow:0 4px 0 rgba(8,30,100,.45)}
+.rcS{margin-top:6px;font:900 52px 'Nunito Sans',sans-serif}
+#ovDaily,#ovMe{background:#f4f7fc;place-items:start center;padding:0;color:#101828;font-family:'Nunito Sans',sans-serif}
+.dcWrap{position:relative;width:100%;max-width:470px;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;padding:0 0 calc(86px + env(safe-area-inset-bottom))}
+.dcHead{background:linear-gradient(180deg,#1a73e0,#52b4ff);height:34vh;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;color:#fff;padding-bottom:10px}
+.dcHead svg{width:36%;max-width:150px;height:auto;flex:none;margin-bottom:6px;filter:drop-shadow(0 8px 12px rgba(0,30,100,.35))}
+.dcHT{font:900 21px 'Nunito Sans',sans-serif;margin-bottom:6px}
+.dcMonth{display:flex;justify-content:space-between;align-items:center;padding:16px 22px 6px;font:900 21px 'Nunito Sans',sans-serif}
+.dcStars{display:flex;align-items:center;gap:8px;font:900 19px 'Nunito Sans',sans-serif}
+.dcStars i{width:26px;height:26px;border-radius:50%;background:#ffb81c;display:grid;place-items:center}
+.dcStars i svg{width:15px;height:15px}
+.dcWk,.dcGrid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 14px;text-align:center}
+.dcWk span{padding:8px 0;font:800 13px 'Nunito Sans',sans-serif;color:#9aa5ba}
+.dcGrid span{height:46px;margin:3px 0;display:grid;place-items:center;font:800 18px 'Nunito Sans',sans-serif;color:#6a7488}
+.dcGrid span b{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800}
+.dcGrid .fut{color:#c3cad9}
+.dcGrid .past{color:#101828}
+.dcGrid .today b{background:#2f86ea;color:#fff}
+.dcGrid .done b{background:#ffb81c;color:#fff}
+#btnDcPlay{width:calc(100% - 44px);margin:18px 22px 0}
+#btnDcPlay.done{background:#9aa5ba;box-shadow:none}
+.meTitle{padding:calc(18px + env(safe-area-inset-top)) 0 14px;text-align:center;font:900 22px 'Nunito Sans',sans-serif;background:#fff;border-bottom:1px solid #e2e8f3}
+.meRow{display:flex;align-items:center;gap:14px;margin:12px 16px 0;padding:18px 18px;background:#fff;border-radius:16px;font:800 19px 'Nunito Sans',sans-serif;color:#101828;border:none;width:calc(100% - 32px);text-align:left;cursor:pointer;box-shadow:0 2px 6px rgba(20,40,90,.06)}
+.meRow svg{width:30px;height:30px;flex:none}
+.meRow em{margin-left:auto;font-style:normal;color:#9aa5ba;font-size:22px}
+.meStat{margin:16px 16px 0;padding:16px;background:#fff;border-radius:16px;display:flex;justify-content:space-around;text-align:center}
+.meStat b{display:block;font:900 24px 'Nunito Sans',sans-serif}
+.meStat span{font:700 12px 'Nunito Sans',sans-serif;color:#8a95ab}
+#tabBar{position:fixed;left:0;right:0;bottom:0;z-index:100;display:none;justify-content:center;background:#fff;border-top:1px solid #dfe5f1;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+#tabBar.show{display:flex}
+#tabBar .tabIn{display:flex;width:100%;max-width:470px}
+#tabBar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;padding:6px 0;color:#8a95ab;font:800 13px 'Nunito Sans',sans-serif;cursor:pointer}
+#tabBar button svg{width:30px;height:30px}
+#tabBar button.on{color:#2f86ea}
+.dcCard{display:flex;align-items:center;gap:12px;width:57%;max-width:270px;margin-top:2.6vh;padding:10px 14px;border:none;border-radius:16px;background:linear-gradient(180deg,#ffd24d,#f79200);color:#fff;font-family:'Nunito Sans',sans-serif;cursor:pointer;box-shadow:0 7px 16px rgba(10,20,80,.32),inset 0 2px 0 rgba(255,255,255,.4);text-align:left}
+.dcCard svg{width:34px;height:34px;flex:none}
+.dcCard .dcL{flex:1;line-height:1.1}
+.dcCard .dcTag{font:900 12px 'Nunito Sans',sans-serif;letter-spacing:.5px;opacity:.95}
+.dcCard .dcSub{font:900 17px 'Nunito Sans',sans-serif}
+.dcCard .dcGo{background:#fff;color:#e8883a;border-radius:14px;padding:5px 12px;font:900 14px 'Nunito Sans',sans-serif}
+.dcCard.done{background:linear-gradient(180deg,#8fa0bd,#6a7a98)}
+.dcCard.done .dcGo{color:#6a7a98}
+.titleCol>*{flex:none}
+#ovTitle .bigLogo{margin-top:7vh}
+.titleCol .dailyPanel{margin-top:2.2vh}
+.titleCol .titleBtns{margin-top:1.4vh;gap:3vh}
+.titleCol .dcCard{margin-top:1.8vh}
+#stkLine{margin-top:1.2vh;font:800 14px 'Nunito Sans',sans-serif;color:rgba(255,255,255,.9);text-shadow:0 2px 3px rgba(0,0,40,.35)}
+
 .rvWrap{width:min(100%,420px);display:flex;flex-direction:column;align-items:center;text-align:center}
 .rvHeart{position:relative;width:118px;height:106px;filter:drop-shadow(0 8px 14px rgba(120,10,60,.45))}
 .rvHeart img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2}
@@ -501,6 +579,8 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
         <button class="dpMore" id="btnStats" aria-label="Stats"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></button>
       </div>
     </div>
+    <button class="dcCard" id="cardDaily"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="#fff"/><path d="M8 3v4M16 3v4" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M12 9.6l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#f79200"/></svg><span class="dcL"><div class="dcTag">DAILY CHALLENGE</div><div class="dcSub" id="dcSub">Today</div></span><span class="dcGo" id="dcGo">Play</span></button>
+    <div id="stkLine"></div>
     <div class="titleBtns">
       <button class="homeBtn" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure</button>
       <button class="homeBtn" id="btnPlay"><svg class="ico" viewBox="0 0 24 24"><path d="M3.6 12C3.6 9.8 5.4 8 7.6 8c3.2 0 5.6 8 8.8 8 2.2 0 4-1.8 4-4s-1.8-4-4-4c-3.2 0-5.6 8-8.8 8-2.2 0-4-1.8-4-4z" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg>Classic</button>
@@ -520,6 +600,29 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
     </div>
   </div>
 </div>
+<div class="overlay" id="ovDaily">
+  <div class="dcWrap">
+    <div class="dcHead"><svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="2.5"/><path d="M20 10h-8c0 10 3 16 9 17M44 10h8c0 10-3 16-9 17" fill="none" stroke="#e8a400" stroke-width="3" stroke-linecap="round"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/><path d="M32 12l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fff"/></svg><div class="dcHT">Daily Challenges</div></div>
+    <div class="dcMonth"><span id="dcMonth">October</span><span class="dcStars"><i><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#fff"/></svg></i><span id="dcCount">0/31</span></span></div>
+    <div class="dcWk"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+    <div class="dcGrid" id="dcGrid"></div>
+    <button class="gcB" id="btnDcPlay">Play</button>
+  </div>
+</div>
+<div class="overlay" id="ovMe">
+  <div class="dcWrap">
+    <div class="meTitle">Me</div>
+    <div class="meStat"><div><b id="meBest">0</b><span>Best score</span></div><div><b id="meGames">0</b><span>Rounds</span></div><div><b id="meStreak">0</b><span>Day streak</span></div></div>
+    <button class="meRow" id="meAch"><svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="3"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/></svg>Achievements<em>›</em></button>
+    <button class="meRow" id="meAdv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#2f86ea"/><path d="M12 6.5V12l3.8 2.2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure<em>›</em></button>
+    <button class="meRow" id="meSet"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#8a95ab"/><circle cx="12" cy="12" r="3.4" fill="#fff"/></svg>Settings<em>›</em></button>
+  </div>
+</div>
+<div id="tabBar"><div class="tabIn">
+  <button id="tabHome" class="on"><svg viewBox="0 0 24 24"><path d="M3.5 11 12 3.8l8.5 7.2v9a1 1 0 0 1-1 1H15v-6h-6v6H4.5a1 1 0 0 1-1-1z" fill="currentColor"/></svg>Home</button>
+  <button id="tabDaily"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="currentColor"/><path d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M12 9.6l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff"/></svg>Daily</button>
+  <button id="tabMe"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.4" fill="currentColor"/><path d="M3.8 21c.6-4.4 4-6.6 8.2-6.6s7.6 2.2 8.2 6.6z" fill="currentColor"/></svg>Me</button>
+</div></div>
 <div class="overlay" id="ovAch">
   <div class="achWrap">
     <div class="achHead">
@@ -725,6 +828,39 @@ body.ad-mode #bannerBox,body.ad-mode #toast,body.ad-mode #devPanel,body.ad-mode 
     <p id="foStats"></p>
     <button class="goPlay" id="btnAgain" aria-label="Play again"><svg viewBox="0 0 24 24"><path d="M8 5.1c0-1.2 1.3-1.9 2.3-1.3l10 6.4c.9.6.9 2 0 2.6l-10 6.4c-1 .6-2.3-.1-2.3-1.3z"/></svg></button>
     <button class="goHome" id="btnMenu">Home</button>
+  </div>
+</div>
+
+<canvas id="tutDim"></canvas>
+<div id="tutHand"><svg viewBox="0 0 64 72"><path d="M22 6c-3 0-5 2-5 5v28l-5-5c-2-2-6-1-7 2-1 2 0 4 1 5l16 22c2 3 5 4 8 4h12c6 0 10-4 10-10V34c0-3-2-5-5-5-1 0-2 0-3 1 0-3-2-5-5-5-2 0-3 1-4 2-1-2-3-3-5-3-1 0-2 0-3 1V11c0-3-2-5-5-5z" fill="#fff" stroke="#1b2a4a" stroke-width="3" stroke-linejoin="round"/></svg></div>
+<button id="tutSkip">Skip</button>
+<div id="noSpace">No free space</div>
+<div class="overlay" id="ovGoal">
+  <div class="gcCard">
+    <div class="gcT" id="gcTitle">Reach 1000 points</div>
+    <div class="gcS" id="gcSub"></div>
+    <button class="gcB" id="btnGoalGo">Start</button>
+  </div>
+</div>
+<div class="overlay" id="ovRecord">
+  <div class="rcWrap"><svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="2.5"/><path d="M20 10h-8c0 10 3 16 9 17M44 10h8c0 10-3 16-9 17" fill="none" stroke="#e8a400" stroke-width="3" stroke-linecap="round"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/><path d="M32 12l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fff"/></svg><div class="rcT">New record!</div><div class="rcS" id="rcScore">0</div></div>
+</div>
+<div class="overlay" id="ovRate">
+  <div class="gcCard">
+    <div class="gcT">Rate the game</div>
+    <div class="gcStars"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="#ffb81c" stroke="#e8a400" stroke-width="1.2" stroke-linejoin="round"/></svg></div>
+    <div class="gcS">If you like Block Thud!, take a moment to rate it. Thank you for your support!</div>
+    <button class="gcB" id="btnRate5">5 stars</button>
+    <button class="gcB2" id="btnRateLow">1 - 4 stars</button>
+  </div>
+</div>
+<div class="overlay" id="ovDcIntro">
+  <div class="gcCard">
+    <div class="gcT">Welcome to the daily challenges</div>
+    <div class="gcIco" id="dcIntroIco"></div>
+    <div class="gcS" id="dcIntroTxt"></div>
+    <div class="gcDots"><i class="on" id="dcDot0"></i><i id="dcDot1"></i></div>
+    <button class="gcB" id="btnDcIntro">Continue</button>
   </div>
 </div>
 <!-- v63 : écran d'explication avant la demande d'autorisation des notifications -->
@@ -2963,7 +3099,7 @@ let tutHint=null;
 function computeTutHint(){
 tutHint=null;
 slotEls.forEach(el=>el.classList.remove('hintSlot'));
-if(store.get('bp_tut'))return;
+if(store.get('bp_tut')||Tut.on)return;
 if(state!=='playing'||mode!=='classic')return;
 let pi=-1;
 for(let i=0;i<3;i++){if(tray[i]&&!tray[i].dead&&!tray[i].bomb){pi=i;break}}
@@ -3002,9 +3138,9 @@ for(let c=0;c<N;c++){let f=true;
 for(let r=0;r<N;r++)if(!g[r][c]){f=false;break}
 if(f)cols.push(c)}
 return{rows,cols}}
-function bumpScore(){scorePulseT=performance.now()}
-function setHudMode(){objBar.style.display=(mode==='adv')?'flex':'none'}
-function updateObjHUD(){if(mode!=='adv'||!lvl)return;
+function bumpScore(){scorePulseT=performance.now();Goal.hud()}
+function setHudMode(){objBar.style.display=(mode==='adv'||(mode==='classic'&&Goal.val>0&&!Tut.on))?'flex':'none'}
+function updateObjHUD(){if(mode==='classic'){Goal.hud();return}if(mode!=='adv'||!lvl)return;
 const o=lvl.obj;let txt='',pct=0;
 if(o[0]==='lines'){txt='Lines '+advLines+' / '+o[1];pct=advLines/o[1]}
 else if(o[0]==='score'){txt='Score '+score+' / '+o[1];pct=score/o[1]}
@@ -3122,7 +3258,7 @@ const s2=STYLES[th].snd;
 const f=semi(392,Math.min(c,9)-1);
 this.tone(f,.15,s2.w,.10,f*1.5);
 this.tone(f*1.5,.18,'triangle',.07,null,.05)};
-function gravityHint(moved){if(moved&&!store.get('bp_gv')){store.set('bp_gv','1');toast('Gravity! Blocks fall after every clear',2600)}}
+function gravityHint(moved){if(moved&&!store.get('bp_gv')&&!Tut.on){store.set('bp_gv','1');toast('Gravity! Blocks fall after every clear',2600)}}
 function applyGravity(){let moved=0;
 for(let c=0;c<N;c++){let write=N-1;
 for(let r=N-1;r>=0;r--){const b=grid[r][c];
@@ -3203,6 +3339,7 @@ return false}
 function endTurn(){
 /* v55 : partie mise en pause par les Settings → fin de tour différée à la reprise */
 if(state==='paused'){turnEndPending=true;return}
+if(Tut.on){Tut.onTurnEnd();return}
 if(tray.every(x=>!x))genTray(true);
 updateObjHUD();
 if(mode==='adv'){
@@ -3256,7 +3393,7 @@ function saveGame(){if(mode!=='classic'||state!=='playing'||AD_ACTIVE)return;
 	const data={grid:grid.map(row=>row.map(b=>b?b.c:-1)),
 	tray:tray.map(p=>p&&!p.bomb?{si:p.si,ci:p.ci}:null),
 	score,stars,combo,grace,maxCombo,placedCount,linesTotal,
-	theme,stylePts,styleLevel,themeOrder,reviveUsed,reviveAds,gameStart,bestAtStart};
+	theme,stylePts,styleLevel,themeOrder,reviveUsed,reviveAds,gameStart,bestAtStart,goal:Goal.val,ghit:Goal.hit?1:0};
 	store.set('bp_save',JSON.stringify(data))}
 /* v55.1 : reprise de la dernière partie Classic. La sauvegarde est écrite à
    chaque fin de tour et à la mise en arrière-plan ; supprimée par Game Over
@@ -3279,7 +3416,7 @@ function tryRestoreGame(){
 	theme=(d.theme>=0&&d.theme<STYLES.length)?d.theme:0;
 	stylePts=d.stylePts|0;styleLevel=d.styleLevel|0;
 	themeOrder=sanitizeThemeOrder(Array.isArray(d.themeOrder)?d.themeOrder:null,theme);
-	reviveUsed=!!d.reviveUsed;reviveAds=clamp(d.reviveAds|0,0,REVIVE.maxAds);
+	reviveUsed=!!d.reviveUsed;reviveAds=clamp(d.reviveAds|0,0,REVIVE.maxAds);Goal.restore(d);
 	gameStart=d.gameStart||performance.now();
 	bestAtStart=(typeof d.bestAtStart==='number')?d.bestAtStart:best;
 	newRecordShown=bestAtStart>0&&score>bestAtStart;
@@ -3324,7 +3461,7 @@ fakeFallback:false,       /* production : jamais de fausse pub si AdMob échoue 
 interstitialSec:3,
 rewardedSec:5,
 firstAdAfterGames:2,      /* v63 : aucune pub tant que 2 parties n'ont pas été terminées (la 3e est la première avec pub) */
-youngHours:48,            /* v63 : pendant les 48 premières heures, une interstitielle sur deux seulement */
+youngHours:0,            /* v63 : pendant les 48 premières heures, une interstitielle sur deux seulement */
 restartCooldownMs:30000,  /* pas d'interstitielle de Restart < 30 s après la fermeture d'une pub */
 bannerInAdventure:true    /* bannière aussi pendant les niveaux Aventure (gameplay) */
 };
@@ -3501,7 +3638,7 @@ let bonusUsed=false;
 function updateBonusBtn(){const b=$('btnBonus');if(!b)return;
 b.classList.toggle('on',mode==='classic'&&state==='playing'&&!bonusUsed&&rewardAllowed()&&!Ads.busy);
 /* v63 : cadeau de la toute première partie — une bombe offerte à 700 points (on découvre le différenciant du jeu) */
-if(mode==='classic'&&state==='playing'&&stats.games===0&&!animating&&score>=700&&!store.get('bp_gift')){store.set('bp_gift','1');giveBonusBomb('Free bomb! Drop it to blast a 3×3 area',3600)}}
+if(mode==='classic'&&state==='playing'&&stats.games===0&&!animating&&score>=700&&!store.get('bp_gift')&&!Tut.on){store.set('bp_gift','1');giveBonusBomb('Free bomb! Drop it to blast a 3×3 area',3600)}}
 setInterval(updateBonusBtn,400);
 function giveBonusBomb(msg,dur){
 let i=tray.findIndex(p=>!p);
@@ -3539,8 +3676,8 @@ rvTimers.push(setTimeout(()=>declineRevive(),S*1000))}
 /* No thanks / fin du timer / pub récompensée fermée avant la fin → interstitielle 3 s → Game Over */
 function declineRevive(){
 if(state!=='revive'&&state!=='reviveAd')return;
-clearRevive();ovRevive.classList.remove('show');state='over';
-showPlacedAd(finishGameOver)}   /* v63 : même porte que les autres pubs (3e partie, cooldown, nouveaux joueurs) */
+clearRevive();ovRevive.classList.remove('show');state='ending2';
+finishGameOver()}   /* v63 : même porte que les autres pubs (3e partie, cooldown, nouveaux joueurs) */
 const OFFS=[[0,0],[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
 [0,2],[0,-2],[2,0],[-2,0],[1,2],[2,1],[-1,-2],[-2,-1],[1,-2],[-1,2],[2,-1],[-2,1],
 [2,2],[-2,-2],[2,-2],[-2,2]];
@@ -3651,6 +3788,7 @@ window.removeEventListener('pointercancel',onUp);
 if(!drag)return;
 const x=drag.tileX,y=drag.tileY,sl=drag.i,d=drag;
 computeGhost(x,y);
+if(ghost&&!Tut.accept(ghost.r,ghost.c)){ghost=null;SFX.bad()}
 if(ghost){const r=ghost.r,c=ghost.c;
 lastDrop={x:x-d.w/2-boardRect.left-gx,y:y-d.h/2-boardRect.top-gy,
 t:performance.now()};
@@ -3721,7 +3859,7 @@ else{
 fbctx.rect(-size*.68,-size*.68,size*1.36,size*1.36)}
 fbctx.fill();
 fbctx.restore()}
-function drawScoreHUD(t){
+function drawScoreHUD(t){if(Tut.on)return;
 const dx=boardRect.left+gx+cell*N/2;
 const dy=boardRect.top+gy-34;
 const pulse=1+.08*Math.max(0,1-(t-scorePulseT)/280);
@@ -3938,8 +4076,12 @@ bCi=drag.p.ci;
 if((STYLES[theme].lfx||'classic')==='shake'){
 bOx=Math.sin(t/220+(r+c)*.9)*cell*.05;
 bOy=Math.cos(t/260+(r-c)*.9)*cell*.05}}
+let oq=null;
+if(o.out&&t>o.out.t0){const q=(t-o.out.t0)/1000;oq={x:o.out.vx*q*cell*3,y:(o.out.vy*q+14*q*q)*cell,a:o.out.rot*q*3};if(oq.y>window.innerHeight+cell*3)continue;
+bctx.save();const ccx=gx+c*cell+cell/2,ccy=gy+r*cell+cell/2;bctx.translate(ccx+oq.x,ccy+oq.y);bctx.rotate(oq.a);bctx.translate(-ccx,-ccy)}
 drawBlock(bctx,gx+c*cell+bOx+ox,gy+r*cell+oyF+bOy+oy,cell,bCi,1,pop,false,sx,sy);
 if(o.gem)drawGemIcon(bctx,gx+c*cell+ox,gy+r*cell+oyF,cell,t,o.gem);
+if(oq)bctx.restore();
 if(!o.fall&&!o.slide&&age<300){
 const kk=1-age/300;
 bctx.fillStyle='rgba(255,255,255,'+(.32*kk)+')';
@@ -4404,7 +4546,8 @@ function hideAllOv(){
 ovPause.classList.remove('show');ovOver.classList.remove('show');
 ovAch.classList.remove('show');ovMap.classList.remove('show');
 ovWin.classList.remove('show');ovFail.classList.remove('show');
-ovRevive.classList.remove('show')}
+ovRevive.classList.remove('show');
+['ovDaily','ovMe','ovGoal','ovRecord','ovRate','ovDcIntro'].forEach(id=>$(id).classList.remove('show'))}
 function goHome(){
 turnId++;animating=false;drag=null;ghost=null;
 popQueue=[];popCur=null;clearRevive();
@@ -4501,7 +4644,7 @@ Ads.hideBanner();
 const st=1+(score>=lvl.s2?1:0)+(score>=lvl.s3?1:0);
 if(st>advStars[advLevel]){advStars[advLevel]=st;
 store.set('bp_adv',JSON.stringify(advStars))}
-consec++;store.set('bp_consec',''+consec);
+consec++;store.set('bp_consec',''+consec);Daily.complete();
 stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
 saveStats();
 SFX.win();vib([20,40,20,40,20]);
@@ -4512,7 +4655,7 @@ sz:cell*.14,col:COLORS[k2%COLORS.length].b,
 t0:performance.now(),life:800,sh:1,g:.3,rot:0,vr:.15});
  $('winConsec').textContent='×'+consec;
 buildWinStage();
- $('btnNext').style.display=(advLevel<LEVELS.length-1)?'flex':'none';
+ $('btnNext').style.display=(advLevel<LEVELS.length-1&&!dailyDay)?'flex':'none';
 setTimeout(()=>ovWin.classList.add('show'),450);
 updateMedalDot()}
 function levelFail(reason){state='over';ovPause.classList.remove('show');
@@ -4598,7 +4741,7 @@ bd.appendChild(div)});
  $('gemOCnt').textContent=stats.gemsO;
 let totStars=0;advStars.forEach(s2=>totStars+=s2);
  $('gemFill').style.width=clamp(totStars/(LEVELS.length*3)*100,0,100)+'%'}
-function openMap(){
+function openMap(){dailyDay=null;
 Ads.hideBanner();
 ovTitle.classList.remove('show');ovWin.classList.remove('show');ovFail.classList.remove('show');
 buildAdventureMap();
@@ -4724,7 +4867,8 @@ Ads.showBanner();
 SFX.up();vib([15,30,15]);flash();
 toast('Bottom cleared — go on!');
 saveGame()}
-function newGame(){gameCounted=false;mode='classic';lvl=null;setHudMode();
+let seqDone=false,dailyDay=null;
+function newGame(){gameCounted=false;dailyDay=null;mode='classic';lvl=null;setHudMode();
 turnId++;animating=false;
 popQueue=[];popCur=null;
 clearRevive();reviveAds=0;bonusUsed=false;pausedBySettings=false;turnEndPending=false;
@@ -4745,7 +4889,7 @@ spawnPreset();
 updateBg();store.del('bp_save');
 resize();genTray(true);
 state='playing';
-Ads.showBanner();
+Ads.showBanner();Goal.begin();
 /* v58 : tuto sans texte — le fantôme pulsant (computeTutHint) remplace le toast */
 computeTutHint()}
 /* v55 : mort en Classic → offre Revive si éligible (Situation 1 des pubs),
@@ -4755,8 +4899,10 @@ if(state!=='ending')return;
 ovPause.classList.remove('show');Ads.hideBanner();
 if(reviveEligible()){openRevive();return}
 finishGameOver()}
+let seqBusy=false;
 function finishGameOver(){
-state='over';clearRevive();
+if(mode==='classic'&&!seqBusy&&state!=='over'){seqBusy=true;state='ending2';deathSeq(()=>{seqBusy=false;state='over';finishGameOver()});return}
+state='over';clearRevive();Goal.settle();
 ovPause.classList.remove('show');ovRevive.classList.remove('show');Ads.hideBanner();
 store.del('bp_save');
 stats.games++;gameCounted=true;stats.lines+=linesTotal;store.set('bp_hr',String(new Date().getHours()));
@@ -4769,7 +4915,6 @@ bestAtStart>0&&score>=bestAtStart*.9?'So Close!':'Game Over';
 ovOver.classList.toggle('rec',rec);
  $('foBest').textContent=best;
  $('foBadge').classList.toggle('on',rec);
-if(rec)confetti();
 const dur=Math.max(1,Math.round((performance.now()-gameStart)/1000));
 const mm=Math.floor(dur/60),ss=('0'+(dur%60)).slice(-2);
 const ppm=placedCount>0?(placedCount/(dur/60)).toFixed(1):'0';
@@ -4780,7 +4925,7 @@ if(gap>0&&bestAtStart>0)statsTxt+='\n— '+gap+' pts from your record! —';
 /* v58 : interstitielle AVANT l'écran Game Over (pas seulement au Replay).
    Les gardes sont dans showPlacedAd : cooldown 30 s + jamais à la 1re partie ;
    après un Revive refusé (interstitielle déjà vue), le cooldown l'annule. */
-showPlacedAd(()=>{
+const showStats=()=>{
 ovOver.classList.add('show');
 /* score animé : part de 0, +10 % de l'écart toutes les 28 ms (setTimeout
    léger, jamais bloquant) ; jeton goTok = une seule animation à la fois */
@@ -4796,7 +4941,8 @@ if(++n%3===0)vib(4);
 setTimeout(tick,28)};
 setTimeout(tick,350);
 updateMedalDot();
-setTimeout(()=>Notif.ask(),1400)})}
+setTimeout(()=>{if(rec&&Rate.maybe())return;Notif.ask()},1400)};
+if(rec)Rec.show(showStats);else showPlacedAd(showStats)}
 function refreshTitle(){
  $('titleBest').textContent='×'+consec}
 /* v55 : liaisons — les pubs ne passent QUE par restartWithAd (Restart) et
@@ -4809,11 +4955,11 @@ bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.c
 bindTap($('btnGoLevel'),()=>{SFX.init();startLevel(nextAdvLevel())});
 bindTap($('btnNext'),()=>{SFX.init();startLevel(advLevel+1)});
 bindTap($('btnReplay'),()=>{SFX.init();startLevel(advLevel)});
-bindTap($('btnWinMap'),()=>{SFX.init();state='title';openMap()});
+bindTap($('btnWinMap'),()=>{SFX.init();state='title';if(dailyDay){dailyDay=null;hideAllOv();Tabs.show('daily')}else openMap()});
 bindTap($('btnWinBack'),()=>{SFX.init();goHome()});
 bindTap($('btnFailBack'),()=>{SFX.init();goHome()});
 bindTap($('btnRetry'),()=>{SFX.init();restartWithAd(()=>startLevel(advLevel))});
-bindTap($('btnFailMap'),()=>{SFX.init();state='title';openMap()});
+bindTap($('btnFailMap'),()=>{SFX.init();state='title';if(dailyDay){dailyDay=null;hideAllOv();Tabs.show('daily')}else openMap()});
 bindTap($('btnAgain'),()=>{SFX.init();if(state==='over')restartWithAd(newGame)});
 bindTap($('btnMenu'),()=>{SFX.init();goHome()});
 /* Revive : pub récompensée ; la récompense seule décide du revive */
@@ -5117,6 +5263,218 @@ AD.hookHide();AD.dangerOn(false);AD.end(false);
 }
 /* ================================================================ */
 
+/* ====================== v64 : MODULES ====================== */
+const ovGoal=$('ovGoal'),ovRecord=$('ovRecord'),ovRate=$('ovRate'),ovDaily=$('ovDaily'),ovMe=$('ovMe'),ovDcIntro=$('ovDcIntro'),noSpaceEl=$('noSpace');
+const dayKey=d=>{d=d||new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)};
+
+/* ---------- Tuto guidé : écran assombri, zone éclairée, main qui glisse en boucle (aucun texte) ---------- */
+const Tut=(()=>{
+let on=false,step=0,raf=0,t0=0;
+const cv=$('tutDim'),cx=cv.getContext('2d'),hand=$('tutHand');
+const mkb=ci=>({c:ci,t:performance.now()-1000,fall:null});
+const cellXY=(r,c)=>({x:boardRect.left+gx+c*cell,y:boardRect.top+gy+r*cell});
+function slotC(i){const q=slotEls[i].getBoundingClientRect();return{x:q.left+q.width/2,y:q.top+q.height/2,r:Math.max(q.width,q.height)*.5}}
+function emptyGrid(){grid=Array.from({length:N},()=>Array(N).fill(null))}
+function setup1(){
+emptyGrid();
+for(let c=0;c<N;c++)if(c!==4)grid[7][c]=mkb(1);
+for(let c=2;c<=5;c++)grid[6][c]=mkb(4);
+grid[5][3]=mkb(5);grid[5][4]=mkb(5);
+tray=[null,{si:0,m:[[1]],ci:3,dead:false},null];renderTray(false);updateBg()}
+function setup2(){
+emptyGrid();
+[[7,1],[7,2],[7,6]].forEach(a=>{grid[a[0]][a[1]]=mkb(1)});
+[[5,3],[5,4],[6,3],[6,4],[6,5],[7,3],[7,4],[7,5]].forEach(a=>{grid[a[0]][a[1]]=mkb(2)});
+grid[4][3]=mkb(5);grid[4][4]=mkb(5);
+tray=[null,{bomb:true,m:[[1]],si:-1,ci:2,dead:false},null];renderTray(true);updateBg();t0=performance.now()}
+function plan(){
+updateBoardRect();
+const sl=slotC(1),holes=[{x:sl.x,y:sl.y,r:sl.r*.9}];
+if(step===1){const a=cellXY(7,0),b=cellXY(7,4);holes.push({x:a.x-6,y:a.y-6,w:cell*N+12,h:cell+12});return{holes,from:sl,to:{x:b.x+cell/2,y:b.y+cell/2}}}
+const a=cellXY(4,3),b=cellXY(6,4);holes.push({x:a.x-6,y:a.y-6,w:cell*3+12,h:cell*4+12});return{holes,from:sl,to:{x:b.x+cell/2,y:b.y+cell/2}}}
+function loop(){
+if(!on)return;
+const dpr=window.devicePixelRatio||1,w=window.innerWidth,h=window.innerHeight;
+if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,w,h);
+const P=plan();
+cx.fillStyle='rgba(8,14,40,.68)';cx.fillRect(0,0,w,h);
+cx.globalCompositeOperation='destination-out';cx.fillStyle='#000';
+P.holes.forEach(q=>{cx.beginPath();if(q.r){cx.arc(q.x,q.y,q.r,0,6.3)}else{rr(cx,q.x,q.y,q.w,q.h,10)}cx.fill()});
+cx.globalCompositeOperation='source-over';
+const now=performance.now(),T=(now-t0)%2500;let k=0,al=1;
+if(T<350)k=0;else if(T<1500){const u=(T-350)/1150;k=u<.5?2*u*u:1-2*(1-u)*(1-u)}else if(T<2100)k=1;else{k=1;al=1-(T-2100)/400}
+const hx=P.from.x+(P.to.x-P.from.x)*k,hy=P.from.y+(P.to.y-P.from.y)*k;
+if(!drag){
+cx.save();cx.globalAlpha=.8*al;
+if(step===2){drawBomb(cx,hx-cell/2,hy-cell/2,cell,now)}else drawBlock(cx,hx-cell/2,hy-cell/2,cell,3);
+cx.restore();
+hand.style.opacity=al;hand.style.transform='translate('+(hx-23)+'px,'+(hy-6)+'px) scale('+(T<350?.9:1)+')'}
+else hand.style.opacity=0;
+raf=requestAnimationFrame(loop)}
+function start(){
+on=true;step=1;tutHint=null;slotEls.forEach(el=>el.classList.remove('hintSlot'));
+document.body.classList.add('tutMode');Ads.hideBanner();setHudMode();
+t0=performance.now();setup1();cancelAnimationFrame(raf);loop()}
+function finish(){
+on=false;cancelAnimationFrame(raf);document.body.classList.remove('tutMode');
+store.set('bp_tut2','1');store.set('bp_tut','1');store.set('bp_gift','1');store.set('bp_gv','1');
+best=0;store.set('bp_best','0');bestVal.textContent='0';stats.games=0;saveStats();
+cx.clearRect(0,0,cv.width,cv.height);hand.style.opacity=0;
+newGame()}
+function onTurnEnd(){
+if(!on)return;
+if(step===1){step=2;setTimeout(()=>{if(on)setup2()},600)}
+else if(step===2){setTimeout(()=>{if(on)finish()},800)}}
+function accept(r,c){
+if(!on)return true;
+if(step===1)return r===7&&c===4;
+return Math.abs(r-6)<=1&&Math.abs(c-4)<=1}
+bindTap($('tutSkip'),()=>{if(on){SFX.init();finish()}});
+return{get on(){return on},start,onTurnEnd,accept}})();
+
+/* ---------- Objectif de partie (Classic) ---------- */
+const Goal=(()=>{
+let val=0,hit=false;
+const H=()=>{try{return JSON.parse(store.get('bp_goalh')||'{}')}catch(e){return{}}};
+const r50=x=>Math.max(50,Math.round(x/50)*50);
+function pick(){
+const h=H(),R=best,recent=h.recent||[];
+if(R<=0||stats.games===0)return 1000;
+let order;
+if(h.fail&&h.ratio){const lr=h.ratio;order=[lr-.08,lr-.16,lr-.04,lr+.06,lr-.12]}
+else order=[1.28,1.33,1.23,1.38,1.18];
+for(const r of order){const g=r50(R*Math.max(1.08,r));if(g>R&&recent.indexOf(g)<0)return g}
+let g=r50(R*1.25);while(recent.indexOf(g)>=0||g<=R)g+=50;return g}
+function hud(){
+if(mode!=='classic'||val<=0||Tut.on){if(mode==='classic')objBar.style.display='none';return}
+objBar.style.display='flex';
+objTxt.textContent='Goal '+val;objPieces.textContent='';
+objFill.style.width=clamp(score/val*100,0,100)+'%';objFill.style.background=hit?'#ffb81c':'';
+if(!hit&&score>=val&&state==='playing'){hit=true;objFill.style.background='#ffb81c';toast('Goal reached! Keep going!',2400);SFX.win();vib([20,40,20]);confetti()}}
+function begin(){
+if(!store.get('bp_tut2')&&!store.get('bp_tut')&&stats.games===0){val=0;hit=false;Tut.start();return}
+val=pick();hit=false;state='intro';Ads.hideBanner();setHudMode();hud();
+$('gcTitle').textContent='Reach '+val+' points';
+$('gcSub').textContent=best>0?'Your best: '+best:'Clear lines, use gravity and bombs!';
+ovGoal.classList.add('show')}
+function go(){
+ovGoal.classList.remove('show');if(state!=='intro')return;
+state='playing';gameStart=performance.now();Ads.showBanner();
+const cr=parseInt(store.get('bp_bombcr'))||0;
+if(cr>0){store.set('bp_bombcr',''+(cr-1));giveBonusBomb('Streak reward: free bomb!',2800)}
+computeTutHint()}
+function settle(){
+if(mode!=='classic'||val<=0)return;
+const h=H();h.fail=!hit;h.ratio=bestAtStart>0?val/bestAtStart:1.3;
+h.recent=(h.recent||[]).concat(val).slice(-3);store.set('bp_goalh',JSON.stringify(h));val=0}
+function restore(d){val=(d&&d.goal)|0;hit=!!(d&&d.ghit);setHudMode();hud()}
+bindTap($('btnGoalGo'),()=>{SFX.init();go()});
+return{get val(){return val},get hit(){return hit},begin,hud,settle,restore}})();
+
+/* ---------- Séquence de mort : « No free space », les trous se remplissent, tout tombe ---------- */
+function deathSeq(cb){
+const now=performance.now();let k=0;
+noSpaceEl.classList.add('show');SFX.over();vib([40,30,40]);
+for(let r=N-1;r>=0;r--)for(let c=0;c<N;c++)if(!grid[r][c]){grid[r][c]={c:(r*2+c)%6,t:now+500+k*22,fall:null};k++}
+const dropAt=now+500+k*22+500;
+setTimeout(()=>{
+const t1=performance.now();
+for(let r=0;r<N;r++)for(let c=0;c<N;c++){const b=grid[r][c];if(b)b.out={t0:t1+(N-1-r)*45+Math.random()*90,vx:(Math.random()-.5)*1.6,vy:-(.6+Math.random()*1.6),rot:(Math.random()-.5)*2}}
+SFX.boom&&SFX.boom();shakeAmt=Math.max(shakeAmt,10);noSpaceEl.classList.remove('show')},dropAt-now);
+setTimeout(()=>{grid=Array.from({length:N},()=>Array(N).fill(null));cb()},dropAt-now+1700)}
+
+/* ---------- Écran de record (2 s) puis stats ---------- */
+const Rec={show(cb){
+$('rcScore').textContent=score;ovRecord.classList.add('show');
+SFX.win();vib([20,40,20,40,20]);confetti();setTimeout(confetti,500);setTimeout(confetti,1000);
+setTimeout(()=>{ovRecord.classList.remove('show');cb()},2000)}};
+
+/* ---------- Popup de note (5 étoiles) ---------- */
+const Rate={
+maybe(){if(store.get('bp_rated')||stats.games<4||Notif.visible())return false;ovRate.classList.add('show');return true},
+close(){ovRate.classList.remove('show');store.set('bp_rated','1')}};
+bindTap($('btnRate5'),()=>{Rate.close();try{window.open('https://play.google.com/store/apps/details?id=com.king6code.blockthud','_blank')}catch(e){}});
+bindTap($('btnRateLow'),()=>{Rate.close()});
+
+/* ---------- Série de connexion (jours consécutifs, dates locales) ---------- */
+const Streak=(()=>{
+let n=0;
+function update(){
+let a=[];try{a=JSON.parse(store.get('bp_lk')||'[]')}catch(e){a=[]}
+const today=dayKey();if(a.indexOf(today)<0){a.push(today);a=a.slice(-60);store.set('bp_lk',JSON.stringify(a))}
+n=0;const d=new Date();while(a.indexOf(dayKey(d))>=0){n++;d.setDate(d.getDate()-1)}
+const R=[3,7,14,30];
+if(R.indexOf(n)>=0&&store.get('bp_srw')!==today){store.set('bp_srw',today);store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+1));setTimeout(()=>toast('Day '+n+' streak! Free bomb in your next game',3600),1500)}
+refresh()}
+function refresh(){
+const R=[3,7,14,30],nx=R.find(x=>x>n);
+$('stkLine').textContent=n>=1?('Day '+n+' streak'+(nx?' · free bomb on day '+nx:'')):'';
+$('meStreak').textContent=n}
+return{update,refresh,get n(){return n}}})();
+
+/* ---------- Défis quotidiens ---------- */
+const Daily=(()=>{
+const done=()=>{try{return JSON.parse(store.get('bp_dc')||'{}')}catch(e){return{}}};
+const idx=k=>{let h=0;for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))%100003;return 8+h%72};
+const seen={};
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function render(){
+const d=new Date(),y=d.getFullYear(),m=d.getMonth(),dim=new Date(y,m+1,0).getDate(),off=(new Date(y,m,1).getDay()+6)%7,dn=done(),td=d.getDate();
+let html='',cnt=0;
+for(let i=0;i<off;i++)html+='<span></span>';
+for(let day=1;day<=dim;day++){
+const k=y+'-'+('0'+(m+1)).slice(-2)+'-'+('0'+day).slice(-2),isDone=!!dn[k];if(isDone)cnt++;
+const cls=isDone?'done':day===td?'today':day<td?'past':'fut';
+html+='<span class="'+cls+'"><b>'+day+'</b></span>'}
+$('dcGrid').innerHTML=html;$('dcMonth').textContent=MN[m]+' '+y;$('dcCount').textContent=cnt+'/'+dim;
+const isD=!!dn[dayKey()],b=$('btnDcPlay');b.textContent=isD?'Completed ✓':'Play';b.classList.toggle('done',isD);
+$('dcSub').textContent=MN[m].slice(0,3)+' '+td;$('dcGo').textContent=isD?'Done':'Play';$('cardDaily').classList.toggle('done',isD)}
+function play(){
+const k=dayKey();if(done()[k]){toast('Come back tomorrow for a new challenge!',2200);return}
+const go=()=>{dailyDay=k;startLevel(idx(k))};
+if(seen[k]){go();return}
+seen[k]=true;showPlacedAd(go)}
+let pg=0;
+function intro(){pg=0;paintIntro();ovDcIntro.classList.add('show')}
+function paintIntro(){
+$('dcIntroIco').innerHTML=pg===0?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#ffb81c"/><path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z" fill="#f08a00"/></svg>':'<svg viewBox="0 0 64 64"><path d="M20 6h24v18c0 8-5 14-12 14S20 32 20 24z" fill="#ffd24d" stroke="#e8a400" stroke-width="2.5"/><path d="M20 10h-8c0 10 3 16 9 17M44 10h8c0 10-3 16-9 17" fill="none" stroke="#e8a400" stroke-width="3" stroke-linecap="round"/><rect x="28" y="38" width="8" height="10" fill="#e8a400"/><rect x="20" y="48" width="24" height="8" rx="3" fill="#f79200"/><path d="M32 12l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#fff"/></svg>';
+$('dcIntroTxt').textContent=pg===0?'Complete a daily challenge every day and earn gold stars!':'Earn every star in a month to win a unique monthly trophy!';
+$('dcDot0').classList.toggle('on',pg===0);$('dcDot1').classList.toggle('on',pg===1);
+$('btnDcIntro').textContent=pg===0?'Continue':'OK'}
+bindTap($('btnDcIntro'),()=>{if(pg===0){pg=1;paintIntro()}else{ovDcIntro.classList.remove('show');store.set('bp_dcintro','1')}});
+function complete(){
+if(!dailyDay)return;const dn=done();if(!dn[dailyDay]){dn[dailyDay]=1;store.set('bp_dc',JSON.stringify(dn));setTimeout(()=>toast('Daily challenge complete! Star earned',2800),900)}render()}
+bindTap($('btnDcPlay'),()=>{SFX.init();play()});
+bindTap($('cardDaily'),()=>{SFX.init();Tabs.show('daily');})
+return{render,play,intro,complete}})();
+
+/* ---------- Barre d'onglets Home / Daily / Me ---------- */
+const Tabs=(()=>{
+let cur='home';
+function show(n){
+cur=n;state='title';
+ovTitle.classList.toggle('show',n==='home');ovDaily.classList.toggle('show',n==='daily');ovMe.classList.toggle('show',n==='me');
+if(n==='daily'){Daily.render();if(!store.get('bp_dcintro'))Daily.intro()}
+if(n==='me'){$('meBest').textContent=best;$('meGames').textContent=stats.games;Streak.refresh()}
+if(n==='home'){refreshTitle();Streak.refresh();Daily.render()}
+sync()}
+function sync(){
+const vis=ovTitle.classList.contains('show')||ovDaily.classList.contains('show')||ovMe.classList.contains('show');
+$('tabBar').classList.toggle('show',vis);
+$('tabHome').classList.toggle('on',ovTitle.classList.contains('show'));
+$('tabDaily').classList.toggle('on',ovDaily.classList.contains('show'));
+$('tabMe').classList.toggle('on',ovMe.classList.contains('show'))}
+setInterval(sync,150);
+bindTap($('tabHome'),()=>{SFX.init();show('home')});
+bindTap($('tabDaily'),()=>{SFX.init();show('daily')});
+bindTap($('tabMe'),()=>{SFX.init();show('me')});
+bindTap($('meAch'),()=>{SFX.init();ovMe.classList.remove('show');openAch('home')});
+bindTap($('meAdv'),()=>{SFX.init();ovMe.classList.remove('show');openMap()});
+bindTap($('meSet'),()=>{SFX.init();openPause('home')});
+return{show,sync,get cur(){return cur}}})();
+Streak.update();Daily.render();
+
 grid=Array.from({length:N},()=>Array(N).fill(null));
 genTray(false);setHudMode();
 resize();
@@ -5140,15 +5498,15 @@ function cancel(){const p=LN();if(!p)return;try{p.cancel({notifications:IDS.map(
 function schedule(){
 const p=LN(),s=st();if(!p||s.state!=='granted')return;
 const hr=Math.min(21,Math.max(9,parseInt(store.get('bp_hr'))||18)),now=new Date(),bst=best>0;
-const msgs=[[1,bst?'Your best is '+best+'. Ready to beat it? Gravity is waiting.':'Ready for a new game? Gravity is waiting.'],
-[3,'A new day, a new high score? Come back and blast some blocks!'],[7,'Your blocks miss you! Come back and beat your record.']];
+const msgs=[[1,'Your daily challenge is ready'+(bst?'. Can you beat your best of '+best+'?':'. Gravity is waiting!')],
+[3,'Your daily challenge is waiting. Come back and blast some blocks!'],[7,'Your blocks miss you! Come back and beat your record.']];
 const list=msgs.map((m,i)=>{const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+m[0],hr,Math.floor(Math.random()*20),0);
 return {id:IDS[i],title:'Block Thud!',body:m[1],schedule:{at:d,allowWhileIdle:false},smallIcon:'ic_stat_blockthud'}});
 try{p.cancel({notifications:IDS.map(id=>({id}))}).catch(()=>{}).then(()=>p.schedule({notifications:list})).catch(e=>console.warn('Notif schedule',e))}catch(e){}}
 function ask(){
 const p=LN(),s=st();if(!p||s.state==='granted'||s.state==='denied')return;
 if(s.asks>=2||(s.at&&Date.now()-s.at<7*86400000))return;
-if(stats.games<2||state!=='over')return;
+if(stats.games<2||state!=='over'||$('ovRate').classList.contains('show'))return;
 ovNotif.classList.add('show')}
 function answer(yes){
 ovNotif.classList.remove('show');const s=st();s.asks=(s.asks||0)+1;s.at=Date.now();
@@ -5175,6 +5533,9 @@ if(CapApp&&CapApp.addListener){
 	   Revive → refus), sortie de l'app UNIQUEMENT depuis l'accueil */
 	const rb=CapApp.addListener('backButton',()=>{
 		if(Notif.visible()){Notif.dismiss();return}
+		if($('ovGoal').classList.contains('show')||$('ovRecord').classList.contains('show')||Tut.on)return;
+		if($('ovRate').classList.contains('show')){Rate.close();return}
+		if($('ovDaily').classList.contains('show')||$('ovMe').classList.contains('show')){Tabs.show('home');return}
 		if(state==='playing'){openPause('game');return}
 		if(state==='paused'){closePause();return}
 		if(state==='revive'||state==='reviveAd'){declineRevive();return}
@@ -5237,6 +5598,7 @@ toast('Preview: '+STYLES[idx].name)});
 if(document.fonts&&document.fonts.load){
 document.fonts.load('400 40px "Lilita One"');
 document.fonts.load('700 20px "Fredoka"')}
+
 window.__bpBooted=true;
 </script>
 </body>
