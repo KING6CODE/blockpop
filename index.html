@@ -769,7 +769,7 @@ body.noAds #bannerBox{visibility:hidden}
         <div class="statBox"><div class="sv" id="meStreak">0</div><div class="sl">Day Streak</div></div>
       </div>
       <div class="meRows" style="margin-top:22px">
-        <button class="btn3d green" id="meAch" style="--k:1"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="5.6"/><path d="M8.6 12.9 6.8 21l5.2-2.6 5.2 2.6-1.8-8.1A7.4 7.4 0 0 1 12 14a7.4 7.4 0 0 1-3.4-1.1z"/></svg>Medal<em>›</em></button>
+        <button class="btn3d green" id="meAch" style="--k:1"><svg class="ico" viewBox="3.2 0.8 17.6 21.4"><path d="M6.8 1.8h3.6l1.6 4.4 1.6-4.4h3.6l-3.2 8.2a6.4 6.4 0 0 0-4 0z"/><path fill-rule="evenodd" d="M12 9.4a5.9 5.9 0 1 0 0 11.8 5.9 5.9 0 0 0 0-11.8zM12 12l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3z"/></svg>Medal<em>›</em></button>
         <button class="btn3d lav" id="meAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure<em>›</em></button>
         <button class="btn3d gold" id="meNoAds"><img class="ico" src="assets/ui/noads.png" alt="" style="width:30px;height:30px;object-fit:contain"/><span id="meNoAdsTxt">Remove Ads</span><em>›</em></button>
         <button class="btn3d lav" id="meIQ"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3L3 20h18z" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><path d="M12 3v17" stroke="#fff" stroke-width="2"/></svg>Block Puzzle<em>›</em></button>
@@ -912,7 +912,7 @@ body.noAds #bannerBox{visibility:hidden}
           </div>
         </div>
         <div class="sepLine"></div>
-        <button class="btn3d green" id="btnSetMedal"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="5.6"/><path d="M8.6 12.9 6.8 21l5.2-2.6 5.2 2.6-1.8-8.1A7.4 7.4 0 0 1 12 14a7.4 7.4 0 0 1-3.4-1.1z"/></svg>Medal</button>
+        <button class="btn3d green" id="btnSetMedal"><svg class="ico" viewBox="3.2 0.8 17.6 21.4"><path d="M6.8 1.8h3.6l1.6 4.4 1.6-4.4h3.6l-3.2 8.2a6.4 6.4 0 0 0-4 0z"/><path fill-rule="evenodd" d="M12 9.4a5.9 5.9 0 1 0 0 11.8 5.9 5.9 0 0 0 0-11.8zM12 12l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3z"/></svg>Medal</button>
         <button class="btn3d lav" id="btnMoreSet"><svg class="ico" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.95a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84c-.24 0-.43.17-.47.4l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.95a.49.49 0 0 0-.59.22L2.63 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.95c.5.38 1.03.7 1.62.94l.36 2.54c.05.23.24.4.48.4h3.84c.24 0 .44-.17.48-.4l.36-2.54a7.03 7.03 0 0 0 1.62-.94l2.39.95c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>More Settings</button>
         <div id="setGame">
           <div class="sepLine"></div>
@@ -2414,7 +2414,7 @@ return false}
 function hintFor(obj){
 if(obj[0]==='lines')return 'Blast '+obj[1]+' lines';
 if(obj[0]==='score')return 'Reach '+obj[1].toLocaleString('en-US')+' pts';
-if(obj[0]==='items'){const n={1:'blue gems',2:'orange gems',3:'bushes',4:'ice',5:'locks'};return 'Collect '+Object.keys(obj[1]).map(k=>obj[1][k]+' '+n[k]).join(' + ')}
+if(obj[0]==='items'){const n={1:'blue gems',2:'orange gems',3:'bushes',4:'crystals',5:'locks'};return 'Collect '+Object.keys(obj[1]).map(k=>obj[1][k]+' '+n[k]).join(' + ')}
 return 'Clear the whole board'}
 function itemTotal(it){let n=0;for(const k in it)n+=it[k];return n}
 /* v67 : plus de niveaux chaine/combo — lignes, score, ou ELEMENTS A RECUPERER (gemmes bleues 1, oranges 2, buissons 3) */
@@ -2694,7 +2694,7 @@ const g=c.createRadialGradient(cx,cy,1,cx,cy,bw*.32);
 g.addColorStop(0,'#fff3b0');g.addColorStop(.5,'#ff8c28');g.addColorStop(1,'rgba(255,80,20,0)');
 c.fillStyle=g;c.beginPath();c.arc(cx,cy,bw*.32,0,6.3);c.fill();c.restore()}
 function drawBushIcon(c,x,y,s){
-const im=UIAssets.get('bush');if(im){const q=s*.02;c.drawImage(im,x+q,y+q,s-q*2,s-q*2);return}
+const im=UIAssets.get('bush');if(im){const d=s*.66;c.drawImage(im,x+(s-d)/2,y+(s-d)/2,d,d);return}
 const p=s*.045,w=s-p*2;c.save();c.translate(x+p,y+p);
 const g=c.createLinearGradient(0,0,0,w);g.addColorStop(0,'#46C446');g.addColorStop(1,'#1E8F2A');
 c.fillStyle=g;rr(c,0,0,w,w,w*.12);c.fill();c.lineWidth=Math.max(1.5,w*.05);c.strokeStyle='#176B1F';c.stroke();
@@ -2717,16 +2717,13 @@ c.stroke();
 c.lineWidth=3;c.strokeStyle='#9A6200';const g=c.createLinearGradient(0,-3,0,19);g.addColorStop(0,'#FFD84A');g.addColorStop(1,'#F0A000');c.fillStyle=g;
 rr(c,-15,-3,30,23,5);c.fill();c.stroke();
 c.fillStyle='#6B3F00';c.beginPath();c.arc(0,8,3.6,0,6.3);c.fill();c.fillRect(-1.5,8,3,7);c.restore()}
-function drawIceOverlay(c,x,y,s,hp){const p=s*.035;c.save();
-const imI=UIAssets.get('ice');if(imI){c.globalAlpha=.94;c.drawImage(imI,x+p,y+p,s-2*p,s-2*p);c.globalAlpha=1;
-if(hp<=1){c.strokeStyle='rgba(40,95,170,.9)';c.lineWidth=Math.max(1.4,s*.05);c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(x+s*.52,y+s*.1);c.lineTo(x+s*.42,y+s*.4);c.lineTo(x+s*.62,y+s*.55);c.lineTo(x+s*.46,y+s*.92);c.moveTo(x+s*.42,y+s*.4);c.lineTo(x+s*.16,y+s*.52);c.stroke()}
-c.restore();return}
-const g=c.createLinearGradient(x,y,x+s,y+s);g.addColorStop(0,'rgba(240,252,255,.9)');g.addColorStop(1,'rgba(150,208,248,.82)');
-c.fillStyle=g;rr(c,x+p,y+p,s-2*p,s-2*p,s*.14);c.fill();
-c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=Math.max(1.5,s*.04);c.stroke();
-c.fillStyle='rgba(255,255,255,.65)';c.beginPath();c.moveTo(x+s*.16,y+s*.34);c.lineTo(x+s*.34,y+s*.14);c.lineTo(x+s*.44,y+s*.2);c.lineTo(x+s*.24,y+s*.42);c.closePath();c.fill();
-if(hp<=1){c.strokeStyle='rgba(50,105,175,.9)';c.lineWidth=Math.max(1.4,s*.05);c.lineCap='round';c.lineJoin='round';c.beginPath();
-c.moveTo(x+s*.52,y+s*.1);c.lineTo(x+s*.42,y+s*.4);c.lineTo(x+s*.62,y+s*.55);c.lineTo(x+s*.46,y+s*.92);c.moveTo(x+s*.42,y+s*.4);c.lineTo(x+s*.16,y+s*.52);c.stroke()}
+function drawIceOverlay(c,x,y,s,hp){c.save();
+const im=UIAssets.get('ice'),d=s*.74,ox=x+(s-d)/2,oy=y+(s-d)/2;
+if(im)c.drawImage(im,ox,oy,d,d);else{c.fillStyle='#8FD3FF';c.beginPath();c.moveTo(x+s*.5,y+s*.1);c.lineTo(x+s*.78,y+s*.35);c.lineTo(x+s*.66,y+s*.9);c.lineTo(x+s*.34,y+s*.9);c.lineTo(x+s*.22,y+s*.35);c.closePath();c.fill()}
+if(hp<=1){/* fissure : le cristal a deja pris un coup */
+c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=Math.max(1.6,s*.05);c.lineCap='round';c.lineJoin='round';
+c.beginPath();c.moveTo(x+s*.5,y+s*.2);c.lineTo(x+s*.43,y+s*.42);c.lineTo(x+s*.56,y+s*.56);c.lineTo(x+s*.47,y+s*.8);c.stroke();
+c.strokeStyle='rgba(20,80,170,.55)';c.lineWidth=Math.max(1,s*.025);c.beginPath();c.moveTo(x+s*.52,y+s*.21);c.lineTo(x+s*.45,y+s*.42);c.lineTo(x+s*.58,y+s*.56);c.lineTo(x+s*.49,y+s*.8);c.stroke()}
 c.restore()}
 function drawGemIcon(c,x,y,s,t,gt){
 if(gt===3){drawBushIcon(c,x,y,s);return}
@@ -2759,7 +2756,7 @@ c.fillStyle=emptyCol;
 rr(c,bx,by,bw,bw,Math.max(1.5,bw*.045));c.fill();
 c.restore()}
 function buildBoardCache(envC){
-boardCacheW=cell*N+8;boardCacheH=cell*N+8;
+boardCacheW=gx+cell*N+8;boardCacheH=cell*N+8;
 boardCacheCv=document.createElement('canvas');
 boardCacheCv.width=Math.ceil(boardCacheW*TXDPR);
 boardCacheCv.height=Math.ceil(boardCacheH*TXDPR);
@@ -2771,6 +2768,7 @@ grd.addColorStop(.90,envC);
 grd.addColorStop(1,mixHex(envC,'#ffffff',.12));
 c.fillStyle=grd;
 rr(c,gx-4,gy-4,cell*N+8,cell*N+8,7);c.fill();
+c.save();c.lineWidth=1.6;c.strokeStyle='rgba(255,255,255,.13)';rr(c,gx-3.2,gy-3.2,cell*N+6.4,cell*N+6.4,6.4);c.stroke();c.lineWidth=2;c.strokeStyle='rgba(0,0,0,.18)';rr(c,gx-1,gy-1,cell*N+2,cell*N+2,5);c.stroke();c.restore();
 rr(c,gx,gy,cell*N,cell*N,4);
 c.fillStyle=boardBGCache;c.fill();
 for(let r=0;r<N;r++)for(let cc=0;cc<N;cc++)drawEmpty(c,gx+cc*cell,gy+r*cell,cell)}
@@ -2980,7 +2978,7 @@ if(cnt===N)grid[Math.floor(Math.random()*N)][c]=null}
 for(let r=0;r<N;r++)for(let c=0;c<N;c++){
 const b=grid[r][c];if(!b)continue;
 b.t=now+(N-1-r)*110+c*14}}
-function simGrid(){return grid.map(row=>row.map(v=>v?(v.ice||v.lock?2:1):0))}
+function simGrid(){return grid.map(row=>row.map(v=>v?(v.lock?2:1):0))}
 function simPlace(sim,m,r,c){
 for(let i=0;i<m.length;i++)for(let j=0;j<m[i].length;j++)
 if(m[i][j]&&(r+i>=N||c+j>=N||sim[r+i][c+j]))return null;
@@ -3382,7 +3380,7 @@ bctx.strokeStyle='#FFFFFF';bctx.lineWidth=2;bctx.setLineDash([6,5]);
 bctx.strokeRect(gx+tutHint.c*cell-3,gy+tutHint.r*cell-3,tutHint.w*cell+6,tutHint.h*cell+6);
 bctx.restore()}
 /* v67.2 : glace et cadenas comptent comme des cases NON remplies (la ligne ne part pas tant qu'ils sont la) */
-const solid=b=>b&&!b.ice&&!b.lock;
+const solid=b=>b&&!b.lock;
 function findFull(g){const rows=[],cols=[];
 for(let r=0;r<N;r++)if(g[r].every(solid))rows.push(r);
 for(let c=0;c<N;c++){let f=true;
@@ -3528,6 +3526,8 @@ rows.forEach(r=>sweeps.push({t:'r',i:r,t0:t0}));
 cols.forEach(c=>sweeps.push({t:'c',i:c,t0:t0}));
 if(P.thread){rows.forEach(r=>lcThread(r,'h',t0+40));cols.forEach(c=>lcThread(c,'v',t0+40))}
 cleared.forEach((rc,idx)=>{const r=rc[0],c=rc[1],obj=grid[r][c];
+if(obj.ice>1){obj.ice--;obj.crk=performance.now();SFX.crack();const q4=cellCenter(r,c);for(let z=0;z<7;z++)particles.push({x:q4.x-boardRect.left,y:q4.y-boardRect.top,vx:(Math.random()-.5)*.05,vy:-(.01+Math.random()*.035),sz:cell*.08,col:z%2?'#CFEFFF':'#fff',t0:performance.now(),life:520,sh:4,g:0,rot:0,vr:0});
+sx+=c;sy+=r;return}
 clearFx.push({r,c,ci:obj.c,t0:t0+idx*16,st:theme});grid[r][c]=null;
 const px0=gx+c*cell+cell/2,py0=gy+r*cell+cell/2;
 const tile=getTile(stCur.id,obj.c);
@@ -3535,12 +3535,8 @@ const st2=t0+lcWaveDelay(P,r,c,rows,cols);
 lcFx.push({r,c,ci:obj.c,t0:st2,tile,prof:P});
 lcSpawnParts(P,obj.c,px0,py0,tile,st2+(P.ant||30)+(P.flash||0));
 if(obj.gem)collectGem(r,c,obj.gem);
+if(obj.ice===1)collectIce(r,c);
 sx+=c;sy+=r});
-{const hitI=new Set();
-cleared.forEach(rc=>{[[1,0],[-1,0],[0,1],[0,-1]].forEach(d=>{const rr3=rc[0]+d[0],cc3=rc[1]+d[1];
-if(rr3<0||cc3<0||rr3>=N||cc3>=N)return;const b3=grid[rr3][cc3];
-if(b3&&b3.ice&&!hitI.has(rr3*N+cc3)){hitI.add(rr3*N+cc3);b3.ice--;
-if(b3.ice<=0){grid[rr3][cc3]=null;collectIce(rr3,cc3)}else{SFX.crack();const q3=cellCenter(rr3,cc3);for(let z=0;z<5;z++)particles.push({x:q3.x-boardRect.left,y:q3.y-boardRect.top,vx:(Math.random()-.5)*.04,vy:-(.01+Math.random()*.03),sz:cell*.08,col:'#CFEFFF',t0:performance.now(),life:500,sh:4,g:0,rot:0,vr:0})}}})})}
 if(particles.length>300){
 particles.splice(0,particles.length-300)}
 if(combo>=4){for(let i=0;i<8;i++)particles.push({
@@ -4026,7 +4022,7 @@ for(const off of OFFS){const rr0=r0+off[0],cc0=c0+off[1];
 if(drag.p.bomb?(rr0>=0&&cc0>=0&&rr0<N&&cc0<N):canPlaceAt(drag.p.m,rr0,cc0))return{r:rr0,c:cc0}}
 return null}
 function simulateChain(sr,sc){
-const g=grid.map(row=>row.map(v=>v?{v:(v.ice||v.lock)?2:1}:null));
+const g=grid.map(row=>row.map(v=>v?{v:v.lock?2:1}:null));
 drag.p.m.forEach((row,dr)=>row.forEach((v,dc)=>{if(v)g[sr+dr][sc+dc]={v:1}}));
 const waves=[];let guard=0;
 while(guard++<10){const rows=[],cols=[];
@@ -5980,7 +5976,7 @@ get(){try{return JSON.parse(store.get('bp_att')||'{}')}catch(e){return{}}},
 first(l,i){return !(this.get()[this.key(l,i)]>0)},
 bump(l,i){const a=this.get(),k=this.key(l,i);a[k]=(a[k]||0)+1;store.set('bp_att',JSON.stringify(a))}};
 const Lvl=(()=>{
-const INFO={1:['Blue gems','Clear a line or column through a gem to collect it.'],2:['Orange gems','Collect these too! Clear the line or column they sit in.'],3:['Bushes','Clear a line or column through a bush to remove it.'],4:['Ice','Clear lines next to the ice to break it. It takes two hits!'],5:['Keys & locks','Clear a line through a key to open a lock.']};
+const INFO={1:['Blue gems','Clear a line or column through a gem to collect it.'],2:['Orange gems','Collect these too! Clear the line or column they sit in.'],3:['Bushes','Clear a line or column through a bush to remove it.'],4:['Crystals','Crystals have 2 lives. Clear their line once to crack them, twice to collect them!'],5:['Keys & locks','Clear a line through a key to open a lock.']};
 const seen=()=>{try{return JSON.parse(store.get('bp_itseen')||'{}')}catch(e){return{}}};
 let phase='';
 function pctLvl(){if(!lvl.ev&&Pct.levels&&Pct.levels[advLevel+1]!=null)return +Pct.levels[advLevel+1];const i=lvl.ev?(6+lvl.k*3):advLevel;const j=((Math.sin((i+1)*78.233)*43758.5453)%1+1)%1;
