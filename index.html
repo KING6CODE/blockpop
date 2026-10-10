@@ -248,7 +248,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .mv.next{background:linear-gradient(180deg,#FFE066,#F5C11E);color:#7A5200;border:2px solid #E8A800;box-shadow:0 3px 7px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.5);text-shadow:none}
 .mv.next .num{color:#7A5200}
 .mv .dmd{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:20px;height:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));z-index:2;pointer-events:none}
-.mapFoot{width:100%;background:rgba(255,255,255,.13);padding:12px 0 14px;display:flex;justify-content:center}
+.mapFoot{width:100%;background:none;padding:12px 0 14px;display:flex;justify-content:center}
 .goLvlBtn{position:relative;overflow:hidden;width:min(76%,250px);display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border:none;border-radius:10px;cursor:pointer;color:#fff;font:800 23px 'Nunito Sans',sans-serif;background:linear-gradient(180deg,#5FE84C,#2FC41E 55%,#25A415);border:1px solid #229A16;box-shadow:0 6px 0 #1E8A12,0 3px 5px rgba(0,0,0,.22);text-shadow:0 2px 2px rgba(0,0,0,.2);transition:transform .07s,filter .07s}
 .goLvlBtn:active{transform:translateY(5px);filter:brightness(.82);box-shadow:0 1px 0 #1E8A12}
 .goLvlBtn::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.32),rgba(255,255,255,0) 56%)}
@@ -316,7 +316,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px
 .btn3d .icoSlot{position:relative;width:30px;height:30px;flex:none}
 .btn3d .icoSlot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
 .btn3d .icoSlot svg{position:absolute;inset:0;width:100%;height:100%;fill:#fff}
-#btnSetMedal .icoSlot img,#meAch .icoSlot img{transform:scale(1.9)}#meSet .ico{fill:#fff} /* medal.png a ~50 % de marges transparentes */
+#meSet .ico,#meAch .ico,#btnSetMedal .ico{fill:#fff}
 .sepLine{height:3px;border-radius:99px;background:linear-gradient(180deg,#28339A,#1E2878);margin:2px 6px 16px;box-shadow:0 1px 0 rgba(255,255,255,.14)}
 /* ---------- v55 : GAME OVER (même dégradé que l'accueil) ---------- */
 #ovOver{background:linear-gradient(180deg,#173fb3 0%,#1486d8 100%);padding:0}
@@ -415,8 +415,8 @@ header{position:absolute;left:14px;right:14px;top:calc(10px + env(safe-area-inse
 .dcGrid span.past{color:#C7D2F5}
 .dcGrid span.fut{opacity:.45}
 .dcGrid span.today{background:linear-gradient(180deg,#5B76DC,#465CD2);color:#fff;box-shadow:0 3px 0 #34408A,inset 0 2px 0 rgba(255,255,255,.35)}
-.dcGrid span.done{background:linear-gradient(180deg,#FFE680,#FFC93D 50%,#F5A818);color:#6A3A00;box-shadow:0 3px 0 #C47F00,inset 0 2px 0 rgba(255,255,255,.55)}
-.dcGrid span.done img{width:70%;height:70%;object-fit:contain;filter:drop-shadow(0 2px 1px rgba(110,55,0,.4))}
+.dcGrid span.done{background:#fff;color:#8A93B8;box-shadow:0 3px 0 #C3C9DD,inset 0 -2px 0 rgba(150,160,195,.28)}
+.dcGrid span.done img{width:72%;height:72%;object-fit:contain;filter:drop-shadow(0 1.5px 0 rgba(150,110,20,.35))}
 #btnDcPlay{margin:18px 0 0}
 #btnDcPlay.done{filter:grayscale(.85) brightness(.85);box-shadow:0 6px 0 #4a5078,0 12px 18px rgba(10,20,64,.3)}
 .meRows{margin-top:14px;display:flex;flex-direction:column}
@@ -613,6 +613,19 @@ body.noAds #bannerBox{visibility:hidden}
 .iqPiece.drag{transition:none;z-index:20;filter:drop-shadow(0 8px 6px rgba(0,0,0,.3))}
 .iqOk{position:absolute;inset:0;display:grid;place-items:center;font:900 44px 'Nunito Sans',sans-serif;color:#2C8F3A;background:rgba(255,255,255,.82);opacity:0;pointer-events:none;transition:opacity .25s}
 .iqOk.on{opacity:1}
+
+/* v68.2 : page d'echec dans le style du jeu */
+#ovFail{background:linear-gradient(180deg,#173fb3 0%,#1486d8 100%)}
+#ovFail .goLbl{margin-top:9vh}
+.fpNum{color:#fff;font:900 clamp(76px,24vw,108px) 'Nunito Sans',sans-serif;line-height:1.02;font-variant-numeric:tabular-nums;text-shadow:0 4px 0 rgba(8,30,100,.35),0 10px 22px rgba(5,20,70,.35)}
+.fpCap{margin-top:2px;color:#35C3F2;font:400 clamp(30px,9vw,40px) 'Lilita One',Fredoka,sans-serif;text-shadow:0 3px 0 #0C3890,0 7px 14px rgba(5,20,70,.4)}
+.fpOrb{position:relative;width:min(46vw,190px);height:min(46vw,190px);border-radius:50%;margin-top:4vh;display:grid;place-items:center;background:linear-gradient(to top,#FFB400 0%,#FFD44A 0%,#B3E6FF 0%,#9ADBFF 100%);border:5px solid rgba(255,255,255,.55);box-shadow:0 12px 0 rgba(8,30,110,.28),0 18px 30px rgba(5,25,90,.35),inset 0 5px 0 rgba(255,255,255,.4)}
+.fpOrb img{width:60%;height:60%;object-fit:contain;filter:drop-shadow(0 4px 0 rgba(150,80,0,.35))}
+#ovFail #foReason{margin-top:2.4vh;color:rgba(255,255,255,.75);font:700 13px 'Nunito Sans',sans-serif}
+.fpBtns{margin-top:auto;margin-bottom:calc(8vh + env(safe-area-inset-bottom));width:min(80%,300px);display:flex;flex-direction:column;gap:14px}
+.fpBtns .btn3d{margin:0}
+#btnFailRev{display:none}
+#btnFailRev.on{display:flex}
 </style>
 </head>
 <body>
@@ -756,7 +769,7 @@ body.noAds #bannerBox{visibility:hidden}
         <div class="statBox"><div class="sv" id="meStreak">0</div><div class="sl">Day Streak</div></div>
       </div>
       <div class="meRows" style="margin-top:22px">
-        <button class="btn3d green" id="meAch" style="--k:1"><span class="icoSlot"><img src="assets/ui/medal.png" alt="" onerror="this.style.display='none'"/><svg viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="5.6"/><path d="M8.6 12.9 6.8 21l5.2-2.6 5.2 2.6-1.8-8.1A7.4 7.4 0 0 1 12 14a7.4 7.4 0 0 1-3.4-1.1z"/></svg></span>Medal<em>›</em></button>
+        <button class="btn3d green" id="meAch" style="--k:1"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="5.6"/><path d="M8.6 12.9 6.8 21l5.2-2.6 5.2 2.6-1.8-8.1A7.4 7.4 0 0 1 12 14a7.4 7.4 0 0 1-3.4-1.1z"/></svg>Medal<em>›</em></button>
         <button class="btn3d lav" id="meAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure<em>›</em></button>
         <button class="btn3d gold" id="meNoAds"><img class="ico" src="assets/ui/noads.png" alt="" style="width:30px;height:30px;object-fit:contain"/><span id="meNoAdsTxt">Remove Ads</span><em>›</em></button>
         <button class="btn3d lav" id="meIQ"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3L3 20h18z" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><path d="M12 3v17" stroke="#fff" stroke-width="2"/></svg>Block Puzzle<em>›</em></button>
@@ -869,10 +882,15 @@ body.noAds #bannerBox{visibility:hidden}
 <div class="overlay" id="ovFail">
   <div class="endWrap failWrap">
     <div class="endTop"><button class="endBack" id="btnFailBack">‹</button></div>
-    <div class="fpTitle" id="fpTitle">0% complete</div>
-    <div class="fpOrb" id="fpOrb"><svg viewBox="0 0 24 24"><path d="M12 1.8l3 6.3 6.9.9-5 4.8 1.3 6.8L12 17.2l-6.2 3.4 1.3-6.8-5-4.8 6.9-.9z"/></svg></div>
+    <div class="goLbl" id="fpLbl">LEVEL 1</div>
+    <div class="fpNum" id="fpTitle">0%</div>
+    <div class="fpCap">Complete</div>
+    <div class="fpOrb" id="fpOrb"><img src="assets/ui/crown.png" alt=""/></div>
     <p id="foReason"></p>
-    <button class="fpRetry" id="btnRetry">Retry</button>
+    <div class="fpBtns">
+      <button class="btn3d gold" id="btnFailRev"><svg class="ico" viewBox="0 0 24 24"><path d="M8 5.2c0-1.1 1.2-1.8 2.1-1.2l10 6c.9.6.9 1.9 0 2.4l-10 6c-.9.6-2.1-.1-2.1-1.2z"/></svg>Continue</button>
+      <button class="btn3d green" id="btnRetry"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4.8a7.4 7.4 0 1 0 7.4 7.4" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><path d="M10.4 1.6l8.6 3.2-7.4 4.6z"/></svg>Retry</button>
+    </div>
     <button id="btnFailMap" style="display:none"></button>
   </div>
 </div>
@@ -894,7 +912,7 @@ body.noAds #bannerBox{visibility:hidden}
           </div>
         </div>
         <div class="sepLine"></div>
-        <button class="btn3d green" id="btnSetMedal"><span class="icoSlot"><img src="assets/ui/medal.png" alt="" onerror="this.style.display='none'"/><svg viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="5.6"/><path d="M8.6 12.9 6.8 21l5.2-2.6 5.2 2.6-1.8-8.1A7.4 7.4 0 0 1 12 14a7.4 7.4 0 0 1-3.4-1.1z"/></svg></span>Medal</button>
+        <button class="btn3d green" id="btnSetMedal"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="5.6"/><path d="M8.6 12.9 6.8 21l5.2-2.6 5.2 2.6-1.8-8.1A7.4 7.4 0 0 1 12 14a7.4 7.4 0 0 1-3.4-1.1z"/></svg>Medal</button>
         <button class="btn3d lav" id="btnMoreSet"><svg class="ico" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.95a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84c-.24 0-.43.17-.47.4l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.95a.49.49 0 0 0-.59.22L2.63 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.95c.5.38 1.03.7 1.62.94l.36 2.54c.05.23.24.4.48.4h3.84c.24 0 .44-.17.48-.4l.36-2.54a7.03 7.03 0 0 0 1.62-.94l2.39.95c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>More Settings</button>
         <div id="setGame">
           <div class="sepLine"></div>
@@ -1116,7 +1134,6 @@ im.addEventListener('error',()=>{});
 im.src='assets/ui/'+id+'.png'}catch(e){}},
 get(id){return this.imgs[id]||null}};
 UIAssets.load('crown');
-UIAssets.load('medal');
 UIAssets.load('gem_blue');
 UIAssets.load('gem_orange');
 UIAssets.load('bush');UIAssets.load('key');UIAssets.load('lock');UIAssets.load('ice');
@@ -3776,9 +3793,9 @@ testing:false,            /* vrais IDs : les appareils de test se déclarent dan
 fakeFallback:false,       /* production : jamais de fausse pub si AdMob échoue (pas de pub = le jeu continue) */
 interstitialSec:3,
 rewardedSec:5,
-firstAdAfterGames:2,      /* v63 : aucune pub tant que 2 parties n'ont pas été terminées (la 3e est la première avec pub) */
+firstAdAfterGames:1,      /* v63 : aucune pub tant que 2 parties n'ont pas été terminées (la 3e est la première avec pub) */
 youngHours:0,            /* v63 : pendant les 48 premières heures, une interstitielle sur deux seulement */
-restartCooldownMs:30000,  /* pas d'interstitielle de Restart < 30 s après la fermeture d'une pub */
+restartCooldownMs:22000,  /* pas d'interstitielle de Restart < 30 s après la fermeture d'une pub */
 bannerInAdventure:true    /* bannière aussi pendant les niveaux Aventure (gameplay) */
 };
 const ANDROID_MAJOR=(()=>{const m=/Android (\d+)/.exec(navigator.userAgent||'');return m?+m[1]:0})();
@@ -3953,7 +3970,7 @@ const REVIVE={minScore:1000,maxAds:3,seconds:5};
    pendant la 1re partie ; le bouton n'apparaît que pendant le jeu */
 let bonusUsed=false;
 function updateBonusBtn(){const b=$('btnBonus');if(!b)return;
-b.classList.toggle('on',mode==='classic'&&state==='playing'&&!bonusUsed&&rewardAllowed()&&!Ads.busy);
+b.classList.toggle('on',(mode==='classic'||mode==='adv')&&state==='playing'&&!bonusUsed&&rewardAllowed()&&!Ads.busy);
 /* v63 : cadeau de la toute première partie — une bombe offerte à 700 points (on découvre le différenciant du jeu) */
 if(mode==='classic'&&state==='playing'&&stats.games===0&&!animating&&score>=700&&!store.get('bp_gift')&&!Tut.on){store.set('bp_gift','1');giveBonusBomb('Free bomb! Drop it to blast a 3×3 area',3600)}}
 setInterval(()=>{updateBonusBtn();try{Goal.place()}catch(e){}},400);
@@ -4943,7 +4960,7 @@ if(ch&&ch!=='.')grid[r][c]={c:CHARMAP[ch],gem:GEMCHARS[ch]||0,t:0,fall:null}}});
 else if(lvl.obj[0]==='items')grid=buildItemGrid(lvl.obj[1]);
 score=0;shownScore=0;
 combo=0;grace=3;maxCombo=0;placedCount=0;advPlaced=0;
-linesTotal=0;advLines=0;advChain=0;advComboMax=0;advGems=0;advGemsB=0;advGemsO=0;advFixedIdx=0;advItems={1:0,2:0,3:0,4:0,5:0};advShown={1:0,2:0,3:0,4:0,5:0};itemFx=[];chipsKey='';
+linesTotal=0;advLines=0;advChain=0;advComboMax=0;advGems=0;advGemsB=0;advGemsO=0;advFixedIdx=0;advItems={1:0,2:0,3:0,4:0,5:0};advShown={1:0,2:0,3:0,4:0,5:0};itemFx=[];chipsKey='';advRev=false;bonusUsed=false;
 stars=0;
 const orderRaw=[0];
 for(let t2=1;t2<=6;t2++){
@@ -4986,22 +5003,24 @@ buildWinStage();
  $('btnNext').style.display=(lvl.ev?Ev.hasNext():advLevel<LEVELS.length-1)?'flex':'none';
 setTimeout(()=>ovWin.classList.add('show'),itemFx.length?1350:450);
 updateMedalDot()}
+let advRev=false,lastConsec=0,consecPrev=0;
 function levelFail(reason){state='over';stats.games++;gameCounted=true;ovPause.classList.remove('show');
 Ads.hideBanner();
-consec=0;store.set('bp_consec','0');
+consecPrev=consec;consec=0;store.set('bp_consec','0');
 stats.maxCombo=Math.max(stats.maxCombo,maxCombo);
 saveStats();
 SFX.over();vib([70,50,70]);
 const pct=clamp(Math.floor(advProgress()*100),0,99);
 Fx.log('level_fail',{level:advLevel+1,pct:pct,ev:lvl&&lvl.ev?1:0});
-$('fpTitle').textContent='0% complete';
+$('fpTitle').textContent='0%';$('fpLbl').textContent=(lvl.ev?lvl.name:'LEVEL '+(advLevel+1)).toUpperCase();
+const canRev=!advRev&&pct>=25&&/moves/i.test(reason||'');$('btnFailRev').classList.toggle('on',canRev);lastConsec=consecPrev;
 $('foReason').textContent=reason||'';
 const orb=$('fpOrb'),paint=p=>{orb.style.background='linear-gradient(to top,#FFB400 0%,#FFD44A '+p+'%,#B3E6FF '+p+'%,#9ADBFF 100%)'};
 paint(0);ovFail.classList.add('show');
 const t0=performance.now();
 (function anim(){const k=Math.min(1,(performance.now()-t0-350)/1000);
 if(k<0){requestAnimationFrame(anim);return}
-const e=1-Math.pow(1-k,3),v=Math.round(pct*e);paint(pct*e);$('fpTitle').textContent=v+'% complete';
+const e=1-Math.pow(1-k,3),v=Math.round(pct*e);paint(pct*e);$('fpTitle').textContent=v+'%';
 if(k<1&&ovFail.classList.contains('show'))requestAnimationFrame(anim)})();
 updateMedalDot()}
 /* v56 : silhouette trophée, 14 rangées = 120 niveaux (coupe 4→11, pied,
@@ -5173,6 +5192,21 @@ else ovTitle.classList.add('show')}
 /* v55 : revive accordé (pub récompensée terminée) → les 3 dernières lignes
    sautent avec l'effet de destruction du style ; score, combo, style et
    progression sont conservés et la partie reprend (pas de nouvelle partie) */
+/* v68.2 : « Continuer » apres une defaite aventure (pub recompensee) : on retire des blocs ORDINAIRES du bas (jamais les elements a recuperer) et on rend une pioche jouable */
+function doReviveAdv(){
+ovFail.classList.remove('show');
+const P=LCFAM[theme]||LC_PROFILES.gel,stId=STYLES[theme].id,Tn=performance.now();let rem=0;
+for(let r=N-1;r>=0&&(rem<10||r>=N-4);r--)for(let c=0;c<N;c++){const b=grid[r][c];
+if(b&&!b.gem&&!b.ice&&!b.lock&&(r>=N-4||rem<6)){const tile=getTile(stId,b.c),t0=Tn+c*18;
+lcFx.push({r,c,ci:b.c,t0,tile,prof:P});lcSpawnParts(P,b.c,gx+c*cell+cell/2,gy+r*cell+cell/2,tile,t0+(P.ant||30)+(P.flash||0));grid[r][c]=null;rem++}}
+turnId++;animating=false;drag=null;ghost=null;pausedBySettings=false;turnEndPending=false;
+applyGravity();state='playing';consec=lastConsec;store.set('bp_consec',''+consec);
+tray.forEach(p=>{if(p)p.dead=!p.bomb&&!canAnywhere(p.m)});
+if(!tray.some(p=>p&&!p.dead)){for(let k=0;k<12&&!tray.some(p=>p&&!p.dead);k++)genTray(true);
+if(!tray.some(p=>p&&!p.dead)){tray[0]={si:0,m:SHAPES[0].m,ci:0,dead:false};renderTray(true)}}
+else renderTray(false);
+if(AD_CONFIG.bannerInAdventure)Ads.showBanner();
+SFX.up();vib([15,30,15]);flash();updateObjHUD();Fx.log('level_revive',{level:advLevel+1})}
 function doRevive(){
 clearRevive();ovRevive.classList.remove('show');ovOver.classList.remove('show');
 reviveUsed=true;
@@ -5287,6 +5321,7 @@ bindTap($('btnReplay'),()=>{SFX.init();startLevel(advLevel,curCustom)});
 bindTap($('btnWinMap'),()=>{SFX.init();state='title';if(dailyDay){dailyDay=null;hideAllOv();Tabs.show('daily')}else openMap()});
 bindTap($('btnWinBack'),()=>{SFX.init();goHome()});
 bindTap($('btnFailBack'),()=>{SFX.init();goHome()});
+bindTap($('btnFailRev'),()=>{if(state!=='over'||Ads.busy)return;Ads.showRewarded(earned=>{if(earned){advRev=true;doReviveAdv()}else toast('No ad available right now',1600)})});
 bindTap($('btnRetry'),()=>{SFX.init();restartWithAd(()=>startLevel(advLevel,curCustom))});
 bindTap($('btnFailMap'),()=>{SFX.init();state='title';if(dailyDay){dailyDay=null;hideAllOv();Tabs.show('daily')}else openMap()});
 bindTap($('btnAgain'),()=>{SFX.init();if(state==='over')restartWithAd(newGame)});
@@ -5304,7 +5339,7 @@ else declineRevive()})});
 bindTap($('btnReviveNo'),()=>{declineRevive()});
 /* v62 : bombe offerte — la récompense seule décide ; pas de pub = rien ne se passe */
 bindTap($('btnBonus'),()=>{
-if(state!=='playing'||mode!=='classic'||bonusUsed||Ads.busy)return;
+if(state!=='playing'||(mode!=='classic'&&mode!=='adv')||bonusUsed||Ads.busy)return;
 state='bonusAd';$('btnBonus').classList.remove('on');
 Ads.showRewarded(earned=>{
 if(state==='bonusAd')state='playing';
@@ -6102,7 +6137,7 @@ function bootWait(){
    cause des gels de plusieurs centaines de ms). Barre = progression réelle. */
 const start=performance.now();
 for(let i=0;i<STYLES.length;i++)ensureTiles(i);
-const uiList=['assets/ui/bush.png','assets/ui/key.png','assets/ui/lock.png','assets/ui/ice.png','assets/ui/noads.png','assets/ui/logo.png','assets/ui/heart.png','assets/ui/crown.png','assets/ui/medal.png','assets/ui/gem_blue.png','assets/ui/gem_orange.png','assets/blocks/gear.png'];
+const uiList=['assets/ui/bush.png','assets/ui/key.png','assets/ui/lock.png','assets/ui/ice.png','assets/ui/noads.png','assets/ui/logo.png','assets/ui/heart.png','assets/ui/crown.png','assets/ui/gem_blue.png','assets/ui/gem_orange.png','assets/blocks/gear.png'];
 let uiDone=0;
 uiList.forEach(u=>{try{const im=new Image();const fin=()=>{uiDone++};im.onload=()=>{(im.decode?im.decode().catch(()=>{}):Promise.resolve()).then(fin)};im.onerror=fin;im.src=u}catch(e){uiDone++}});
 let fontsDone=false;
