@@ -626,6 +626,8 @@ body.noAds #bannerBox{visibility:hidden}
 .fpBtns .btn3d{margin:0}
 #btnFailRev{display:none}
 #btnFailRev.on{display:flex}
+#objBar{position:relative}
+#objPieces{position:absolute;left:14px;bottom:4px}
 </style>
 </head>
 <body>
@@ -2702,7 +2704,7 @@ c.lineCap='round';c.lineWidth=w*.1;c.strokeStyle='#7FE06A';
 c.beginPath();c.moveTo(w*.14,w*.78);c.quadraticCurveTo(w*.28,w*.5,w*.5,w*.62);c.moveTo(w*.86,w*.3);c.quadraticCurveTo(w*.62,w*.34,w*.6,w*.58);c.moveTo(w*.7,w*.9);c.quadraticCurveTo(w*.74,w*.72,w*.9,w*.7);c.stroke();
 c.fillStyle='#FFB52E';[[.3,.18],[.2,.3],[.4,.3],[.3,.42]].forEach(q=>{c.beginPath();c.arc(w*q[0],w*q[1],w*.1,0,6.3);c.fill()});
 c.fillStyle='#E8431D';c.beginPath();c.arc(w*.3,w*.3,w*.075,0,6.3);c.fill();c.restore()}
-function drawKeyIcon(c,x,y,s){const im=UIAssets.get('key');if(im){const d=s*.92;c.drawImage(im,x+(s-d)/2,y+(s-d)/2,d,d);return}c.save();c.translate(x+s/2,y+s/2);const u=s/48;c.scale(u,u);c.rotate(.75);
+function drawKeyIcon(c,x,y,s){const im=UIAssets.get('key');if(im){const d=s*.6;c.drawImage(im,x+(s-d)/2,y+(s-d)/2,d,d);return}c.save();c.translate(x+s/2,y+s/2);const u=s/48;c.scale(u,u);c.rotate(.75);
 c.lineJoin='round';c.lineWidth=3.2;c.strokeStyle='#A86A00';
 const g=c.createLinearGradient(0,-14,0,14);g.addColorStop(0,'#FFE27A');g.addColorStop(1,'#F2A808');c.fillStyle=g;
 c.beginPath();c.arc(0,-13,9.5,0,6.3);c.fill();c.stroke();
@@ -2768,7 +2770,6 @@ grd.addColorStop(.90,envC);
 grd.addColorStop(1,mixHex(envC,'#ffffff',.12));
 c.fillStyle=grd;
 rr(c,gx-4,gy-4,cell*N+8,cell*N+8,7);c.fill();
-c.save();c.lineWidth=1.6;c.strokeStyle='rgba(255,255,255,.13)';rr(c,gx-3.2,gy-3.2,cell*N+6.4,cell*N+6.4,6.4);c.stroke();c.lineWidth=2;c.strokeStyle='rgba(0,0,0,.18)';rr(c,gx-1,gy-1,cell*N+2,cell*N+2,5);c.stroke();c.restore();
 rr(c,gx,gy,cell*N,cell*N,4);
 c.fillStyle=boardBGCache;c.fill();
 for(let r=0;r<N;r++)for(let cc=0;cc<N;cc++)drawEmpty(c,gx+cc*cell,gy+r*cell,cell)}
