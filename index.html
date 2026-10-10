@@ -628,6 +628,28 @@ body.noAds #bannerBox{visibility:hidden}
 #btnFailRev.on{display:flex}
 #objBar{position:relative}
 #objPieces{position:absolute;left:14px;bottom:4px}
+
+/* v69 : barre d'objectif (reproduction de la reference) + fleche retour */
+#objBar .bar{display:none!important}
+#objProg{position:relative;display:none;width:min(46vw,190px);height:38px;margin:0 auto}
+#objProg .opT{position:absolute;left:0;right:18px;top:11px;height:17px;border-radius:9px;background:linear-gradient(180deg,#0B1745,#17275F);box-shadow:inset 0 2px 3px rgba(0,0,0,.5)}
+#objProg .opF{position:absolute;left:0;top:11px;height:17px;width:18px;border-radius:9px;background:linear-gradient(180deg,#3DABF0 0%,#2398DD 55%,#1B80C6 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 1px 0 #0E5BA4;transition:width .45s cubic-bezier(.3,.7,.3,1)}
+#objProg .opC,#objProg .opG{position:absolute;top:1px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:900 15px 'Nunito Sans',sans-serif;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+#objProg .opC{left:0;background:radial-gradient(circle at 50% 26%,#52BAF6,#2594E1 58%,#1A79CA);box-shadow:0 2px 3px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(10,70,150,.35);color:#fff;text-shadow:0 1px 1px rgba(0,40,110,.55);transition:left .45s cubic-bezier(.3,.7,.3,1)}
+#objProg .opG{right:0;background:radial-gradient(circle at 50% 30%,#1C2C69,#0B1641);box-shadow:inset 0 0 0 3px rgba(48,70,150,.3),0 2px 3px rgba(0,0,0,.3);color:#FFA52E;text-shadow:0 1px 1px rgba(0,0,0,.4)}
+#objProg .sm{font-size:12px}
+#objPieces{position:absolute;left:14px;bottom:4px}
+#btnBack{display:none;position:absolute;left:-6px;top:0;width:46px;height:46px;background:none;border:none;padding:6px;color:#BBD2FF;cursor:pointer;filter:drop-shadow(0 2px 2px rgba(5,18,70,.5));z-index:5}
+#btnBack svg{width:100%;height:100%}
+#btnBack:active{transform:scale(.9)}
+body.advMode #btnBack{display:block}
+/* evenements : deux cartes en meme temps */
+.evBox{margin-bottom:24px}
+.evPr{height:13px;border-radius:99px;background:rgba(10,20,90,.55);margin:14px 4px 0;overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.4)}
+.evPr i{display:block;height:100%;border-radius:99px;background:linear-gradient(180deg,#FFE680,#F5B81E);transition:width .5s}
+.evInfo{display:flex;justify-content:space-between;color:#CFE0FF;font:800 13px 'Nunito Sans',sans-serif;margin:7px 6px 12px}
+.evBox .btn3d{margin:0}
+.evBox .btn3d.done{filter:grayscale(.6);opacity:.8}
 </style>
 </head>
 <body>
@@ -646,6 +668,7 @@ body.noAds #bannerBox{visibility:hidden}
       </div>
     </div>
     <div class="score-wrap"><div id="score">0</div></div>
+    <button id="btnBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5 7.5 12 15 19.5"/></svg></button>
     <div class="hside right">
       <button id="btnPause" aria-label="Settings">
         <img src="assets/blocks/gear.png" alt="" onerror="this.style.display='none'"/>
@@ -661,6 +684,7 @@ body.noAds #bannerBox{visibility:hidden}
     <span id="objChips"></span>
     <span id="objTxt"></span>
     <span class="bar"><i id="objFill"></i></span>
+    <span id="objProg"><i class="opT"></i><i class="opF" id="opF"></i><b class="opC" id="opC">0</b><b class="opG" id="opG">0</b></span>
     <span id="objPieces"></span>
   </div>
   <div id="topSpacer"></div>
@@ -990,9 +1014,7 @@ body.noAds #bannerBox{visibility:hidden}
   <div class="achWrap">
     <div class="achHead"><button class="achBack" id="btnEvBack">‹</button><div class="achTitle">Event</div><span class="sp"></span></div>
     <div class="achBody pgBody">
-      <div class="evCard" id="evCard"><div class="evName" id="evName"></div><div class="evSub" id="evSub"></div><div class="evLeft" id="evLeft"></div></div>
-      <div class="evTrack" id="evTrack"></div>
-      <button class="btn3d green" id="btnEvPlay">Play</button>
+      <div id="evList"></div>
     </div>
   </div>
 </div>
@@ -1002,7 +1024,6 @@ body.noAds #bannerBox{visibility:hidden}
     <div class="gIco"><img src="assets/ui/noads.png" alt=""/></div>
     <div class="gS">No more banners or video ads between your games. Optional bonus videos stay available.</div>
     <button class="btn3d gold" id="btnIapBuy">Remove Ads</button>
-    <button class="btn3d lav" id="btnIapRestore">Restore purchase</button>
     <button class="btn3d lav" id="btnIapClose">Close</button>
   </div>
 </div>
@@ -3390,7 +3411,7 @@ if(f)cols.push(c)}
 return{rows,cols}}
 function dayCheck(){if(mode!=='classic'||dayShown||dayBest0<=0||state!=='playing')return;
 if(score>dayBest0&&score<=bestAtStart){dayShown=true;queuePop([{txt:'BEST OF THE DAY!',pal:'gold',sc:1}],cell*.8,900);confetti();SFX.win();vib([20,40,20]);flash();Fx.log('best_of_day',{score:score})}}
-function bumpScore(){scorePulseT=performance.now();Goal.hud();dayCheck()}
+function bumpScore(){scorePulseT=performance.now();Goal.hud();dayCheck();if(mode==='adv')updateObjHUD()}
 function setHudMode(){objBar.style.display=(mode==='adv')?'flex':'none';document.body.classList.toggle('advMode',mode==='adv');try{Goal.hud()}catch(e){}}
 function advProgress(){if(!lvl)return 0;const o=lvl.obj;
 if(o[0]==='lines')return clamp(advLines/o[1],0,1);
@@ -3402,15 +3423,14 @@ const ITEM_IMG={4:'<img src="assets/ui/ice.png" alt=""/>',5:'<img src="assets/ui
 let chipsKey='';
 function updateObjHUD(){if(mode==='classic'){Goal.hud();return}if(mode!=='adv'||!lvl)return;
 const o=lvl.obj,items=o[0]==='items',barEl=objBar.querySelector('.bar'),ch=$('objChips');
-ch.classList.toggle('on',items);objTxt.style.display=items?'none':'';barEl.style.display=items?'none':'';
+ch.classList.toggle('on',items);objTxt.style.display='none';barEl.style.display='none';$('objProg').style.display=items?'none':'block';
 if(items){let key='',html='';
 for(const k in o[1]){const left=Math.max(0,o[1][k]-(advShown[k]||0));key+=k+':'+left+',';
 html+='<span class="oc'+(left?'':' ok')+'" data-k="'+k+'">'+ITEM_IMG[k]+'<b>'+(left?left:'\u2713')+'</b></span>'}
 if(key!==chipsKey){chipsKey=key;ch.innerHTML=html}}
-else{chipsKey='';let txt='',pct=advProgress();
-if(o[0]==='lines')txt='Lines '+advLines+' / '+o[1];
-else txt='Score '+score+' / '+o[1];
-objTxt.textContent=txt;objFill.style.width=clamp(pct*100,0,100)+'%'}
+else{chipsKey='';const pct=advProgress(),cur=Math.min(o[0]==='lines'?advLines:score,o[1]),W=Math.min(window.innerWidth*.46,190),cx=18+pct*(W-54-18);
+const oc=$('opC'),og=$('opG');oc.textContent=cur;og.textContent=o[1];oc.classList.toggle('sm',String(cur).length>=4);og.classList.toggle('sm',String(o[1]).length>=4);
+oc.style.left=(cx-18)+'px';$('opF').style.width=cx+'px'}
 objPieces.textContent=lvl.maxPieces?('Pieces: '+Math.max(0,lvl.maxPieces-advPlaced)):''}
 function checkBest(){if(mode==='adv')return;
 if(score>best){best=score;store.set('bp_best',best);bestVal.textContent=best}}
@@ -3792,7 +3812,7 @@ interstitialSec:3,
 rewardedSec:5,
 firstAdAfterGames:1,      /* v63 : aucune pub tant que 2 parties n'ont pas été terminées (la 3e est la première avec pub) */
 youngHours:0,            /* v63 : pendant les 48 premières heures, une interstitielle sur deux seulement */
-restartCooldownMs:22000,  /* pas d'interstitielle de Restart < 30 s après la fermeture d'une pub */
+restartCooldownMs:5000,  /* pas d'interstitielle de Restart < 30 s après la fermeture d'une pub */
 bannerInAdventure:true    /* bannière aussi pendant les niveaux Aventure (gameplay) */
 };
 const ANDROID_MAJOR=(()=>{const m=/Android (\d+)/.exec(navigator.userAgent||'');return m?+m[1]:0})();
@@ -3889,7 +3909,7 @@ if(!this.bannerOn||!this.native)return;
 const P=this.native,r=$('bannerBox').getBoundingClientRect();
 /* le plugin ajoute lui-même l'encart de navigation sous Android 15+ */
 const inset=ANDROID_MAJOR>=15?safeInsetBottom():0;
-const margin=Math.max(0,Math.round(window.innerHeight-r.bottom+(r.height-50)/2-inset));
+const margin=0;/* v69 : bannière collée au bord bas de l'écran (comme Block Blast) */
 const opt={adId:ADMOB_IDS.banner,adSize:'BANNER',position:'BOTTOM_CENTER',margin:margin,isTesting:AD_CONFIG.testing};
 const ko=e=>{console.warn('AdMob bannière',e)};
 try{
@@ -4194,9 +4214,9 @@ fbctx.fill();
 fbctx.restore()}
 function drawScoreHUD(t){if(Tut.on||mode==='adv')return;
 const dx=boardRect.left+gx+cell*N/2;
-const dy=boardRect.top+gy-12-((mode==='classic'&&Goal.val>0)?52:0);
+const dy=boardRect.top+gy-17-((mode==='classic'&&Goal.val>0)?52:0);
 const pulse=1+.08*Math.max(0,1-(t-scorePulseT)/280);
-const size=Math.round(48*pulse);
+const size=Math.round(60*pulse);
 const key=size+'|'+shownScore;
 let bm=hudCache[key];
 if(!bm){
@@ -4809,7 +4829,7 @@ sz:cell*(.10+Math.random()*.12),col:dcol,
 rot:Math.random()*6.3,vr:(Math.random()-.5)*.003,
 t0:t,life:700+Math.random()*300})}}}
 const scX=boardRect.left+gx+cell*N/2;
-const scY=boardRect.top+gy-12-17-((mode==='classic'&&Goal.val>0)?52:0);
+const scY=boardRect.top+gy-17-22-((mode==='classic'&&Goal.val>0)?52:0);
 plusOnes=plusOnes.filter(po=>{
 if(t<po.t0)return true;
 const kk=(t-po.t0)/po.life;
@@ -5072,11 +5092,11 @@ if(unlocked){
 if(done){
 if(mapTexURL)b.style.backgroundImage='url('+((allDone&&mapTexGoldURL)||mapTexURL)+')';
 b.title=LEVELS[i].name;
-bindTap(b,()=>{SFX.init();startLevel(i)})}
+bindTap(b,()=>{SFX.init();restartWithAd(()=>startLevel(i))})}
 else{
 b.innerHTML='<span class="num">'+n+'</span>';
 if(i===nxt)b.innerHTML='<span class="dmd">'+DMD_SVG+'</span><span class="num">'+n+'</span>';
-bindTap(b,()=>{SFX.init();startLevel(i)})}
+bindTap(b,()=>{SFX.init();restartWithAd(()=>startLevel(i))})}
 }else{
 b.innerHTML='<span class="num">'+n+'</span>'}
 div.appendChild(b)});
@@ -5307,12 +5327,12 @@ if(rec)Rec.show(showStats);else showPlacedAd(showStats)}
 function refreshTitle(){Daily.refreshCount()}
 /* v55 : liaisons — les pubs ne passent QUE par restartWithAd (Restart) et
    l'offre Revive ; Home, Classic, carte, Next Level, victoire : aucune pub */
-bindTap($('btnPlay'),()=>{SFX.init();newGame()});
+bindTap($('btnPlay'),()=>{SFX.init();restartWithAd(newGame)});
 bindTap($('btnAdv'),()=>{SFX.init();openMap()});
 bindTap($('btnGear'),()=>{openPause('home')});
 bindTap($('btnAchBack'),()=>{closeAch()});
 bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.classList.add('show')});
-bindTap($('btnGoLevel'),()=>{SFX.init();startLevel(nextAdvLevel())});
+bindTap($('btnGoLevel'),()=>{SFX.init();restartWithAd(()=>startLevel(nextAdvLevel()))});
 bindTap($('btnNext'),()=>{SFX.init();restartWithAd(()=>{dailyDay=null;if(curCustom&&curCustom.ev)Ev.playNext();else startLevel(advLevel+1)})});
 bindTap($('btnReplay'),()=>{SFX.init();startLevel(advLevel,curCustom)});
 bindTap($('btnWinMap'),()=>{SFX.init();state='title';if(dailyDay){dailyDay=null;hideAllOv();Tabs.show('daily')}else openMap()});
@@ -5344,6 +5364,7 @@ if(earned){bonusUsed=true;giveBonusBomb()}
 else toast('No ad available right now',1600)})});
 /* Settings (Home : ctx 'home' ; en partie : ctx 'game') */
 bindTap($('btnPause'),()=>{openPause('game')});
+bindTap($('btnBack'),()=>{SFX.init();if(state==='playing'||state==='paused')openPause('game');else goHome()});
 bindTap($('btnPClose'),()=>{closePause()});
 bindTap($('btnSetMedal'),()=>{openAch('settings')});
 bindTap($('btnMoreSet'),()=>{showSetPage('more');updateVibSlider();refreshPauseToggles()});
@@ -5824,8 +5845,7 @@ else{el.textContent='×'+n}}
 function play(){
 const k=dayKey();if(done()[k]){toast('Come back tomorrow for a new challenge!',2200);return}
 const go=()=>{dailyDay=k;Fx.log('daily_start',{day:k,level:nextAdvLevel()+1});startLevel(nextAdvLevel())};
-if(seen[k]){go();return}
-seen[k]=true;showPlacedAd(go)}
+showPlacedAd(go)}
 let pg=0;
 function intro(){pg=0;paintIntro();ovDcIntro.classList.add('show')}
 function paintIntro(){
@@ -5881,24 +5901,24 @@ let price='4.99 \u20ac';const ovIap=$('ovIap');
 function paint(){document.body.classList.toggle('noAds',noAds());
 const t=noAds()?'Ads removed':'Remove Ads \u00b7 '+price;$('meNoAdsTxt').textContent='Remove Ads \u00b7 '+price;$('btnIapBuy').textContent=noAds()?'Ads removed \u2713':'Buy \u00b7 '+price}
 function grant(){store.set('bp_noads','1');paint();try{Ads.hideBanner()}catch(e){}Fx.log('iap_remove_ads',{});toast('Ads removed. Thank you!',2600)}
+const paid=x=>!!(x&&x.productIdentifier===ID&&(x.purchaseState==='1'||(x.purchaseState==null&&!x.revocationDate)));
+/* au demarrage : retrouve un achat deja paye (reinstallation / autre telephone) ; si le store ne le connait plus (rembourse) on retire l'avantage */
 async function init(){paint();const p=P();if(!p)return;
 try{const r=await p.getProduct({productIdentifier:ID,productType:'inapp'});const pr=r&&(r.product||r);if(pr&&pr.priceString){price=pr.priceString;paint()}}catch(e){}
-try{const g=await p.getPurchases({productType:'inapp'});const l=(g&&g.purchases)||[];if(l.some(x=>x&&x.productIdentifier===ID)&&!noAds())grant()}catch(e){}}
+try{const g=await p.getPurchases({productType:'inapp'});const l=(g&&g.purchases)||[];const ok=l.some(paid);
+if(ok&&!noAds())grant();else if(!ok&&noAds()&&native()){store.del('bp_noads');paint()}}catch(e){}}
 async function buy(){
 if(noAds()){ovIap.classList.remove('show');return}
 const p=P();
 if(!p){if(!native()){grant();toast('Test purchase (web only)',1800)}else toast('Store unavailable',2200);ovIap.classList.remove('show');return}
-try{await p.purchaseProduct({productIdentifier:ID,productType:'inapp'});grant();ovIap.classList.remove('show')}
+try{const t=await p.purchaseProduct({productIdentifier:ID,productType:'inapp'});
+if(t&&t.purchaseState!=null&&t.purchaseState!=='1'){toast('Payment pending — ads are removed once it is confirmed',3200);ovIap.classList.remove('show');return}
+grant();ovIap.classList.remove('show')}
 catch(e){toast('Purchase cancelled',1800)}}
-async function restore(){const p=P();
-if(!p){toast(native()?'Store unavailable':'Nothing to restore (web)',2000);return}
-try{await p.restorePurchases();const g=await p.getPurchases({productType:'inapp'});const l=(g&&g.purchases)||[];
-if(l.some(x=>x&&x.productIdentifier===ID)){grant();ovIap.classList.remove('show')}else toast('No purchase found',2200)}catch(e){toast('No purchase found',2200)}}
 function open(){if(noAds())return;paint();ovIap.classList.add('show');Fx.log('iap_open',{})}
 bindTap($('btnNoAds'),()=>{SFX.init();open()});
 bindTap($('meNoAds'),()=>{SFX.init();open()});
 bindTap($('btnIapBuy'),()=>{SFX.init();buy()});
-bindTap($('btnIapRestore'),()=>{SFX.init();restore()});
 bindTap($('btnIapClose'),()=>{SFX.init();ovIap.classList.remove('show')});
 init();
 return{init,open,paint}})();
@@ -6014,46 +6034,45 @@ if(AD_CONFIG.bannerInAdventure)Ads.showBanner();else Ads.hideBanner()}
 bindTap($('btnLvlGo'),()=>{SFX.init();go()});
 return{show,go}})();
 const Ev=(()=>{
-const T=[{id:'manor',name:'Haunted Manor',sub:'Banish the bushes and unlock the doors!',c1:'#3A1673',c2:'#8A3FD8',foc:3,o2:5},
-{id:'frost',name:'Frozen Peaks',sub:'Break the ice and dig out the gems!',c1:'#0B4A8F',c2:'#3DB0F0',foc:4,o2:1},
-{id:'jungle',name:'Lost Jungle',sub:'Clear the jungle and find the treasure!',c1:'#115A30',c2:'#2FB561',foc:2,o2:3}];
+const T=[{id:'manor',name:'Haunted Manor',sub:'Banish the bushes and unlock the doors!',foc:3,o2:5},
+{id:'frost',name:'Frozen Peaks',sub:'Break the crystals and dig out the gems!',foc:4,o2:1},
+{id:'jungle',name:'Lost Jungle',sub:'Clear the jungle and find the treasure!',foc:2,o2:3}];
 const BASE=Date.UTC(2026,0,5),NL=12,REW={4:1,8:1,12:3};
-function info(){const d=new Date(),u=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()),days=Math.floor((u-BASE)/86400000),wk=Math.floor(days/7);
-return{wk:wk,th:T[((wk%T.length)+T.length)%T.length],left:7-(days%7)}}
-function levels(){const f=info(),th=f.th,L=[];
+const dayNo=()=>{const d=new Date();return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-BASE)/86400000)};
+/* toujours DEUX evenements actifs : chaque theme dure 2 semaines, un nouveau theme demarre chaque semaine */
+function active(){const dn=dayNo(),wk=Math.floor(dn/7),out=[];
+T.forEach((th,t)=>{const rel=(((wk-t)%3)+3)%3;if(rel<2){const run=Math.floor((wk-rel-t)/3),startDay=(wk-rel)*7;out.push({th:th,run:run,left:startDay+14-dn,key:th.id+run})}});
+return out}
+function levelsOf(th,key){const L=[];
 for(let k=0;k<NL;k++){let obj;
 if(k===2||k===5||k===8||k===10)obj=['lines',4+Math.floor(k/2)];
 else{const it={};it[th.foc]=th.foc===4?Math.min(7,2+Math.floor(k*.6)):Math.min(10,3+k);it[th.o2]=th.o2===5?Math.min(4,1+Math.floor(k/3)):Math.min(6,2+Math.floor(k/2));obj=['items',it]}
 const tot=obj[0]==='items'?itemTotal(obj[1]):0;
-L.push({ev:true,evId:th.id,evKey:th.id+f.wk,k:k,name:th.name+' '+(k+1),hint:hintFor(obj),obj:obj,
+L.push({ev:true,evId:th.id,evKey:key,k:k,name:th.name+' '+(k+1),hint:hintFor(obj),obj:obj,
 s2:obj[0]==='lines'?obj[1]*350:1500+150*tot,s3:obj[0]==='lines'?obj[1]*600:3000+300*tot,
 maxPieces:obj[0]==='items'?tot*3+12:undefined})}
 return L}
-function get(){const f=info(),key=f.th.id+f.wk;let st={};try{st=JSON.parse(store.get('bp_ev')||'{}')}catch(e){}
-if(st.key!==key)st={key:key,done:0};return st}
-function save(st){store.set('bp_ev',JSON.stringify(st))}
-function render(){
-const f=info(),st=get();
-$('evCard').style.background='linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.6)),url(assets/events/ev_'+f.th.id+'.jpg) center/cover';
-$('evName').textContent=f.th.name;$('evSub').textContent=f.th.sub;
-$('evLeft').textContent='Ends in '+f.left+(f.left>1?' days':' day');
-let h='';for(let k=0;k<NL;k++){const cls=k<st.done?'done':k===st.done?'cur':'';
-h+='<span class="evN '+cls+'">'+(k+1)+(REW[k+1]?'<img src="assets/blocks/bomb.png" alt=""/>':'')+'</span>'}
-$('evTrack').innerHTML=h;
-const b=$('btnEvPlay');b.textContent=st.done>=NL?'Completed':'Play Level '+(st.done+1);b.classList.toggle('lav',st.done>=NL);b.classList.toggle('green',st.done<NL)}
-function open(){hideAllOv();ovTitle.classList.remove('show');state='title';render();$('ovEvent').classList.add('show');Fx.log('event_open',{id:info().th.id})}
-function play(){const st=get();if(st.done>=NL)return;startLevel(st.done,levels()[st.done])}
-function playNext(){const k=lvl.k+1;if(k<NL)startLevel(k,levels()[k])}
-function complete(){const st=get();st.done=Math.max(st.done,lvl.k+1);save(st);
-const r=REW[st.done];if(r){store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+r));setTimeout(()=>toast('Reward: '+r+' free bomb'+(r>1?'s':'')+' in your next game!',3200),900)}
-Fx.log('event_level',{id:info().th.id,k:lvl.k+1})}
+const st=()=>{try{return JSON.parse(store.get('bp_ev2')||'{}')}catch(e){return{}}};
+function render(){const o=st();let h='';
+active().forEach(e=>{const done=o[e.key]||0,th=e.th;
+h+='<div class="evBox"><div class="evCard" style="background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.6)),url(assets/events/ev_'+th.id+'.jpg) center/cover"><div class="evName">'+th.name+'</div><div class="evSub">'+th.sub+'</div><div class="evLeft">Ends in '+e.left+(e.left>1?' days':' day')+'</div></div>'
++'<div class="evPr"><i style="width:'+Math.round(done/NL*100)+'%"></i></div><div class="evInfo"><span>Level '+Math.min(done+1,NL)+' / '+NL+'</span><span>Rewards at 4 \u00b7 8 \u00b7 12 <img src="assets/blocks/bomb.png" alt="" style="width:15px;height:15px;vertical-align:-3px"/></span></div>'
++'<button class="btn3d green'+(done>=NL?' done':'')+'" data-ev="'+th.id+'">'+(done>=NL?'Completed':'Play Level '+(done+1))+'</button></div>'});
+$('evList').innerHTML=h}
+function open(){hideAllOv();ovTitle.classList.remove('show');state='title';render();$('ovEvent').classList.add('show');Fx.log('event_open',{})}
+function play(id){const e=active().find(x=>x.th.id===id);if(!e)return;const done=st()[e.key]||0;if(done>=NL)return;startLevel(done,levelsOf(e.th,e.key)[done])}
+function playNext(){const th=T.find(t=>t.id===lvl.evId),k=lvl.k+1;if(th&&k<NL)startLevel(k,levelsOf(th,lvl.evKey)[k])}
+function complete(){const o=st();o[lvl.evKey]=Math.max(o[lvl.evKey]||0,lvl.k+1);
+const keep=active().map(e=>e.key);Object.keys(o).forEach(k=>{if(keep.indexOf(k)<0)delete o[k]});store.set('bp_ev2',JSON.stringify(o));
+const r=REW[o[lvl.evKey]];if(r){store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+r));setTimeout(()=>toast('Reward: '+r+' free bomb'+(r>1?'s':'')+' in your next game!',3200),900)}
+Fx.log('event_level',{id:lvl.evId,k:lvl.k+1})}
 function hasNext(){return !!(lvl&&lvl.ev&&lvl.k+1<NL)}
 function winStage(el){const done=lvl.k+1,row=document.createElement('div');row.className='wsRow';
 for(let k=0;k<NL;k++){const c=document.createElement('span');c.className='wsC'+(k<done?' on':(k===done?' cur':''));c.style.width='22px';c.style.height='22px';row.appendChild(c)}
 el.appendChild(row)}
 bindTap($('btnEvent'),()=>{SFX.init();open()});
 bindTap($('btnEvBack'),()=>{SFX.init();goHome()});
-bindTap($('btnEvPlay'),()=>{SFX.init();play()});
+$('evList').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-ev]');if(!b)return;SFX.init();SFX.tap();showPlacedAd(()=>play(b.dataset.ev))});
 return{open,play,playNext,complete,hasNext,winStage}})();
 
 grid=Array.from({length:N},()=>Array(N).fill(null));
@@ -6153,8 +6172,7 @@ clearInterval(iv);setLoading(1);
 setTimeout(()=>{
 /* v60 : le coût de spawn (restore/newGame) est payé SOUS l'écran de chargement */
 if(AD.scenes[AD.fromURL]){AD.play(AD.fromURL);ovLoad.classList.remove('show')}
-else if(!tryRestoreGame()){newGame();ovLoad.classList.remove('show')}
-else ovLoad.classList.remove('show');
+else{goHome();Tabs.show('home');ovLoad.classList.remove('show')}
 },180)}},60)}
 function setLoading(p){$('loadFill').style.width=Math.round(clamp(p,0,1)*100)+'%'}
 bootWait();
