@@ -1,0 +1,5 @@
+{
+ "_comment": "Vrais pourcentages. classic = [[score_objectif, % de joueurs qui l'atteignent], ...] croissant par score ; levels = {numero_de_niveau: %}. Laisser vide pour utiliser les estimations.",
+ "classic": null,
+ "levels": {}
+}
