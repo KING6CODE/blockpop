@@ -656,7 +656,7 @@ body.advMode #btnBack{display:block}
 #ovWin.show .hangPanel{transform:none}
 #ovWin.show .wbCirc{animation:wbPop .9s .5s both}
 @keyframes wbPop{0%{transform:translateX(-50%) scale(.6)}55%{transform:translateX(-50%) scale(1.22)}100%{transform:translateX(-50%) scale(1)}}
-.winStars{display:flex;gap:10px;margin-top:2.2vh;height:58px}
+.winStars{display:none}
 .winStars svg{width:54px;height:54px;opacity:0;transform:scale(0) rotate(-40deg);filter:drop-shadow(0 4px 0 rgba(0,0,40,.35))}
 .winStars svg path{fill:#2B3A7E}
 .winStars svg.on path{fill:url(#stGold)}
@@ -1214,11 +1214,32 @@ win(){if(playCustom('win',.8))return;[392,523,659,784].forEach((f,i)=>this.tone(
 over(){if(playCustom('over',.8))return;[330,262,208,165].forEach((f,i)=>this.tone(f,.34,'sine',.18,null,i*.19))},
 /* v55 : tap des boutons — assets/sfx/tap.mp3, sinon double bip court 660 → 990 Hz */
 clearLayer(n,cmb){if(!this.on||!this.ctx)return;
-try{const k=Math.min(n,4),sh=Math.min(Math.max(cmb,1),8)-1;
-this.noise(.06+k*.012,.16+k*.03,6500);
-this.tone(190,.17,'sine',.2+k*.03,62);
-const N5=[1047,1319,1568,2093,2637,3136],c2=Math.min(2+k,6);
-for(let i=0;i<c2;i++)this.tone(semi(N5[i],sh*.5),.16,'triangle',.07+k*.008,null,.03+i*.042)}catch(e){}},
+/* v70 : gamme montante + accord final + echo, d'autant plus longue que la serie est grande (1 a 2 s) */
+try{const c=this.ctx,t0=c.currentTime,k=Math.min(n,5),cb=Math.min(Math.max(cmb,1),10);
+const bus=c.createGain();bus.gain.value=1;bus.connect(c.destination);
+const dl=c.createDelay(.8),fb=c.createGain(),lp=c.createBiquadFilter(),eo=c.createGain();
+dl.delayTime.value=.19;fb.gain.value=.38;lp.type='lowpass';lp.frequency.value=3000;eo.gain.value=.5;
+bus.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(eo);eo.connect(c.destination);
+const T=(f,d,ty,v,at)=>{const o=c.createOscillator(),g=c.createGain();o.type=ty;o.frequency.value=f;
+g.gain.setValueAtTime(.0001,t0+at);g.gain.linearRampToValueAtTime(v,t0+at+.012);g.gain.exponentialRampToValueAtTime(.0001,t0+at+d);
+o.connect(g).connect(bus);o.start(t0+at);o.stop(t0+at+d+.05)};
+/* impact */
+this.noise(.07+k*.012,.18+k*.03,6500);T(190,.2,'sine',.3+k*.03,0);
+/* souffle montant */
+{const nn=Math.floor(c.sampleRate*.5),buf=c.createBuffer(1,nn,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<nn;i++)d[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/nn);
+const src=c.createBufferSource();src.buffer=buf;const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=2.2;bp.frequency.setValueAtTime(500,t0);bp.frequency.exponentialRampToValueAtTime(5200,t0+.5);
+const g=c.createGain();g.gain.value=.09+k*.012;src.connect(bp).connect(g).connect(bus);src.start(t0)}
+/* gamme pentatonique montante */
+const base=523.25*Math.pow(2,Math.min(cb-1,6)*2/12),pent=[0,2,4,7,9,12,14,16,19,21,24,26,28,31];
+const cnt=Math.min(14,5+k*2+cb),gap=Math.max(.034,.058-cb*.003);
+for(let i=0;i<cnt;i++){const f=base*Math.pow(2,pent[i]/12),at=.04+i*gap;
+T(f,.34,'triangle',.07,at);T(f*2,.22,'sine',.032,at+.004)}
+/* accord final qui s'eteint */
+const end=.06+cnt*gap+.04,top=base*Math.pow(2,pent[Math.min(cnt,13)-1]/12)/2;
+[1,1.25,1.5,2].forEach((r,q)=>T(top*r,.8+cb*.1,q%2?'sine':'triangle',.05,end+q*.012));
+/* pluie d'etincelles */
+for(let q=0;q<4+k+cb;q++)T(2100+Math.random()*2600,.18,'sine',.022,end+.05+q*.07)
+}catch(e){}},
 tap(){if(playCustom('tap',.7))return;this.tone(660,.05,'sine',.16);this.tone(990,.07,'sine',.13,null,.05)}};
 /* v51 : vibration 0-100 % par pas de 10 % — 50 % par défaut,
    100 % = 2× plus fort ; durée min 12 ms pour être TOUJOURS sentie */
@@ -1280,7 +1301,7 @@ cur(){const o=this.track&&this.tr[this.track];return o&&o.ready?o.a:null},
 setTrack(t){if(t===this.track)return;const was=this.playing;
 if(this.playing)this.stop();
 this.track=t;
-if(t&&!this.tr[t]){try{const a=new Audio(),o={a:a,ready:false};this.tr[t]=o;a.loop=true;a.preload='auto';a.volume=.4;
+if(t&&!this.tr[t]){try{const a=new Audio(),o={a:a,ready:false};this.tr[t]=o;a.loop=true;a.preload='auto';a.volume=.26;
 a.addEventListener('canplaythrough',()=>{o.ready=true;if(MUSIC.track===t&&MUSIC.playing&&MUSIC.audioNow!==a){MUSIC.stop();MUSIC.start()}},{once:true});
 a.src='assets/music/'+t+'.mp3'}catch(e){}}
 if(was&&this.on)this.start()},
@@ -1317,7 +1338,7 @@ o.type='sine';o2.type='triangle';
 o.frequency.value=f;o2.frequency.value=f*1.004;
 fl.type='lowpass';fl.frequency.value=750;
 g.gain.setValueAtTime(.0001,t0);
-g.gain.linearRampToValueAtTime(.035,t0+1.4);
+g.gain.linearRampToValueAtTime(.024,t0+1.4);
 g.gain.linearRampToValueAtTime(.0001,t0+4.4);
 o.connect(fl);o2.connect(fl);fl.connect(g).connect(SFX.ctx.destination);
 o.start(t0);o2.start(t0);o.stop(t0+4.6);o2.stop(t0+4.6)});
@@ -1326,7 +1347,7 @@ for(let i=0;i<4;i++){
 const o=SFX.ctx.createOscillator(),g=SFX.ctx.createGain();
 o.type='triangle';o.frequency.value=arp[i];
 g.gain.setValueAtTime(.0001,t0+i);
-g.gain.linearRampToValueAtTime(.018,t0+i+.05);
+g.gain.linearRampToValueAtTime(.013,t0+i+.05);
 g.gain.exponentialRampToValueAtTime(.0001,t0+i+.9);
 o.connect(g).connect(SFX.ctx.destination);
 o.start(t0+i);o.stop(t0+i+1)}}catch(e){}
@@ -2509,15 +2530,24 @@ else if(k===4)obj=['items',{5:Math.min(4,2+Math.floor(u/3)),1:Math.min(7,3+u)}];
 else if(k===5)obj=['score',Math.min(14000,3000+i*90)];
 else if(k===6)obj=['items',{3:Math.min(8,4+Math.floor(u/2)),4:Math.min(6,3+Math.floor(u/2))}];
 else obj=['items',{4:Math.min(6,3+Math.floor(u/2)),5:Math.min(3,2+Math.floor(u/4)),2:Math.min(6,3+Math.floor(u/2))}]}
+/* v70 : defis plus durs a partir du niveau 4 — objectifs plus longs et budget de pieces serre (on echoue 1 ou 2 fois avant de reussir) */
+if(i>=3){
+if(obj[0]==='lines')obj=['lines',Math.round(obj[1]*1.8)+2];
+else if(obj[0]==='score')obj=['score',Math.round(obj[1]*1.35)];
+else if(obj[0]==='items'&&!pre){const it2={};let sum=0;for(const k in obj[1]){it2[k]=Math.ceil(obj[1][k]*1.5);sum+=it2[k]}
+while(sum>18){let big=null;for(const k in it2)if(!big||it2[k]>it2[big])big=k;it2[big]--;sum--}
+obj=['items',it2]}}
 const T=obj[0]==='lines'?obj[1]:0,tot=obj[0]==='items'?itemTotal(obj[1]):0;
 let s2,s3;
 if(obj[0]==='lines'){s2=T*350;s3=T*600}
 else if(obj[0]==='score'){s2=Math.round(obj[1]*1.15);s3=Math.round(obj[1]*1.35)}
 else{s2=1200+150*tot;s3=2500+300*tot}
 let mp;
-if(obj[0]==='lines'&&i>=12)mp=T*4;
-else if(obj[0]==='items'&&i>=14)mp=Math.round(tot*3+12);
-L.push({name:'Level '+(i+1),hint:hintFor(obj),obj:obj,s2:s2,s3:s3,maxPieces:pre?undefined:mp,preset:pre})}
+if(i>=3){
+if(obj[0]==='lines')mp=Math.ceil(T*2.3)+3;
+else if(obj[0]==='items')mp=Math.round(tot*2.7+10);
+else mp=Math.round(obj[1]/105)}
+L.push({name:'Level '+(i+1),hint:hintFor(obj),obj:obj,s2:s2,s3:s3,maxPieces:mp,preset:pre})}
 return L})();
 /* grille de depart d'un niveau a elements : colonne laissee vide (aucune ligne pleine au depart), elements poses puis tasses par la gravite */
 function buildItemGrid(it){
@@ -2998,7 +3028,7 @@ c.restore()}
 function deathTarget(){return best<=0?6000:best+1000}
 function pressure(){const a=clamp(score/deathTarget(),0,2.5);return (mode==='classic'&&TUNE.pcap)?Math.max(a,clamp(placedCount/TUNE.pcap,0,2.5)):a}
 function diffLevel(){
-if(mode==='adv')return clamp(.10+advLevel*.04,0,.9);
+if(mode==='adv')return clamp(.40+advLevel*.02,.40,.95);
 const p=pressure();
 if(best<=0)return .10+p*.30;
 if(p<.45)return .30;
@@ -3230,13 +3260,20 @@ tray=take.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si
 renderTray(anim);return}
 if(mode==='adv'){
 let set=null;
-if(lvlTight&&advProgress()>=(dailyDay?.3:.5))set=tightSet();
+let tightUsed=false;
+if(lvlTight&&advProgress()>=(dailyDay?.3:.5)){set=tightSet();tightUsed=!!set}
 if(set){}
 else if(advLevel<TUNE.advPityEarly){
 for(let t=0;t<30;t++){const cand=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
 if(cand.some(si=>canAnywhere(SHAPES[si].m))){set=cand;break}}}
 else set=[randPieceWeighted(),randPieceWeighted(),randPieceWeighted()];
 if(!set)set=[0,1,1];
+/* v70 : pioche hostile en niveau — une piece sur trois remplacee par la plus genante, parfois un trio « assassin » */
+if(!tightUsed&&advLevel>=3&&(!lvl||!lvl.ev||true)){
+if(Math.random()<Math.min(.7,.3+advLevel*.012)){let worst=null,ws=-1;
+for(let t=0;t<14;t++){const cand=randPieceWeighted(),a=analyzePiece(cand);const sc=a.toxicity*10-a.lines*7-a.near*2+(SHAPES[cand].m.flat().length>=5?3:0);if(sc>ws){ws=sc;worst=cand}}
+if(worst!==null)set[Math.floor(Math.random()*3)]=worst}
+if(advProgress()>.35&&Math.random()<.25){const tr=assassinTrio();if(tr)set=tr.slice(0,3)}}
 tray=set.map((si,i)=>({si,m:SHAPES[si].m,ci:cols[i],dead:!canAnywhere(SHAPES[si].m)}));
 renderTray(anim);return}
 const pr=pressure();
@@ -3464,6 +3501,8 @@ if(f)cols.push(c)}
 return{rows,cols}}
 function dayCheck(){if(mode!=='classic'||dayShown||dayBest0<=0||state!=='playing')return;
 if(score>dayBest0&&score<=bestAtStart){dayShown=true;queuePop([{txt:'BEST OF THE DAY!',pal:'gold',sc:1}],cell*.8,900);confetti();SFX.win();vib([20,40,20]);flash();Fx.log('best_of_day',{score:score})}}
+/* v70 : en Classic, plus le record est haut plus les points sont genereux (x1 jusqu'a 8000, jusqu'a x3 vers 24000) */
+function scoreMult(){return mode==='classic'?1+Math.min(2,Math.max(0,(best-8000)/8000)):1}
 function bumpScore(){scorePulseT=performance.now();Goal.hud();dayCheck();if(mode==='adv')updateObjHUD()}
 function setHudMode(){objBar.style.display=(mode==='adv')?'flex':'none';document.body.classList.toggle('advMode',mode==='adv');try{Goal.hud()}catch(e){}}
 function advProgress(){if(!lvl)return 0;const o=lvl.obj;
@@ -3620,7 +3659,7 @@ col:i%2?'#ff8c28':'#ffd23d',t0:t0,life:600+Math.random()*300,sh:4,g:0,rot:0,vr:.
 const lines=rows.length+cols.length;linesTotal+=lines;advLines+=lines;
 const linePts=lines*(lines+1)/2*80;
 clearBonusAcc+=linePts;
-const gain=Math.round(linePts*(1+Math.min(combo-1,6)*.15)+(chain?150:0));
+const gain=Math.round((linePts*(1+Math.min(combo-1,9)*.4)+(chain?150:0))*scoreMult());
 score+=gain;
 if(Math.floor(score/5000)>Math.floor((score-gain)/5000)){
 const ms=Math.floor(score/5000);
@@ -3718,7 +3757,7 @@ if(b.ice)collectIce(rr2,cc2);
 if(b.lock){advItems[5]=(advItems[5]||0)+1;spawnItemFx(6,rr2,cc2,120,null);updateObjHUD()}
 grid[rr2][cc2]=null}}
 stats.bombs++;saveStats();
-score+=300;
+score+=Math.round(300*scoreMult());
 floats.push({x:gx+c*cell+cell/2,y:gy+r*cell+cell/2,txt:'+300',t0:performance.now(),life:800});
 SFX.boom();vib([30,20,30]);shakeAmt=Math.max(shakeAmt,12);flash();
 await sleep(160);if(my!==turnId)return;
@@ -3774,7 +3813,7 @@ grid[r+dr][c+dc]=b}}));
 placedCount++;advPlaced++;stats.pieces++;piecesSinceAC++;
 /* v60 : le tuto ne se termine plus à la 1re pose mais à la 1re LIGNE
    explosée (doClear) — le fantôme guide jusqu'au moment satisfaisant */
-plusOnesScore+=p.m.flat().length*10;bumpScore();
+plusOnesScore+=Math.round(p.m.flat().length*10*scoreMult());bumpScore();
 SFX.place();vib(18);
 spawnPlusOnes(p,r,c);
 tray[i]=null;renderTray(false);
@@ -4035,6 +4074,9 @@ if(Ads.busy||!adAllowed()||
 if(isYoung()){const n=parseInt(store.get('bp_io'))||0;store.set('bp_io',String(n+1));if(n%2===1){done();return}}   /* nouveaux joueurs : une occasion sur deux */
 Ads.showInterstitial(done)}
 function restartWithAd(go){showPlacedAd(go)}
+/* v70 : le tout premier Play apres l'ouverture de l'app n'a jamais de pub */
+let sessionPlayed=false;
+function playGate(go){if(!sessionPlayed){sessionPlayed=true;go();return}showPlacedAd(go)}
 const REVIVE={minScore:1000,maxAds:3,seconds:5};
 /* v62 : bombe offerte (pub récompensée VOLONTAIRE) — 1 par partie Classic, jamais
    pendant la 1re partie ; le bouton n'apparaît que pendant le jeu */
@@ -5071,10 +5113,7 @@ sz:cell*.14,col:COLORS[k2%COLORS.length].b,
 t0:performance.now(),life:800,sh:1,g:.3,rot:0,vr:.15});
  $('winConsec').textContent='×'+consec;
 buildWinStage();
-{const STAR='<path d="M12 1.6l2.9 6.2 6.8.9-5 4.7 1.3 6.7L12 16.7 6 20.1l1.3-6.7-5-4.7 6.8-.9z" stroke="#7A4A00" stroke-width="1" stroke-linejoin="round"/>';
-let h='<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="stGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFEA7A"/><stop offset=".55" stop-color="#FFC21E"/><stop offset="1" stop-color="#F59A0A"/></linearGradient></defs></svg>';
-for(let q=0;q<3;q++)h+='<svg viewBox="0 0 24 24" class="'+(q<st?'on':'')+'" style="--i:'+q+'">'+STAR+'</svg>';
-$('winStars').innerHTML=h;
+{$('winStars').innerHTML='';
 const wr=$('winRew');if(rw){wr.innerHTML='<img src="assets/blocks/bomb.png" alt=""/><div><b>+'+rw+'</b> free bomb'+(rw>1?'s':'')+'<br><span style="font-weight:700;opacity:.85">for your next game</span></div>';wr.classList.add('on')}else wr.classList.remove('on');
 ovWin.style.background=lvl.ev?'linear-gradient(180deg,rgba(8,12,40,.55),rgba(8,12,40,.82)),url(assets/events/ev_'+lvl.evId+'.jpg) center/cover':''}
  $('btnNext').style.display=(lvl.ev?Ev.hasNext():advLevel<LEVELS.length-1)?'flex':'none';
@@ -5152,11 +5191,11 @@ if(unlocked){
 if(done){
 if(mapTexURL)b.style.backgroundImage='url('+((allDone&&mapTexGoldURL)||mapTexURL)+')';
 b.title=LEVELS[i].name;
-bindTap(b,()=>{SFX.init();restartWithAd(()=>startLevel(i))})}
+bindTap(b,()=>{SFX.init();playGate(()=>startLevel(i))})}
 else{
 b.innerHTML='<span class="num">'+n+'</span>';
 if(i===nxt)b.innerHTML='<span class="dmd">'+DMD_SVG+'</span><span class="num">'+n+'</span>';
-bindTap(b,()=>{SFX.init();restartWithAd(()=>startLevel(i))})}
+bindTap(b,()=>{SFX.init();playGate(()=>startLevel(i))})}
 }else{
 b.innerHTML='<span class="num">'+n+'</span>'}
 div.appendChild(b)});
@@ -5387,12 +5426,12 @@ if(rec)Rec.show(showStats);else showPlacedAd(showStats)}
 function refreshTitle(){Daily.refreshCount()}
 /* v55 : liaisons — les pubs ne passent QUE par restartWithAd (Restart) et
    l'offre Revive ; Home, Classic, carte, Next Level, victoire : aucune pub */
-bindTap($('btnPlay'),()=>{SFX.init();restartWithAd(newGame)});
+bindTap($('btnPlay'),()=>{SFX.init();playGate(newGame)});
 bindTap($('btnAdv'),()=>{SFX.init();openMap()});
 bindTap($('btnGear'),()=>{openPause('home')});
 bindTap($('btnAchBack'),()=>{closeAch()});
 bindTap($('btnMapBack'),()=>{SFX.init();ovMap.classList.remove('show');ovTitle.classList.add('show')});
-bindTap($('btnGoLevel'),()=>{SFX.init();restartWithAd(()=>startLevel(nextAdvLevel()))});
+bindTap($('btnGoLevel'),()=>{SFX.init();playGate(()=>startLevel(nextAdvLevel()))});
 bindTap($('btnNext'),()=>{SFX.init();restartWithAd(()=>{dailyDay=null;if(curCustom&&curCustom.ev)Ev.playNext();else startLevel(advLevel+1)})});
 bindTap($('btnReplay'),()=>{SFX.init();startLevel(advLevel,curCustom)});
 bindTap($('btnWinMap'),()=>{SFX.init();state='title';if(dailyDay){dailyDay=null;hideAllOv();Tabs.show('daily')}else openMap()});
@@ -5786,6 +5825,10 @@ const r50=x=>Math.max(50,Math.round(x/50)*50);
 function pick(){
 const h=H(),R=best,recent=h.recent||[];
 if(R<=0||stats.games===0)return 1000;
+/* v70 : au 1er jeu du jour l'objectif vaut ~la moitie du record, puis il monte (62 %, 78 %, 90 %) avant de repasser au-dessus du record */
+const dk0=dayKey();let dg={};try{dg=JSON.parse(store.get('bp_dg')||'{}')}catch(e){}if(dg.k!==dk0)dg={k:dk0,n:0};
+const dn=dg.n;dg.n++;store.set('bp_dg',JSON.stringify(dg));
+if(dn<4)return Math.max(200,r50(R*[.5,.62,.78,.9][dn]));
 let order;
 if(h.fail&&h.ratio){const lr=h.ratio;order=[lr-.08,lr-.16,lr-.04,lr+.06,lr-.12]}
 else order=[1.28,1.33,1.23,1.38,1.18];
@@ -5905,7 +5948,7 @@ else{el.textContent='×'+n}}
 function play(){
 const k=dayKey();if(done()[k]){toast('Come back tomorrow for a new challenge!',2200);return}
 const go=()=>{dailyDay=k;Fx.log('daily_start',{day:k,level:nextAdvLevel()+1});startLevel(nextAdvLevel())};
-showPlacedAd(go)}
+playGate(go)}
 let pg=0;
 function intro(){pg=0;paintIntro();ovDcIntro.classList.add('show')}
 function paintIntro(){
@@ -6105,12 +6148,12 @@ T.forEach((th,t)=>{const rel=(((wk-t)%3)+3)%3;if(rel<2){const run=Math.floor((wk
 return out}
 function levelsOf(th,key){const L=[];
 for(let k=0;k<NL;k++){let obj;
-if(k===2||k===5||k===8||k===10)obj=['lines',4+Math.floor(k/2)];
+if(k===2||k===5||k===8||k===10)obj=['lines',7+Math.floor(k/2)];
 else{const it={};it[th.foc]=th.foc===4?Math.min(7,2+Math.floor(k*.6)):Math.min(10,3+k);it[th.o2]=th.o2===5?Math.min(4,1+Math.floor(k/3)):Math.min(6,2+Math.floor(k/2));obj=['items',it]}
 const tot=obj[0]==='items'?itemTotal(obj[1]):0;
 L.push({ev:true,evId:th.id,evKey:key,style:th.style,k:k,name:th.name+' '+(k+1),hint:hintFor(obj),obj:obj,
 s2:obj[0]==='lines'?obj[1]*350:1500+150*tot,s3:obj[0]==='lines'?obj[1]*600:3000+300*tot,
-maxPieces:obj[0]==='items'?tot*3+12:undefined})}
+maxPieces:obj[0]==='items'?Math.round(tot*2.7+10):Math.ceil(obj[1]*2.3)+3})}
 return L}
 const st=()=>{try{return JSON.parse(store.get('bp_ev2')||'{}')}catch(e){return{}}};
 function render(){const o=st();let h='';
@@ -6134,7 +6177,7 @@ for(let k=0;k<NL;k++){const c=document.createElement('span');c.className='wsC'+(
 el.appendChild(row)}
 bindTap($('btnEvent'),()=>{SFX.init();open()});
 bindTap($('btnEvBack'),()=>{SFX.init();goHome()});
-$('evList').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-ev]');if(!b)return;SFX.init();SFX.tap();showPlacedAd(()=>play(b.dataset.ev))});
+$('evList').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-ev]');if(!b)return;SFX.init();SFX.tap();playGate(()=>play(b.dataset.ev))});
 return{open,play,playNext,complete,hasNext,winStage,endingSoon}})();
 
 grid=Array.from({length:N},()=>Array(N).fill(null));
