@@ -1274,7 +1274,16 @@ function ensureStyleSfx(idx){const st=STYLES[idx];if(!st)return;
 tryLoadSfx('clear_'+st.id);tryLoadSfx('combo_'+st.id)}
 /* v55 : un seul <audio> bg.mp3 (init idempotente) ; synthé de secours sinon ;
    hold() = pause temporaire (app en arrière-plan, pub) sans toucher au réglage BGM */
-const MUSIC={on:store.get('bp_music')!=='0',playing:false,timer:null,step:0,audio:null,loading:false,holds:{},
+const MUSIC={on:store.get('bp_music')!=='0',playing:false,timer:null,step:0,audio:null,loading:false,holds:{},track:null,tr:{},audioNow:null,
+/* v70 : une musique par mode — null = musique d'ambiance du Classic ; 'adv' = Aventure ; 'manor' / 'frost' / 'jungle' = evenements */
+cur(){const o=this.track&&this.tr[this.track];return o&&o.ready?o.a:null},
+setTrack(t){if(t===this.track)return;const was=this.playing;
+if(this.playing)this.stop();
+this.track=t;
+if(t&&!this.tr[t]){try{const a=new Audio(),o={a:a,ready:false};this.tr[t]=o;a.loop=true;a.preload='auto';a.volume=.4;
+a.addEventListener('canplaythrough',()=>{o.ready=true;if(MUSIC.track===t&&MUSIC.playing&&MUSIC.audioNow!==a){MUSIC.stop();MUSIC.start()}},{once:true});
+a.src='assets/music/'+t+'.mp3'}catch(e){}}
+if(was&&this.on)this.start()},
 init(){SFX.init();
 if(this.audio||this.loading)return;this.loading=true;
 try{const a=new Audio();
@@ -1289,12 +1298,15 @@ if(this.held()){if(this.playing){this.stop();this.resumeAfter=true}}
 else if(this.resumeAfter){this.resumeAfter=false;this.start()}},
 start(){if(!this.on||this.playing)return;
 if(this.held()){this.resumeAfter=true;return}
+const ca=this.cur();if(ca){const p=ca.play();if(p&&p.catch)p.catch(()=>{});this.audioNow=ca;this.playing=true;return}
 if(this.audio){const p=this.audio.play();if(p&&p.catch)p.catch(()=>{});this.playing=true;return}
 if(!SFX.ctx)return;
 this.playing=true;this.next()},
 stop(){this.playing=false;
 if(this.timer){clearTimeout(this.timer);this.timer=null}
-if(this.audio)try{this.audio.pause()}catch(e){}},
+if(this.audio)try{this.audio.pause()}catch(e){}
+for(const k in this.tr)try{this.tr[k].a.pause()}catch(e){}
+this.audioNow=null},
 next(){if(!this.playing)return;
 const ch=this.chords[this.step%this.chords.length];this.step++;
 try{const t0=SFX.ctx.currentTime;
@@ -4951,7 +4963,7 @@ turnId++;animating=false;drag=null;ghost=null;
 popQueue=[];popCur=null;clearRevive();
 pausedBySettings=false;turnEndPending=false;
 dragLayer.style.display='none';
-state='title';mode='classic';lvl=null;setEvDecor(null);
+state='title';mode='classic';lvl=null;setEvDecor(null);MUSIC.setTrack(null);
 hideAllOv();Ads.hideBanner();
 setHudMode();refreshTitle();
 ovTitle.classList.add('show')}
@@ -5005,7 +5017,7 @@ function setEvDecor(id){['manor','frost','jungle'].forEach(x=>document.body.clas
 function startLevel(i,custom){
 setEvDecor(custom&&custom.ev?custom.evId:null);
 if(!custom&&(i<0||i>=LEVELS.length))return;gameCounted=false;
-advLevel=i;curCustom=custom||null;lvl=custom||LEVELS[i];mode='adv';
+advLevel=i;curCustom=custom||null;lvl=custom||LEVELS[i];mode='adv';MUSIC.setTrack(custom&&custom.ev?custom.evId:'adv');
 turnId++;animating=false;
 popQueue=[];popCur=null;
 clearRevive();pausedBySettings=false;turnEndPending=false;
@@ -5297,7 +5309,7 @@ SFX.up();vib([15,30,15]);flash();
 toast('Bottom cleared — go on!');
 saveGame()}
 let seqDone=false,dailyDay=null;
-function newGame(){gameCounted=false;dailyDay=null;mode='classic';lvl=null;setEvDecor(null);setHudMode();
+function newGame(){gameCounted=false;dailyDay=null;mode='classic';lvl=null;setEvDecor(null);MUSIC.setTrack(null);setHudMode();
 turnId++;animating=false;
 popQueue=[];popCur=null;
 clearRevive();reviveAds=0;bonusUsed=false;pausedBySettings=false;turnEndPending=false;
