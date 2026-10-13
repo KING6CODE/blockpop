@@ -4098,7 +4098,9 @@ if(!store.get('bp_fs'))store.set('bp_fs',String(Date.now()));
 function isYoung(){const t=parseInt(store.get('bp_fs'))||Date.now();return Date.now()-t<AD_CONFIG.youngHours*3600000}
 /* unique porte d'entrée des interstitielles : jamais à la 1re partie,
    jamais pendant une autre pub, jamais à < 30 s de la précédente */
+let shortRun=0;   /* v74 : parties de moins de 40 s consecutives (frustration) */
 function showPlacedAd(done){
+if(shortRun>=2){shortRun=0;done();return}
 if(Ads.busy||!adAllowed()||
 (Ads.lastEnd>0&&performance.now()-Ads.lastEnd<AD_CONFIG.restartCooldownMs)){done();return}
 if(isYoung()){const n=parseInt(store.get('bp_io'))||0;store.set('bp_io',String(n+1));if(n%2===1){done();return}}   /* nouveaux joueurs : une occasion sur deux */
@@ -5426,7 +5428,7 @@ bestAtStart>0&&score>=bestAtStart*.9?'So Close!':'Game Over';
 ovOver.classList.toggle('rec',rec);
  $('foBest').textContent=best;
  $('foBadge').classList.toggle('on',rec);
-const dur=Math.max(1,Math.round((performance.now()-gameStart)/1000));
+const dur=Math.max(1,Math.round((performance.now()-gameStart)/1000));shortRun=dur<40?shortRun+1:0;
 const mm=Math.floor(dur/60),ss=('0'+(dur%60)).slice(-2);
 const ppm=placedCount>0?(placedCount/(dur/60)).toFixed(1):'0';
 let statsTxt=placedCount+' blocks · '+linesTotal+' lines · combo ×'+Math.max(maxCombo,1)+'\n'+mm+':'+ss+' · '+ppm+' blocks/min';
@@ -5939,7 +5941,8 @@ setTimeout(()=>{ovRecord.classList.remove('show');cb()},2000)}};
 const Rate={
 maybe(){if(store.get('bp_rated')||stats.games<4||Notif.visible())return false;ovRate.classList.add('show');return true},
 close(){ovRate.classList.remove('show');store.set('bp_rated','1')}};
-bindTap($('btnRate5'),()=>{Rate.close();try{window.open('https://play.google.com/store/apps/details?id=com.king6code.blockthud','_blank')}catch(e){}});
+/* v74 : Google Play In-App Review — la feuille de notation s'affiche par-dessus le jeu, l'utilisateur ne quitte jamais l'app (Google limite lui-meme la frequence) */
+bindTap($('btnRate5'),()=>{Rate.close();try{const C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.InAppReview;if(P&&P.requestReview){Fx.log('review_prompt');const r=P.requestReview();if(r&&r.catch)r.catch(()=>{})}}catch(e){}});
 bindTap($('btnRateLow'),()=>{Rate.close()});
 
 /* ---------- Série de connexion (jours consécutifs, dates locales) ---------- */
@@ -6228,6 +6231,13 @@ requestAnimationFrame(frameLoop);
    Rappels programmés par le téléphone (aucun serveur, bon fuseau horaire d'office) : J+1, J+3 et J+7 après la dernière partie, à l'heure
    habituelle du joueur (9 h – 21 h). Annulés dès qu'il rouvre le jeu ; reprogrammés quand il le quitte. Permission demandée UNE fois (une 2e
    fois après 7 jours au plus), après la 2e partie, derrière un écran d'explication. Refus = on n'insiste pas. Hors Android : rien ne se passe. */
+/* v74 : cadeau de retour — revenir apres au moins 5 h d'absence = 1 bombe offerte (1 fois par jour) ; rend vrai le « cadeau » des notifications */
+const Comeback={
+hide(){try{store.set('bp_lo',String(Date.now()))}catch(e){}},
+check(){const t=parseInt(store.get('bp_lo'))||0;if(!t||stats.games<1||Date.now()-t<5*3600000)return;
+const dk=dayKey();if(store.get('bp_cbg')===dk)return;store.set('bp_cbg',dk);
+store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+1));Fx.log('comeback_gift',{hours:Math.round((Date.now()-t)/36e5)});
+setTimeout(()=>toast('Welcome back! A free bomb is waiting in your next game',3400),1200)}};
 const Notif=(()=>{
 const LN=()=>{const C=window.Capacitor;return C&&C.Plugins&&C.Plugins.LocalNotifications};
 const ovNotif=$('ovNotif'),IDS=Array.from({length:20},(_,k)=>41+k);
@@ -6235,14 +6245,18 @@ const st=()=>{try{return JSON.parse(store.get('bp_np')||'{}')}catch(e){return {}
 const save=o=>store.set('bp_np',JSON.stringify(o));
 function cancel(){const p=LN();if(!p)return;try{p.cancel({notifications:IDS.map(id=>({id}))}).catch(()=>{})}catch(e){}}
 /* v72 : jusqu'a 3 rappels par jour les 3 premiers jours, puis 1 par jour jusqu'a J+6 ; textes varies ; rien avant 9 h ni apres 22 h ; tout est annule a la reouverture */
-const POOL={
-surprise:['Open for a surprise \ud83c\udf81','A surprise is waiting for you!','Psst\u2026 something special inside \ud83c\udf81','Your gift is ready. Come and get it!'],
-streak:['Your streak is in danger! One game is enough to keep it','Don\u2019t lose your streak \u2014 play now!','Your streak ends tonight. Save it!'],
-daily:['Your daily challenge is ready','New daily challenge \u2014 can you beat it?','Today\u2019s challenge is waiting for you'],
-bomb:['A free bomb is waiting for you \ud83d\udca3','Your free bomb expires soon \ud83d\udca3','Blast the board with a free bomb \ud83d\udca3'],
-record:['Can you beat your record of {b}?','Your record of {b} is waiting to be broken','Think you can top {b}? Prove it!'],
-miss:['Your blocks miss you!','Come back \u2014 the gravity puzzle is waiting','Still stuck on a level? Try again!']};
-const pick=(k,b,last)=>{const a=POOL[k];let t;for(let g=0;g<6;g++){t=a[Math.floor(Math.random()*a.length)];if(t!==last)break}return t.replace('{b}',b)};
+/* v74 : titre + texte par type ; chaque promesse est tenue — « cadeau » = bombe offerte a la reouverture apres 5 h d'absence (Comeback), « bombe » seulement s'il en reste une, « serie » seulement si serie >= 2 */
+const T={
+surprise:[['\ud83c\udf81 A surprise is waiting','Open Block Thud! to collect your gift.'],['\ud83c\udf81 Psst\u2026','Something special is waiting inside. Come and get it!'],['\ud83c\udf81 Your gift is ready','A free bomb is yours. Tap to play!']],
+daily:[['\ud83d\udcc5 Daily Challenge is live','Today\u2019s puzzle is new. Win it to earn a crown \ud83d\udc51'],['\ud83d\udc51 One crown to win today','Can you beat today\u2019s challenge?'],['\ud83d\udcc5 New puzzle, new chance','Your daily challenge is waiting for you.']],
+streak:[['\ud83d\udd25 {n}-day streak at risk','Play one game before midnight to keep it alive.'],['\ud83d\udd25 Don\u2019t lose {n} days in a row','One quick game saves your streak.'],['\ud83d\udd25 Streak alert','Your {n}-day streak ends tonight. Save it!']],
+bomb:[['\ud83d\udca3 Your free bomb is ready','Use it in your next game to blast the board.'],['\ud83d\udca3 Boom time','A free bomb is waiting. Make your best score!']],
+record:[['\ud83c\udfc6 Can you beat {b}?','Your record is {b}. One good run can top it.'],['\ud83c\udfc6 {b} points\u2026','Think you can go higher today? Try again!'],['\ud83c\udfc6 Record alert','{b} is your best. Time to break it!']],
+miss:[['\ud83e\uddf1 The blocks miss you','Come back for a quick game. It only takes 2 minutes.'],['\u23f1\ufe0f Got 2 minutes?','One quick game of gravity puzzle awaits.'],['\ud83e\udde9 Still stuck on a level?','Try again \u2014 you may crack it this time.']]};
+const pick=(k,b,last)=>{const n=Math.max(2,Streak.n||0),bc=parseInt(store.get('bp_bombcr'))||0;
+if(k==='streak'&&(Streak.n||0)<2)k='daily';if(k==='bomb'&&bc<1)k='surprise';
+const a=T[k];let t;for(let g=0;g<6;g++){t=a[Math.floor(Math.random()*a.length)];if(t[0]!==last)break}
+return {title:t[0].replace('{n}',n).replace('{b}',b),body:t[1].replace('{n}',n).replace('{b}',b)}};
 function schedule(){
 const p=LN(),s=st();if(!p||s.state!=='granted')return;
 const now=new Date(),b=best>0?best:1000;
@@ -6255,10 +6269,10 @@ plan.push([slot(1,12,30),'daily'],[slot(1,18,30),'surprise'],[slot(1,21,0),'stre
 [slot(3,12,30),'surprise'],[slot(3,19,0),'daily'],
 [slot(4,19,0),'record'],[slot(5,19,0),'miss'],[slot(6,19,0),'surprise']);
 let last='';const list=[];
-plan.forEach((q,i)=>{const h=q[0].getHours();if(h<9||h>=22)return;last=pick(q[1],b,last);
-list.push({id:IDS[i],title:'Block Thud!',body:last,schedule:{at:q[0],allowWhileIdle:false},smallIcon:'ic_stat_blockthud'})});
+plan.forEach((q,i)=>{const h=q[0].getHours();if(h<9||h>=22)return;const m=pick(q[1],b,last);last=m.title;
+list.push({id:IDS[i],title:m.title,body:m.body,schedule:{at:q[0],allowWhileIdle:false},smallIcon:'ic_stat_blockthud'})});
 const evS=Ev.endingSoon();
-if(evS){const d=slot(evS.left-1,18,0);if(d.getTime()>Date.now())list.push({id:IDS[19],title:evS.name,body:'Ends tomorrow! Finish it to win free bombs.',schedule:{at:d,allowWhileIdle:false},smallIcon:'ic_stat_blockthud'})}
+if(evS){const d=slot(evS.left-1,18,0);if(d.getTime()>Date.now())list.push({id:IDS[19],title:'\u23f3 '+evS.name+' ends tomorrow',body:'Finish it to win free bombs \ud83d\udca3',schedule:{at:d,allowWhileIdle:false},smallIcon:'ic_stat_blockthud'})}
 try{p.cancel({notifications:IDS.map(id=>({id}))}).catch(()=>{}).then(()=>p.schedule({notifications:list})).catch(e=>console.warn('Notif schedule',e))}catch(e){}}
 function ask(){
 const p=LN(),s=st();if(!p||s.state==='granted'||s.state==='denied')return;
@@ -6277,10 +6291,11 @@ function onAppHidden(h){
 	/* v55.1 : en arrière-plan → sauvegarde de la partie Classic en cours
 	   (best effort ; l'état 'playing' est vérifié par saveGame) */
 	if(h){try{saveGame()}catch(e){}}
-	if(h)Notif.schedule();else Notif.cancel();
+	if(h){Comeback.hide();Notif.schedule()}else{Notif.cancel();Comeback.check()}
 	MUSIC.hold('bg',h);
 	if(SFX.ctx){try{const p=h?SFX.ctx.suspend():SFX.ctx.resume();if(p&&p.catch)p.catch(()=>{})}catch(e){}}}
 document.addEventListener('visibilitychange',()=>onAppHidden(document.hidden));
+setTimeout(()=>Comeback.check(),2500);
 try{const CapApp=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
 if(CapApp&&CapApp.addListener){
 	const r=CapApp.addListener('appStateChange',s=>onAppHidden(!(s&&s.isActive)));
