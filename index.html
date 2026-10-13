@@ -714,6 +714,36 @@ body.advMode #btnBack{display:block}
 .gfD.cur{background:linear-gradient(180deg,#FFE680,#F5B81E);color:#6A3A00;box-shadow:0 3px 0 #C47F00;transform:translateY(-3px) scale(1.08)}
 .gfD.cur b{color:#6A3A00}
 .gfD.big{outline:2px solid rgba(255,226,120,.8)}
+
+/* v77 : pastilles rouges sans contour, boutons d'accueil (relief 3 px, lichette de lumiere, Event = couleur More Games), barre du bas sans ombre, bulle Streak reduite */
+.rdot{width:15px;height:15px;border:none;background:radial-gradient(circle at 40% 35%,#FF3A28,#F51004 72%);box-shadow:0 2px 0 #9B1020,0 4px 5px rgba(0,0,0,.28)}
+#tabBar button .rdot{top:1px;left:calc(50% + 9px)}
+#btnEvent .rdot{top:-6px;right:-6px}
+.homeBtn::before,#ovTitle .homeBtn::before{background:radial-gradient(circle at 100% 100%,rgba(255,255,255,0) 8.6px,rgba(255,255,255,.92) 9.4px,rgba(255,255,255,.92) 11.4px,rgba(255,255,255,0) 12.2px) 3px 2px/14px 14px no-repeat,linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0) 52%)}
+.btn3d::before{background:radial-gradient(circle at 100% 100%,rgba(255,255,255,0) 8.6px,rgba(255,255,255,.92) 9.4px,rgba(255,255,255,.92) 11.4px,rgba(255,255,255,0) 12.2px) 3px 2px/14px 14px no-repeat,radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.26),rgba(255,255,255,0) 56%)}
+#btnAdv{box-shadow:0 3px 0 #C7790E,0 9px 16px rgba(20,45,115,.4)}
+#btnAdv:active{box-shadow:0 0 0 #C7790E,0 3px 6px rgba(20,45,115,.3)}
+#btnPlay{box-shadow:0 3px 0 #0D9B74,0 9px 16px rgba(20,45,115,.4)}
+#btnPlay:active{box-shadow:0 0 0 #0D9B74,0 3px 6px rgba(20,45,115,.3)}
+#btnEvent{background:linear-gradient(180deg,#EC5BFA 0%,#E24FFB 40%,#D641F0 75%,#CC36E8 100%);box-shadow:0 3px 0 #A925BF,0 9px 16px rgba(20,45,115,.4)}
+#btnEvent:active{box-shadow:0 0 0 #A925BF,0 3px 6px rgba(20,45,115,.3)}
+.homeBtn:active{transform:translateY(3px)}
+.btn3d.green{box-shadow:0 4px 0 #1E8A12,0 11px 18px rgba(10,20,64,.32),inset 0 2px 0 rgba(255,255,255,.42)}
+.btn3d.lav{box-shadow:0 4px 0 #575E86,0 10px 16px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.30)}
+.btn3d.gold{box-shadow:0 4px 0 #C47F00,0 11px 18px rgba(10,20,64,.32),inset 0 2px 0 rgba(255,255,255,.6)}
+#tabBar{box-shadow:none;border-top:1px solid rgba(110,140,255,.36)}
+@property --sx{syntax:'<length>';inherits:true;initial-value:-30px}
+@keyframes stSweep{0%{--sx:-30px}55%,100%{--sx:150px}}
+.stBubble{position:absolute;right:-6%;top:-25px;z-index:3;display:block;width:116px;height:28px;padding:0;gap:0;border-radius:0;background:none;box-shadow:none;pointer-events:none;
+filter:drop-shadow(0 2px 0 #8E0B12) drop-shadow(0 4px 4px rgba(8,16,70,.45));animation:stSweep 2.4s ease-in-out infinite}
+.stBubble::after{display:none}
+.stBody{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;gap:5px;padding:0 8px 0 2px;border-radius:99px;
+background:linear-gradient(105deg,rgba(255,150,140,0) calc(var(--sx) - 20px),rgba(255,150,140,.62) var(--sx),rgba(255,150,140,0) calc(var(--sx) + 20px)) 0 0/116px 40px no-repeat,linear-gradient(180deg,#FF4A44 0%,#E92724 55%,#CC1C1F 100%)}
+.stTail{position:absolute;left:80px;top:27px;width:15px;height:11px;clip-path:polygon(0 0,100% 0,100% 100%);
+background:linear-gradient(105deg,rgba(255,150,140,0) calc(var(--sx) - 20px),rgba(255,150,140,.62) var(--sx),rgba(255,150,140,0) calc(var(--sx) + 20px)) -80px -27px/116px 40px no-repeat,#CC1C1F}
+.stCr{width:23px;height:23px}
+.stCr img{width:16px;height:16px}
+.stT{font-size:16px}
 </style>
 </head>
 <body>
@@ -816,7 +846,7 @@ body.advMode #btnBack{display:block}
       </div>
     </div>
     <div class="titleBtns">
-      <div class="advWrap"><div class="stBubble"><span class="stSh"><i></i></span><span class="stCr"><img src="assets/ui/crown.png" alt=""/></span><span class="stT">Streak: <b id="stN">1</b></span></div>
+      <div class="advWrap"><div class="stBubble"><span class="stBody"><span class="stCr"><img src="assets/ui/crown.png" alt=""/></span><span class="stT">Streak: <b id="stN">1</b></span></span><span class="stTail"></span></div>
       <button class="homeBtn" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure</button></div>
       <button class="homeBtn" id="btnPlay"><svg class="ico" viewBox="0 0 24 24"><path d="M3.6 12C3.6 9.8 5.4 8 7.6 8c3.2 0 5.6 8 8.8 8 2.2 0 4-1.8 4-4s-1.8-4-4-4c-3.2 0-5.6 8-8.8 8-2.2 0-4-1.8-4-4z" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg>Classic</button>
       <button class="homeBtn" id="btnEvent"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2.6l2.7 5.6 6.1.8-4.5 4.2 1.2 6L12 16.2 6.5 19.2l1.2-6L3.2 9l6.1-.8z" fill="#fff"/></svg>Event<i class="rdot"></i></button>
