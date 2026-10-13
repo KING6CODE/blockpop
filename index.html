@@ -802,6 +802,16 @@ background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,r
 .bmbBadge.pop{animation:bmbPop .45s ease-out}
 @keyframes bmbPop{0%{transform:scale(.4)}55%{transform:scale(1.3)}100%{transform:scale(1)}}
 .flyBmb{position:fixed;left:0;top:0;width:44px;height:44px;z-index:140;pointer-events:none;filter:drop-shadow(0 6px 5px rgba(5,15,70,.4))}
+
+/* v81 : lichette plus pres du coin, badge New record immobile, pastille de la 1re ouverture d'Event */
+.homeBtn::after,.btn3d::after{left:2px;top:4px}
+#ovOver.show #foBadge.on{animation:none}
+.evCard{position:relative}
+.evCard .rdot{display:block;top:9px;right:9px}
+
+/* v81b : le cadeau est en haut a droite, a gauche de la roue des reglages : jamais de chevauchement, meme sur petit ecran */
+#giftBtn{display:block;position:absolute;left:auto;bottom:auto;top:calc(10px + env(safe-area-inset-top));right:calc(72px + env(safe-area-inset-right));transform:none;visibility:hidden;margin:0;width:58px;height:58px;z-index:5}
+#giftBtn.on{display:block;visibility:visible}
 </style>
 </head>
 <body>
@@ -870,7 +880,6 @@ background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,r
   </div>
 </div>
 <div class="overlay" id="ovTitle">
-  <button id="giftBtn" aria-label="Daily gift"><img src="assets/ui/gift.png" alt=""/></button>
   <div class="titleCol">
     <button class="noAdsBtn" id="btnNoAds" aria-label="Remove ads"><img src="assets/ui/noads.png" alt=""/></button>
     <button class="gearBtn" id="btnGear" aria-label="Settings">
@@ -908,6 +917,7 @@ background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,r
       <button class="homeBtn" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure</button></div>
       <button class="homeBtn" id="btnPlay"><svg class="ico" viewBox="0 0 24 24"><path d="M3.6 12C3.6 9.8 5.4 8 7.6 8c3.2 0 5.6 8 8.8 8 2.2 0 4-1.8 4-4s-1.8-4-4-4c-3.2 0-5.6 8-8.8 8-2.2 0-4-1.8-4-4z" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg>Classic<span class="bmbBadge" id="bmbBadge"><img src="assets/blocks/bomb.png" alt=""/><b></b></span></button>
       <button class="homeBtn" id="btnEvent"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2.6l2.7 5.6 6.1.8-4.5 4.2 1.2 6L12 16.2 6.5 19.2l1.2-6L3.2 9l6.1-.8z" fill="#fff"/></svg>Event<i class="rdot"></i></button>
+      <button id="giftBtn" aria-label="Daily gift"><img src="assets/ui/gift.png" alt=""/></button>
     </div>
     <button class="btn3d lav" id="btnDev" style="display:none;padding:10px;font-size:14px;width:min(76%,250px);margin-top:4vh">DEV</button>
     <div id="devPanel" style="display:none">
@@ -4101,6 +4111,7 @@ rewardedSec:5,
 firstAdAfterGames:1,      /* v63 : aucune pub tant que 2 parties n'ont pas été terminées (la 3e est la première avec pub) */
 youngHours:0,            /* v63 : pendant les 48 premières heures, une interstitielle sur deux seulement */
 restartCooldownMs:5000,  /* pas d'interstitielle de Restart < 30 s après la fermeture d'une pub */
+bonusBombAd:false,         /* v81 : plus de pub volontaire pour une bombe bonus (bouton FREE en partie et cadeau de fin de partie) */
 bannerInAdventure:true    /* bannière aussi pendant les niveaux Aventure (gameplay) */
 };
 /* v73 : reglages a distance — remote.json (depot public) borne et applique au demarrage ; hors-ligne : derniere valeur connue, sinon defauts */
@@ -4272,7 +4283,7 @@ paint();ovAdFake.classList.add('show')}};
 let gameCounted=false;
 function gamesBefore(){return stats.games-(gameCounted?1:0)}
 function adAllowed(){return gamesBefore()>=AD_CONFIG.firstAdAfterGames}
-function rewardAllowed(){return gamesBefore()>=1}   /* la bombe offerte (pub VOLONTAIRE) arrive dès la 2e partie */
+function rewardAllowed(){return AD_CONFIG.bonusBombAd&&gamesBefore()>=1}   /* la bombe offerte (pub VOLONTAIRE) arrive dès la 2e partie */
 if(!store.get('bp_fs'))store.set('bp_fs',String(Date.now()));
 function isYoung(){const t=parseInt(store.get('bp_fs'))||Date.now();return Date.now()-t<AD_CONFIG.youngHours*3600000}
 /* unique porte d'entrée des interstitielles : jamais à la 1re partie,
@@ -4306,11 +4317,11 @@ b.classList.toggle('on',n>0);const c=b.querySelector('b');c.style.display=n>1?'b
 if(pop&&n>0){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}}
 function flyBomb(r0,r1,done){const im=document.createElement('img');im.src='assets/blocks/bomb.png';im.className='flyBmb';
 const x0=r0.left+r0.width/2-22,y0=r0.top+r0.height/2-22,x1=r1.left+r1.width/2-22,y1=r1.top+r1.height/2-22,
-mx=(x0+x1)/2+(x1>x0?-30:30),my=Math.min(y0,y1)-70;
+mx=(x0+x1)/2+(x1>x0?-12:12),my=Math.min(y0,y1)-28;
 document.body.appendChild(im);
 const a=im.animate([{transform:'translate('+x0+'px,'+y0+'px) scale(.5) rotate(-20deg)',opacity:0},
-{transform:'translate('+mx+'px,'+my+'px) scale(1.5) rotate(10deg)',opacity:1,offset:.45},
-{transform:'translate('+x1+'px,'+y1+'px) scale(.8) rotate(0deg)',opacity:1}],{duration:850,easing:'cubic-bezier(.3,.1,.3,1)',fill:'forwards'});
+{transform:'translate('+mx+'px,'+my+'px) scale(1.25) rotate(8deg)',opacity:1,offset:.5},
+{transform:'translate('+x1+'px,'+y1+'px) scale(.78) rotate(0deg)',opacity:1}],{duration:650,easing:'cubic-bezier(.35,.1,.3,1)',fill:'forwards'});
 a.onfinish=()=>{im.remove();done&&done()}}
 function giveBombs(n,srcEl,altTarget){
 store.set('bp_bombcr',''+(bombCredits()+n));
@@ -4318,7 +4329,8 @@ const src=srcEl&&srcEl.getBoundingClientRect?srcEl.getBoundingClientRect():null;
 const home=ovTitle.classList.contains('show')&&$('btnPlay');
 const tgt=home?$('btnPlay'):(altTarget&&altTarget.offsetParent!==null?altTarget:null);
 if(!src||!tgt){updBombBadge(true);return}
-bmbHold=!!home;flyBomb(src,tgt.getBoundingClientRect(),()=>{bmbHold=false;updBombBadge(true)})}
+const tr=tgt.getBoundingClientRect(),dest=home?{left:tr.right-9,top:tr.top+5,width:0,height:0}:tr;   /* Classic : directement sur le coin haut-droit, la ou apparait le badge */
+bmbHold=!!home;flyBomb(src,dest,()=>{bmbHold=false;updBombBadge(true)})}
 function giveBonusBomb(msg,dur,fromRect){
 let i=tray.findIndex(p=>!p);
 if(i<0)i=tray.findIndex(p=>p&&p.dead&&!p.bomb);
@@ -6405,14 +6417,14 @@ return L}
 const st=()=>{try{return JSON.parse(store.get('bp_ev2')||'{}')}catch(e){return{}}};
 const CLK='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.4" fill="#FFD23D" stroke="#E8A400" stroke-width="1.6"/><circle cx="12" cy="12" r="7.6" fill="#FFF3B0"/><path d="M12 7.2V12l3.4 2" fill="none" stroke="#9A6A00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function timeLeft(days){const n=new Date(),mid=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1),hrs=Math.max(0,Math.ceil((mid-n)/36e5)),t=(Math.max(1,days)-1)*24+hrs,d=Math.floor(t/24),h=t%24;return d>0?d+'d '+h+'h':h+'h'}
-function render(){const o=st();let h='';
-active().forEach(e=>{const done=o[e.key]||0,th=e.th;
-h+='<div class="evBox"><div class="evCard" style="background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.6)),url(assets/events/ev_'+th.id+'.jpg) center/cover"><div class="evName">'+th.name+'</div><div class="evLeft">'+CLK+timeLeft(e.left)+'</div></div>'
+function render(){const o=st();let h='';const first=!store.get('bp_evfirst');
+active().forEach((e,idx)=>{const done=o[e.key]||0,th=e.th;
+h+='<div class="evBox"><div class="evCard" style="background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.6)),url(assets/events/ev_'+th.id+'.jpg) center/cover"><div class="evName">'+th.name+'</div><div class="evLeft">'+CLK+timeLeft(e.left)+'</div>'+(first&&idx===0?'<i class="rdot"></i>':'')+'</div>'
 +'<div class="evPr"><i style="width:'+Math.round(done/NL*100)+'%"></i></div>'
 +'<button class="btn3d green'+(done>=NL?' done':'')+'" data-ev="'+th.id+'" style="margin-top:12px">'+(done>=NL?'Completed':'Play Level '+(done+1))+'</button></div>'});
 $('evList').innerHTML=h}
 function open(){hideAllOv();ovTitle.classList.remove('show');state='title';render();$('ovEvent').classList.add('show');store.set('bp_eseen',dayKey());Fx.log('event_open',{})}
-function play(id){const e=active().find(x=>x.th.id===id);if(!e)return;const done=st()[e.key]||0;if(done>=NL)return;startLevel(done,levelsOf(e.th,e.key)[done])}
+function play(id){store.set('bp_evfirst','1');const e=active().find(x=>x.th.id===id);if(!e)return;const done=st()[e.key]||0;if(done>=NL)return;startLevel(done,levelsOf(e.th,e.key)[done])}
 function playNext(){const th=T.find(t=>t.id===lvl.evId),k=lvl.k+1;if(th&&k<NL)startLevel(k,levelsOf(th,lvl.evKey)[k])}
 function complete(){const o=st();let rwd=0;o[lvl.evKey]=Math.max(o[lvl.evKey]||0,lvl.k+1);
 const keep=active().map(e=>e.key);Object.keys(o).forEach(k=>{if(keep.indexOf(k)<0)delete o[k]});store.set('bp_ev2',JSON.stringify(o));
