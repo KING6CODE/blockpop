@@ -8,5 +8,5 @@
          utiliser celui de la console AdMob
          (format ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY) et mettre à jour ADMOB_IDS
          dans index.html. -->
-    <string name="admob_app_id" translatable="false">ca-app-pub-8086962907043995~5160883756</string>
+    <string name="admob_app_id" translatable="false">ca-app-pub-8086962907043995~4300620855</string>
 </resources>
