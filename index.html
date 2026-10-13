@@ -719,8 +719,8 @@ body.advMode #btnBack{display:block}
 .rdot{width:15px;height:15px;border:none;background:radial-gradient(circle at 40% 35%,#FF3A28,#F51004 72%);box-shadow:0 2px 0 #9B1020,0 4px 5px rgba(0,0,0,.28)}
 #tabBar button .rdot{top:1px;left:calc(50% + 9px)}
 #btnEvent .rdot{top:-6px;right:-6px}
-.homeBtn::before,#ovTitle .homeBtn::before{background:radial-gradient(closest-side,rgba(255,244,252,.95) 0%,rgba(255,214,243,.6) 40%,rgba(255,190,236,.2) 72%,rgba(255,190,236,0) 100%) 2px 1px/22px 14px no-repeat,linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0) 52%)}
-.btn3d::before{background:radial-gradient(closest-side,rgba(255,244,252,.95) 0%,rgba(255,214,243,.6) 40%,rgba(255,190,236,.2) 72%,rgba(255,190,236,0) 100%) 2px 1px/22px 14px no-repeat,radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.26),rgba(255,255,255,0) 56%)}
+.homeBtn::before,#ovTitle .homeBtn::before{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0) 52%)}
+.btn3d::before{background:radial-gradient(ellipse 130% 85% at 16% -32%,rgba(255,255,255,.26),rgba(255,255,255,0) 56%)}
 #btnAdv{box-shadow:0 3px 0 #C7790E,0 9px 16px rgba(20,45,115,.4)}
 #btnAdv:active{box-shadow:0 0 0 #C7790E,0 3px 6px rgba(20,45,115,.3)}
 #btnPlay{box-shadow:0 3px 0 #0D9B74,0 9px 16px rgba(20,45,115,.4)}
@@ -784,6 +784,14 @@ background:linear-gradient(105deg,rgba(255,150,140,0) calc(var(--sx) - 20px),rgb
 .gfOk svg,.gfLk svg{width:12px;height:12px}
 .gfNote{margin:12px 4px 0;font:800 13px/1.3 'Nunito Sans',sans-serif;color:rgba(255,255,255,.95);text-shadow:0 2px 3px rgba(10,20,90,.4)}
 .gfPanel .btn3d{margin:12px 0 0}
+
+/* v79 : lichette fine inclinee a 45 deg (remplace le filet du haut) + bouton provisoire de remise a zero */
+.homeBtn::after,.btn3d::after{content:'';position:absolute;left:8px;right:auto;top:8px;width:11px;height:2.6px;border-radius:50%;pointer-events:none;
+background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,rgba(255,226,246,0));transform:rotate(-45deg);filter:blur(.45px)}
+#btnAdv{box-shadow:0 3px 0 #C7790E,0 9px 16px rgba(20,45,115,.4),inset 0 2px 0 rgba(255,255,255,.28)}
+#btnPlay{box-shadow:0 3px 0 #0D9B74,0 9px 16px rgba(20,45,115,.4),inset 0 2px 0 rgba(255,255,255,.28)}
+#btnEvent{box-shadow:0 3px 0 #A925BF,0 9px 16px rgba(20,45,115,.4),inset 0 2px 0 rgba(255,255,255,.28)}
+#btnResetProg{background:linear-gradient(180deg,#FF6B5E,#E03B33 55%,#C42A25);box-shadow:0 4px 0 #8E1B18,0 10px 16px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.35)}
 </style>
 </head>
 <body>
@@ -1077,6 +1085,7 @@ background:linear-gradient(105deg,rgba(255,150,140,0) calc(var(--sx) - 20px),rgb
         <div class="sepLine"></div>
         <button class="btn3d green" id="btnSetMedal"><svg class="ico" viewBox="3.2 0.8 17.6 21.4"><path d="M6.8 1.8h3.6l1.6 4.4 1.6-4.4h3.6l-3.2 8.2a6.4 6.4 0 0 0-4 0z"/><path fill-rule="evenodd" d="M12 9.4a5.9 5.9 0 1 0 0 11.8 5.9 5.9 0 0 0 0-11.8zM12 12l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3z"/></svg>Medal</button>
         <button class="btn3d lav" id="btnMoreSet"><svg class="ico" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.95a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84c-.24 0-.43.17-.47.4l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.95a.49.49 0 0 0-.59.22L2.63 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.95c.5.38 1.03.7 1.62.94l.36 2.54c.05.23.24.4.48.4h3.84c.24 0 .44-.17.48-.4l.36-2.54a7.03 7.03 0 0 0 1.62-.94l2.39.95c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>More Settings</button>
+        <button class="btn3d" id="btnResetProg" style="margin-top:12px">Reset progress (temporary)</button>
         <div id="setGame">
           <div class="sepLine"></div>
           <div class="setGrid">
@@ -5720,6 +5729,14 @@ store.set('bp_best',best);
 bestVal.textContent=best;
  $('devBest').textContent=best;
 refreshTitle()}
+/* v79 : remise a zero provisoire — double appui obligatoire ; efface toute la sauvegarde locale sauf l'achat « sans pub » */
+(function(){const b=$('btnResetProg');let t=null;
+bindTap(b,()=>{if(!t){b.textContent='Tap again to erase everything';t=setTimeout(()=>{t=null;b.textContent='Reset progress (temporary)'},4000);return}
+clearTimeout(t);t=null;
+try{const keep=localStorage.getItem('bp_noads'),ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));
+ks.forEach(k=>{if(k&&k.indexOf('bp_')===0&&k!=='bp_noads')localStorage.removeItem(k)})}catch(e){}
+try{Notif.cancel()}catch(e){}
+b.textContent='Done — restarting…';setTimeout(()=>location.reload(),400)})})();
 bindTap($('btnDev'),()=>{
 const p=$('devPanel');
 p.style.display=p.style.display==='block'?'none':'block';
