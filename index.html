@@ -809,8 +809,9 @@ background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,r
 .evCard{position:relative}
 .evCard .rdot{display:block;top:9px;right:9px}
 
-/* v81b : le cadeau est en haut a droite, a gauche de la roue des reglages : jamais de chevauchement, meme sur petit ecran */
-#giftBtn{display:block;position:absolute;left:auto;bottom:auto;top:calc(10px + env(safe-area-inset-top));right:calc(72px + env(safe-area-inset-right));transform:none;visibility:hidden;margin:0;width:58px;height:58px;z-index:5}
+/* v82 : le cadeau est TOUJOURS en bas, au-dessus de la barre ; sur ecran court (< 760 px) il passe dans le coin bas-droit pour ne pas recouvrir Event */
+#giftBtn{display:block;position:absolute;left:50%;right:auto;top:auto;bottom:calc(98px + env(safe-area-inset-bottom));transform:translateX(-50%);visibility:hidden;margin:0;width:64px;height:64px;z-index:5}
+@media (max-height:760px){#giftBtn{left:auto;right:calc(5px + env(safe-area-inset-right));transform:none;bottom:calc(92px + env(safe-area-inset-bottom));width:52px;height:52px}}
 #giftBtn.on{display:block;visibility:visible}
 </style>
 </head>
