@@ -699,6 +699,21 @@ body.advMode #btnBack{display:block}
 #ovEvEnd .eeImg{width:150px;height:150px;border-radius:20px;margin:14px auto 0;display:block;object-fit:cover;box-shadow:0 8px 20px rgba(0,0,0,.4);border:4px solid #fff}
 @keyframes blkShake{0%,100%{translate:0 0}15%{translate:-7px 0}30%{translate:7px 0}45%{translate:-6px 0}60%{translate:6px 0}75%{translate:-3px 0}90%{translate:3px 0}}
 .blkPc{position:fixed;left:0;top:0;z-index:92;pointer-events:none;transform-origin:0 0}
+
+/* v76 : cadeau quotidien visible sur l'accueil + calendrier de serie sur 7 jours */
+#giftBtn{display:none;position:absolute;left:50%;bottom:calc(104px + env(safe-area-inset-bottom));transform:translateX(-50%);align-items:center;gap:9px;padding:9px 18px 9px 12px;border:0;border-radius:999px;cursor:pointer;color:#fff;font:900 16px 'Nunito Sans',sans-serif;background:linear-gradient(180deg,#FF7A6B,#E8322F);box-shadow:0 4px 0 #A51A1A,0 10px 18px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.4);animation:gfBounce 1.6s ease-in-out infinite;z-index:5}
+#giftBtn.on{display:flex}
+#giftBtn svg{width:30px;height:30px;flex:none}
+@keyframes gfBounce{0%,100%{transform:translateX(-50%) translateY(0) scale(1)}45%{transform:translateX(-50%) translateY(-6px) scale(1.05)}70%{transform:translateX(-50%) translateY(0) scale(1)}}
+#ovGift{z-index:127;background:rgba(9,16,48,.84)}
+.gfRow{display:flex;gap:5px;justify-content:center;margin:16px -6px 2px}
+.gfD{flex:1;max-width:46px;padding:7px 0 6px;border-radius:11px;background:rgba(10,20,90,.38);color:#CFE0FF;font:800 11px 'Nunito Sans',sans-serif}
+.gfD b{display:block;font:400 15px 'Lilita One',Fredoka,sans-serif;color:#fff;margin-top:2px}
+.gfD img{width:17px;height:17px;display:block;margin:3px auto 0}
+.gfD.done{opacity:.5}
+.gfD.cur{background:linear-gradient(180deg,#FFE680,#F5B81E);color:#6A3A00;box-shadow:0 3px 0 #C47F00;transform:translateY(-3px) scale(1.08)}
+.gfD.cur b{color:#6A3A00}
+.gfD.big{outline:2px solid rgba(255,226,120,.8)}
 </style>
 </head>
 <body>
@@ -767,6 +782,7 @@ body.advMode #btnBack{display:block}
   </div>
 </div>
 <div class="overlay" id="ovTitle">
+  <button id="giftBtn" aria-label="Daily gift"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="2" fill="#FFD23D" stroke="#C47F00" stroke-width="1.2"/><rect x="2.4" y="6.2" width="19.2" height="4.4" rx="1.6" fill="#FFE680" stroke="#C47F00" stroke-width="1.2"/><rect x="10.6" y="6.2" width="2.8" height="14.8" fill="#E8322F"/><path d="M12 6.2C9.2 6.2 7.4 4.9 8 3.6c.8-1.7 3.4-.7 4 2.6zM12 6.2c2.8 0 4.6-1.3 4-2.6-.8-1.7-3.4-.7-4 2.6z" fill="#E8322F" stroke="#A51A1A" stroke-width=".8"/></svg>Daily gift</button>
   <div class="titleCol">
     <button class="noAdsBtn" id="btnNoAds" aria-label="Remove ads"><img src="assets/ui/noads.png" alt=""/></button>
     <button class="gearBtn" id="btnGear" aria-label="Settings">
@@ -1103,6 +1119,14 @@ body.advMode #btnBack{display:block}
     <img class="eeImg" id="eeImg" alt=""/>
     <div class="gS" id="eeTxt"></div>
     <button class="btn3d green" id="btnEeOk">OK</button>
+  </div>
+</div>
+<div class="overlay" id="ovGift">
+  <div class="gpanel">
+    <div class="gT">Daily Gift</div>
+    <div class="gS" id="gfSub"></div>
+    <div class="gfRow" id="gfRow"></div>
+    <button class="btn3d green" id="btnGfClaim">Claim</button>
   </div>
 </div>
 <div class="overlay" id="ovDcIntro">
@@ -6019,8 +6043,6 @@ function update(){
 let a=[];try{a=JSON.parse(store.get('bp_lk')||'[]')}catch(e){a=[]}
 const today=dayKey();if(a.indexOf(today)<0){a.push(today);a=a.slice(-60);store.set('bp_lk',JSON.stringify(a))}
 n=0;const d=new Date();while(a.indexOf(dayKey(d))>=0){n++;d.setDate(d.getDate()-1)}
-const R=[3,7,14,30];
-if(R.indexOf(n)>=0&&store.get('bp_srw')!==today){store.set('bp_srw',today);store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+1));setTimeout(()=>toast('Day '+n+' streak! Free bomb in your next game',3600),1500)}
 refresh()}
 function refresh(){$('meStreak').textContent=n;const e=$('stN');if(e)e.textContent=Math.max(1,n)}
 return{update,refresh,get n(){return n}}})();
@@ -6310,10 +6332,26 @@ requestAnimationFrame(frameLoop);
 /* v74 : cadeau de retour — revenir apres au moins 5 h d'absence = 1 bombe offerte (1 fois par jour) ; rend vrai le « cadeau » des notifications */
 const Comeback={
 hide(){try{store.set('bp_lo',String(Date.now()))}catch(e){}},
-check(){const t=parseInt(store.get('bp_lo'))||0;if(!t||stats.games<1||Date.now()-t<5*3600000)return;
-const dk=dayKey();if(store.get('bp_cbg')===dk)return;store.set('bp_cbg',dk);
-store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+1));Fx.log('comeback_gift',{hours:Math.round((Date.now()-t)/36e5)});
-setTimeout(()=>toast('Welcome back! A free bomb is waiting in your next game',3400),1200)}};
+check(){const t=parseInt(store.get('bp_lo'))||0;if(!t||stats.games<1||Date.now()-t<24*3600000)return;
+if(store.get('bp_gd')!==dayKey()&&!store.get('bp_gwb'))store.set('bp_gwb','1')}};
+/* v76 : cadeau quotidien — bouton visible sur l'accueil tant qu'il n'est pas reclame ; montant selon la position dans la serie de 7 jours (jour 3 : 2 bombes, jour 7 : 3 bombes) ; double apres 24 h d'absence */
+const Gift=(()=>{
+const AMT=[1,1,2,1,1,1,3],ready=()=>stats.games>=1&&store.get('bp_gd')!==dayKey();
+const pos=()=>((Math.max(1,Streak.n)-1)%7);
+function amount(){return AMT[pos()]*(store.get('bp_gwb')?2:1)}
+function open(){const pp=pos(),wb=!!store.get('bp_gwb');let h='';
+for(let k=0;k<7;k++)h+='<div class="gfD'+(k<pp?' done':'')+(k===pp?' cur':'')+(AMT[k]>1?' big':'')+'">Day '+(k+1)+'<img src="assets/blocks/bomb.png" alt=""/><b>x'+AMT[k]+'</b></div>';
+$('gfRow').innerHTML=h;
+$('gfSub').textContent=(wb?'Welcome back! Your gift is doubled. ':'')+'Streak: '+Math.max(1,Streak.n)+' day'+(Streak.n>1?'s':'')+' \u2014 you get '+amount()+' free bomb'+(amount()>1?'s':'')+' today.';
+$('ovGift').classList.add('show');Fx.log('gift_open',{day:pp+1})}
+function claim(){if(!ready()){$('ovGift').classList.remove('show');return}
+const a=amount();store.set('bp_gd',dayKey());store.set('bp_gwb','');
+store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+a));
+$('ovGift').classList.remove('show');try{confetti();SFX.win();vib([20,40,20])}catch(e){}
+toast('+'+a+' free bomb'+(a>1?'s':'')+' in your next game!',2800);Fx.log('gift_claim',{amt:a,streak:Streak.n})}
+bindTap($('giftBtn'),()=>{SFX.init();SFX.tap();open()});
+bindTap($('btnGfClaim'),()=>{SFX.init();claim()});
+return{ready}})();
 const Notif=(()=>{
 const LN=()=>{const C=window.Capacitor;return C&&C.Plugins&&C.Plugins.LocalNotifications};
 const ovNotif=$('ovNotif'),IDS=Array.from({length:20},(_,k)=>41+k);
@@ -6382,7 +6420,8 @@ setTimeout(tick,600);
 bindTap($('btnEeOk'),()=>{SFX.init();$('ovEvEnd').classList.remove('show')})})();
 setInterval(()=>{try{const t=dayKey();let dn={};try{dn=JSON.parse(store.get('bp_dc')||'{}')}catch(e){}
 $('tabDaily').classList.toggle('dot',store.get('bp_dseen')!==t&&!dn[t]);
-$('btnEvent').classList.toggle('dot',store.get('bp_eseen')!==t&&Ev.hasOpen())}catch(e){}},400);
+$('btnEvent').classList.toggle('dot',store.get('bp_eseen')!==t&&Ev.hasOpen());
+$('giftBtn').classList.toggle('on',Gift.ready())}catch(e){}},400);
 try{const CapApp=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
 if(CapApp&&CapApp.addListener){
 	const r=CapApp.addListener('appStateChange',s=>onAppHidden(!(s&&s.isActive)));
