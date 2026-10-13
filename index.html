@@ -792,6 +792,16 @@ background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,r
 #btnPlay{box-shadow:0 3px 0 #0D9B74,0 9px 16px rgba(20,45,115,.4),inset 0 2px 0 rgba(255,255,255,.28)}
 #btnEvent{box-shadow:0 3px 0 #A925BF,0 9px 16px rgba(20,45,115,.4),inset 0 2px 0 rgba(255,255,255,.28)}
 #btnResetProg{background:linear-gradient(180deg,#FF6B5E,#E03B33 55%,#C42A25);box-shadow:0 4px 0 #8E1B18,0 10px 16px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.35)}
+
+/* v80 : lichette collee au coin ; cadeaux = bombe qui vole vers Classic, badge bombe en haut a droite de Classic */
+.homeBtn::after,.btn3d::after{left:3px;top:6px}
+.bmbBadge{display:none;position:absolute;top:-12px;right:-8px;width:34px;height:34px;z-index:4;pointer-events:none}
+.bmbBadge.on{display:block}
+.bmbBadge img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 2px rgba(5,15,70,.45))}
+.bmbBadge b{position:absolute;right:-6px;bottom:-4px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:99px;background:#F51004;box-shadow:0 2px 0 #9B1020;color:#fff;font:900 11px/17px 'Nunito Sans',sans-serif;text-align:center}
+.bmbBadge.pop{animation:bmbPop .45s ease-out}
+@keyframes bmbPop{0%{transform:scale(.4)}55%{transform:scale(1.3)}100%{transform:scale(1)}}
+.flyBmb{position:fixed;left:0;top:0;width:44px;height:44px;z-index:140;pointer-events:none;filter:drop-shadow(0 6px 5px rgba(5,15,70,.4))}
 </style>
 </head>
 <body>
@@ -896,7 +906,7 @@ background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,r
     <div class="titleBtns">
       <div class="advWrap"><div class="stBubble"><span class="stBody"><span class="stCr"><img src="assets/ui/crown.png" alt=""/></span><span class="stT">Streak: <b id="stN">1</b></span></span><span class="stTail"></span></div>
       <button class="homeBtn" id="btnAdv"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#fff" stroke-width="2.7"/><path d="M12 6.8V12l3.6 2.1" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Adventure</button></div>
-      <button class="homeBtn" id="btnPlay"><svg class="ico" viewBox="0 0 24 24"><path d="M3.6 12C3.6 9.8 5.4 8 7.6 8c3.2 0 5.6 8 8.8 8 2.2 0 4-1.8 4-4s-1.8-4-4-4c-3.2 0-5.6 8-8.8 8-2.2 0-4-1.8-4-4z" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg>Classic</button>
+      <button class="homeBtn" id="btnPlay"><svg class="ico" viewBox="0 0 24 24"><path d="M3.6 12C3.6 9.8 5.4 8 7.6 8c3.2 0 5.6 8 8.8 8 2.2 0 4-1.8 4-4s-1.8-4-4-4c-3.2 0-5.6 8-8.8 8-2.2 0-4-1.8-4-4z" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/></svg>Classic<span class="bmbBadge" id="bmbBadge"><img src="assets/blocks/bomb.png" alt=""/><b></b></span></button>
       <button class="homeBtn" id="btnEvent"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2.6l2.7 5.6 6.1.8-4.5 4.2 1.2 6L12 16.2 6.5 19.2l1.2-6L3.2 9l6.1-.8z" fill="#fff"/></svg>Event<i class="rdot"></i></button>
     </div>
     <button class="btn3d lav" id="btnDev" style="display:none;padding:10px;font-size:14px;width:min(76%,250px);margin-top:4vh">DEV</button>
@@ -4288,14 +4298,36 @@ b.classList.toggle('on',(mode==='classic'||mode==='adv')&&state==='playing'&&!bo
 /* v63 : cadeau de la toute première partie — une bombe offerte à 700 points (on découvre le différenciant du jeu) */
 if(mode==='classic'&&state==='playing'&&stats.games===0&&!animating&&score>=700&&!store.get('bp_gift')&&!Tut.on){store.set('bp_gift','1');giveBonusBomb('Free bomb! Drop it to blast a 3×3 area',3600)}}
 setInterval(()=>{updateBonusBtn();try{Goal.place()}catch(e){}},400);
-function giveBonusBomb(msg,dur){
+/* v80 : une bombe offerte VOLE de sa source vers Classic (accueil) ou vers le bouton visible le plus utile ; le badge de Classic apparait a l'arrivee */
+let bmbHold=false;
+function bombCredits(){return parseInt(store.get('bp_bombcr'))||0}
+function updBombBadge(pop){const b=$('bmbBadge');if(!b||bmbHold)return;const n=bombCredits();
+b.classList.toggle('on',n>0);const c=b.querySelector('b');c.style.display=n>1?'block':'none';c.textContent=n>1?n:'';
+if(pop&&n>0){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}}
+function flyBomb(r0,r1,done){const im=document.createElement('img');im.src='assets/blocks/bomb.png';im.className='flyBmb';
+const x0=r0.left+r0.width/2-22,y0=r0.top+r0.height/2-22,x1=r1.left+r1.width/2-22,y1=r1.top+r1.height/2-22,
+mx=(x0+x1)/2+(x1>x0?-30:30),my=Math.min(y0,y1)-70;
+document.body.appendChild(im);
+const a=im.animate([{transform:'translate('+x0+'px,'+y0+'px) scale(.5) rotate(-20deg)',opacity:0},
+{transform:'translate('+mx+'px,'+my+'px) scale(1.5) rotate(10deg)',opacity:1,offset:.45},
+{transform:'translate('+x1+'px,'+y1+'px) scale(.8) rotate(0deg)',opacity:1}],{duration:850,easing:'cubic-bezier(.3,.1,.3,1)',fill:'forwards'});
+a.onfinish=()=>{im.remove();done&&done()}}
+function giveBombs(n,srcEl,altTarget){
+store.set('bp_bombcr',''+(bombCredits()+n));
+const src=srcEl&&srcEl.getBoundingClientRect?srcEl.getBoundingClientRect():null;
+const home=ovTitle.classList.contains('show')&&$('btnPlay');
+const tgt=home?$('btnPlay'):(altTarget&&altTarget.offsetParent!==null?altTarget:null);
+if(!src||!tgt){updBombBadge(true);return}
+bmbHold=!!home;flyBomb(src,tgt.getBoundingClientRect(),()=>{bmbHold=false;updBombBadge(true)})}
+function giveBonusBomb(msg,dur,fromRect){
 let i=tray.findIndex(p=>!p);
 if(i<0)i=tray.findIndex(p=>p&&p.dead&&!p.bomb);
 if(i<0)i=tray.findIndex(p=>p&&!p.bomb);
 if(i<0)i=0;
-tray[i]={bomb:true,m:[[1]],si:-1,ci:2,dead:false};
-renderTray(true);computeTutHint();SFX.up();vib([12,24,12]);
-toast(msg||'Free bomb added!',dur||1800)}
+const put=()=>{if(i>=0){tray[i]={bomb:true,m:[[1]],si:-1,ci:2,dead:false};renderTray(true);computeTutHint();SFX.up();vib([12,24,12])}};
+if(msg)toast(msg,dur||1800);
+/* sans texte : la bombe arrive en volant et remplace la piece de la pioche */
+if(fromRect&&slotEls[i]){const tr=slotEls[i].getBoundingClientRect();slotCvs[i].style.visibility='hidden';flyBomb(fromRect,tr,()=>{slotCvs[i].style.visibility='';put()})}else put()}
 let reviveAds=0,rvTimers=[],rvAnim=null,goTok=0;
 /* revive si : score ≥ 2000 ET < 3 revives regardées dans CETTE partie.
    v58 : autorisé AUSSI pendant un run record — c'est le moment de plus
@@ -5632,7 +5664,7 @@ if(rec)Rec.show(showStats);else showPlacedAd(showStats)}
 function refreshTitle(){Daily.refreshCount()}
 /* v55 : liaisons — les pubs ne passent QUE par restartWithAd (Restart) et
    l'offre Revive ; Home, Classic, carte, Next Level, victoire : aucune pub */
-bindTap($('btnPlay'),()=>{SFX.init();playGate(newGame)});
+bindTap($('btnPlay'),()=>{SFX.init();try{window.__clsRect=$('btnPlay').getBoundingClientRect()}catch(e){}playGate(newGame)});
 bindTap($('btnAdv'),()=>{SFX.init();openMap()});
 bindTap($('btnGear'),()=>{openPause('home')});
 bindTap($('btnAchBack'),()=>{closeAch()});
@@ -5647,7 +5679,7 @@ bindTap($('btnFailRev'),()=>{if(state!=='over'||Ads.busy)return;try{Fx.log('rewa
 bindTap($('btnRetry'),()=>{SFX.init();restartWithAd(()=>startLevel(advLevel,curCustom))});
 bindTap($('btnFailMap'),()=>{SFX.init();state='title';if(dailyDay){dailyDay=null;hideAllOv();Tabs.show('daily')}else openMap()});
 bindTap($('btnGoGift'),()=>{if(state!=='over'||Ads.busy)return;Fx.log('rewarded_offer',{where:'gameover_gift'});
-Ads.showRewarded(earned=>{if(earned){store.set('bp_ggd_'+dayKey(),'1');store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+1));$('btnGoGift').classList.remove('on');toast('A free bomb is waiting in your next game!',2600)}else toast('No ad available right now',1600)})});
+Ads.showRewarded(earned=>{if(earned){store.set('bp_ggd_'+dayKey(),'1');giveBombs(1,$('btnGoGift'),$('btnAgain'));$('btnGoGift').classList.remove('on')}else toast('No ad available right now',1600)})});
 bindTap($('btnAgain'),()=>{SFX.init();if(state==='over')restartWithAd(newGame)});
 bindTap($('btnMenu'),()=>{SFX.init();goHome()});
 /* Revive : pub récompensée ; la récompense seule décide du revive */
@@ -6088,7 +6120,7 @@ function go(){
 ovGoal.classList.remove('show');if(state!=='intro')return;
 state='playing';gameStart=performance.now();Ads.showBanner();hud();Fx.log('game_start',{goal:val});
 const cr=parseInt(store.get('bp_bombcr'))||0;
-if(cr>0){store.set('bp_bombcr',''+(cr-1));giveBonusBomb('Streak reward: free bomb!',2800)}
+if(cr>0){store.set('bp_bombcr',''+(cr-1));giveBonusBomb(null,0,window.__clsRect||null)}
 computeTutHint()}
 function settle(){
 if(mode!=='classic'||val<=0)return;
@@ -6384,7 +6416,7 @@ function play(id){const e=active().find(x=>x.th.id===id);if(!e)return;const done
 function playNext(){const th=T.find(t=>t.id===lvl.evId),k=lvl.k+1;if(th&&k<NL)startLevel(k,levelsOf(th,lvl.evKey)[k])}
 function complete(){const o=st();let rwd=0;o[lvl.evKey]=Math.max(o[lvl.evKey]||0,lvl.k+1);
 const keep=active().map(e=>e.key);Object.keys(o).forEach(k=>{if(keep.indexOf(k)<0)delete o[k]});store.set('bp_ev2',JSON.stringify(o));
-const r=REW[o[lvl.evKey]];rwd=r||0;if(r){store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+r));setTimeout(()=>toast('Reward: '+r+' free bomb'+(r>1?'s':'')+' in your next game!',3200),900)}
+const r=REW[o[lvl.evKey]];rwd=r||0;if(r){store.set('bp_bombcr',''+(bombCredits()+r))}
 Fx.log('event_level',{id:lvl.evId,k:lvl.k+1});return rwd}
 function hasNext(){return !!(lvl&&lvl.ev&&lvl.k+1<NL)}
 function hasOpen(){const o=st();return active().some(e=>(o[e.key]||0)<NL)}
@@ -6438,9 +6470,9 @@ $('gfSub').textContent=(wb?'Welcome back! Your gift is doubled \u2014 ':'')+'Tod
 $('ovGift').classList.add('show');Fx.log('gift_open',{day:pp+1})}
 function claim(){if(!ready()){$('ovGift').classList.remove('show');return}
 const a=amount();store.set('bp_gd',dayKey());store.set('bp_gwb','');
-store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+a));
+const srcEl=$('btnGfClaim');
 $('ovGift').classList.remove('show');try{confetti();SFX.win();vib([20,40,20])}catch(e){}
-toast('+'+a+' free bomb'+(a>1?'s':'')+' in your next game!',2800);Fx.log('gift_claim',{amt:a,streak:Streak.n})}
+giveBombs(a,srcEl);Fx.log('gift_claim',{amt:a,streak:Streak.n})}
 bindTap($('giftBtn'),()=>{SFX.init();SFX.tap();open()});
 bindTap($('btnGfClaim'),()=>{SFX.init();claim()});
 bindTap($('btnGfX'),()=>{SFX.init();SFX.tap();$('ovGift').classList.remove('show')});
@@ -6490,7 +6522,7 @@ function answer(yes){
 ovNotif.classList.remove('show');const s=st();s.asks=(s.asks||0)+1;s.at=Date.now();
 if(!yes){s.state='later';save(s);return}
 const p=LN();if(!p){save(s);return}
-p.requestPermissions().then(r=>{s.state=(r&&r.display==='granted')?'granted':'denied';save(s);Fx.log('notif_permission',{result:s.state});if(s.state==='granted'){schedule();store.set('bp_bombcr',''+((parseInt(store.get('bp_bombcr'))||0)+1));toast('Thanks! A free bomb is waiting in your next game',3000)}}).catch(()=>{save(s)})}
+p.requestPermissions().then(r=>{s.state=(r&&r.display==='granted')?'granted':'denied';save(s);Fx.log('notif_permission',{result:s.state});if(s.state==='granted'){schedule();giveBombs(1,$('btnNotifYes'),$('btnAgain')||$('btnNext')||$('btnWinBack'))}}).catch(()=>{save(s)})}
 bindTap($('btnNotifYes'),()=>answer(true));
 bindTap($('btnNotifNo'),()=>answer(false));
 return {schedule,cancel,ask,visible:()=>ovNotif.classList.contains('show'),dismiss:()=>answer(false)}})();
@@ -6514,7 +6546,7 @@ bindTap($('btnEeOk'),()=>{SFX.init();$('ovEvEnd').classList.remove('show')})})()
 setInterval(()=>{try{const t=dayKey();let dn={};try{dn=JSON.parse(store.get('bp_dc')||'{}')}catch(e){}
 $('tabDaily').classList.toggle('dot',store.get('bp_dseen')!==t&&!dn[t]);
 $('btnEvent').classList.toggle('dot',store.get('bp_eseen')!==t&&Ev.hasOpen());
-$('giftBtn').classList.toggle('on',Gift.ready());
+$('giftBtn').classList.toggle('on',Gift.ready());updBombBadge();
 const bb=document.querySelector('.stBubble');if(bb){const w=bb.offsetWidth;if(w&&bb.dataset.w!==String(w)){bb.dataset.w=w;bb.style.setProperty('--bw',w+'px')}}}catch(e){}},400);
 try{const CapApp=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
 if(CapApp&&CapApp.addListener){
