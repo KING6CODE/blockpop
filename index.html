@@ -791,7 +791,6 @@ background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,r
 #btnAdv{box-shadow:0 3px 0 #C7790E,0 9px 16px rgba(20,45,115,.4),inset 0 2px 0 rgba(255,255,255,.28)}
 #btnPlay{box-shadow:0 3px 0 #0D9B74,0 9px 16px rgba(20,45,115,.4),inset 0 2px 0 rgba(255,255,255,.28)}
 #btnEvent{box-shadow:0 3px 0 #A925BF,0 9px 16px rgba(20,45,115,.4),inset 0 2px 0 rgba(255,255,255,.28)}
-#btnResetProg{background:linear-gradient(180deg,#FF6B5E,#E03B33 55%,#C42A25);box-shadow:0 4px 0 #8E1B18,0 10px 16px rgba(10,20,64,.28),inset 0 2px 0 rgba(255,255,255,.35)}
 
 /* v80 : lichette collee au coin ; cadeaux = bombe qui vole vers Classic, badge bombe en haut a droite de Classic */
 .homeBtn::after,.btn3d::after{left:3px;top:6px}
@@ -1106,7 +1105,6 @@ background:linear-gradient(90deg,rgba(255,226,246,0),rgba(255,251,254,.96) 50%,r
         <div class="sepLine"></div>
         <button class="btn3d green" id="btnSetMedal"><svg class="ico" viewBox="3.2 0.8 17.6 21.4"><path d="M6.8 1.8h3.6l1.6 4.4 1.6-4.4h3.6l-3.2 8.2a6.4 6.4 0 0 0-4 0z"/><path fill-rule="evenodd" d="M12 9.4a5.9 5.9 0 1 0 0 11.8 5.9 5.9 0 0 0 0-11.8zM12 12l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3z"/></svg>Medal</button>
         <button class="btn3d lav" id="btnMoreSet"><svg class="ico" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.95a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84c-.24 0-.43.17-.47.4l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.95a.49.49 0 0 0-.59.22L2.63 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.95c.5.38 1.03.7 1.62.94l.36 2.54c.05.23.24.4.48.4h3.84c.24 0 .44-.17.48-.4l.36-2.54a7.03 7.03 0 0 0 1.62-.94l2.39.95c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>More Settings</button>
-        <button class="btn3d" id="btnResetProg" style="margin-top:12px">Reset progress (temporary)</button>
         <div id="setGame">
           <div class="sepLine"></div>
           <div class="setGrid">
@@ -4116,13 +4114,13 @@ bonusBombAd:false,         /* v81 : plus de pub volontaire pour une bombe bonus 
 bannerInAdventure:true    /* bannière aussi pendant les niveaux Aventure (gameplay) */
 };
 /* v73 : reglages a distance — remote.json (depot public) borne et applique au demarrage ; hors-ligne : derniere valeur connue, sinon defauts */
-const RC={interEvery:1};
+const RC={interEvery:1,iapPromo:1};
 (function(){const clampN=(v,a,b,d)=>{v=+v;return isFinite(v)?Math.min(b,Math.max(a,v)):d};
 const apply=o=>{if(!o||typeof o!=='object')return;
 AD_CONFIG.restartCooldownMs=clampN(o.cooldownSec*1000,0,180000,AD_CONFIG.restartCooldownMs);
 AD_CONFIG.firstAdAfterGames=clampN(o.firstAdAfterGames,0,6,AD_CONFIG.firstAdAfterGames);
 AD_CONFIG.youngHours=clampN(o.youngHours,0,72,AD_CONFIG.youngHours);
-RC.interEvery=clampN(o.interEvery,1,6,1)};
+RC.interEvery=clampN(o.interEvery,1,6,1);RC.iapPromo=o.iapPromo===0?0:1};
 try{apply(JSON.parse(localStorage.getItem('bp_rc')||'null'))}catch(e){}
 try{const c=new AbortController(),t=setTimeout(()=>c.abort(),5000);
 fetch('https://raw.githubusercontent.com/KING6CODE/blockpop/main/remote.json?'+Math.floor(Date.now()/36e5),{signal:c.signal,cache:'no-store'})
@@ -5672,7 +5670,7 @@ setTimeout(tick,28)};
 setTimeout(tick,350);
 updateMedalDot();
 {const gg=$('btnGoGift');if(gg)gg.classList.toggle('on',rewardAllowed()&&!store.get('bp_ggd_'+dayKey()));}
-setTimeout(()=>{if(rec&&Rate.maybe())return;Notif.ask()},1400)};
+setTimeout(()=>{if(rec&&Rate.maybe())return;Notif.ask();setTimeout(()=>{try{Iap.promo()}catch(e){}},900)},1400)};
 if(rec)Rec.show(showStats);else showPlacedAd(showStats)}
 function refreshTitle(){Daily.refreshCount()}
 /* v55 : liaisons — les pubs ne passent QUE par restartWithAd (Restart) et
@@ -5774,14 +5772,6 @@ store.set('bp_best',best);
 bestVal.textContent=best;
  $('devBest').textContent=best;
 refreshTitle()}
-/* v79 : remise a zero provisoire — double appui obligatoire ; efface toute la sauvegarde locale sauf l'achat « sans pub » */
-(function(){const b=$('btnResetProg');let t=null;
-bindTap(b,()=>{if(!t){b.textContent='Tap again to erase everything';t=setTimeout(()=>{t=null;b.textContent='Reset progress (temporary)'},4000);return}
-clearTimeout(t);t=null;
-try{const keep=localStorage.getItem('bp_noads'),ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));
-ks.forEach(k=>{if(k&&k.indexOf('bp_')===0&&k!=='bp_noads')localStorage.removeItem(k)})}catch(e){}
-try{Notif.cancel()}catch(e){}
-b.textContent='Done — restarting…';setTimeout(()=>location.reload(),400)})})();
 bindTap($('btnDev'),()=>{
 const p=$('devPanel');
 p.style.display=p.style.display==='block'?'none':'block';
@@ -6284,7 +6274,11 @@ bindTap($('meNoAds'),()=>{SFX.init();open()});
 bindTap($('btnIapBuy'),()=>{SFX.init();buy()});
 bindTap($('btnIapClose'),()=>{SFX.init();ovIap.classList.remove('show')});
 init();
-return{init,open,paint}})();
+/* v83 : proposition douce apres les parties 6, 14 et 28 (une seule fois chacune), jamais par-dessus la note ou la demande de notifications */
+function promo(){const g=stats.games;if(noAds()||RC.iapPromo===0||[6,14,28].indexOf(g)<0||store.get('bp_ipr'+g))return;
+if(state!=='over'||Notif.visible()||$('ovRate').classList.contains('show')||$('ovRecord').classList.contains('show'))return;
+store.set('bp_ipr'+g,'1');open();Fx.log('iap_promo',{games:g})}
+return{init,open,paint,promo}})();
 /* ---------- v67.3 : puzzle de blocs (QI) — pieces a glisser dans une silhouette ; chaque puzzle est decoupe depuis la silhouette, donc toujours solvable ---------- */
 const IQ=(()=>{
 const SHAPES_T=[
@@ -6548,6 +6542,13 @@ function onAppHidden(h){
 	if(SFX.ctx){try{const p=h?SFX.ctx.suspend():SFX.ctx.resume();if(p&&p.catch)p.catch(()=>{})}catch(e){}}}
 document.addEventListener('visibilitychange',()=>onAppHidden(document.hidden));
 setTimeout(()=>Comeback.check(),2500);
+/* v83 : invitation a mettre a jour — 1re fois : mise a jour souple en arriere-plan ; si l'ancienne version a plus de 3 jours : fenetre Google Play plein ecran */
+(function(){const C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.AppUpdate;if(!P||!IS_NATIVE)return;
+try{P.addListener('onFlexibleUpdateStateChange',st=>{if(st&&st.installStatus===11){Fx.log('update_downloaded',{});P.completeFlexibleUpdate().catch(()=>{})}}).catch(()=>{})}catch(e){}
+setTimeout(async()=>{try{const i=await P.getAppUpdateInfo();if(!i||i.updateAvailability!==2)return;
+Fx.log('update_available',{avail:String(i.availableVersionCode||''),days:i.clientVersionStalenessDays||0});
+if(i.immediateUpdateAllowed&&(i.clientVersionStalenessDays||0)>=3)await P.performImmediateUpdate();
+else if(i.flexibleUpdateAllowed)await P.startFlexibleUpdate()}catch(e){}},7000)})();
 /* v75 : ouverture festive (confettis, une fois par lancement), pastilles rouges Daily/Event tant qu'on n'y est pas alle aujourd'hui, annonce d'evenement termine */
 (function(){const ovLoadEl=$('ovLoad'),endEv=Ev.checkEnded();let tries=0,done=false;
 const tick=()=>{if(++tries>60)return;
